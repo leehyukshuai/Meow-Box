@@ -154,14 +154,22 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void OnAutostartChanged(object sender, RoutedEventArgs e)
+    private async void OnAutostartChanged(object sender, RoutedEventArgs e)
     {
         if (_isLoading)
         {
             return;
         }
 
-        Controller.SetAutostart(AutostartToggleSwitch.IsOn);
+        try
+        {
+            Controller.SetAutostart(AutostartToggleSwitch.IsOn);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("Could not change startup behavior", exception.Message);
+            SyncState();
+        }
     }
 
     private void OnTrayIconChanged(object sender, RoutedEventArgs e)

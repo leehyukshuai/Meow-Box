@@ -4,11 +4,11 @@ namespace FnMappingTool.Controller.Services;
 
 public sealed class WorkerProcessService
 {
-    public string WorkerExecutablePath => EnumerateWorkerExecutableCandidates().First();
+    public string WorkerExecutablePath => ResolveWorkerExecutablePath() ?? EnumerateWorkerExecutableCandidates().First();
 
     public bool IsWorkerInstalled()
     {
-        return EnumerateWorkerExecutableCandidates().Any(File.Exists);
+        return ResolveWorkerExecutablePath() is not null;
     }
 
     public bool IsWorkerProcessRunning()
@@ -23,7 +23,7 @@ public sealed class WorkerProcessService
             return false;
         }
 
-        var workerExecutablePath = EnumerateWorkerExecutableCandidates().FirstOrDefault(File.Exists);
+        var workerExecutablePath = ResolveWorkerExecutablePath();
         if (string.IsNullOrWhiteSpace(workerExecutablePath))
         {
             return false;
@@ -44,6 +44,11 @@ public sealed class WorkerProcessService
         });
 
         return process is not null;
+    }
+
+    public string? ResolveWorkerExecutablePath()
+    {
+        return EnumerateWorkerExecutableCandidates().FirstOrDefault(File.Exists);
     }
 
     private static IEnumerable<string> EnumerateWorkerExecutableCandidates()

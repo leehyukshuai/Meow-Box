@@ -397,7 +397,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public void SetAutostart(bool enabled)
     {
-        _autostartService.SetEnabled(enabled, _workerProcessService.WorkerExecutablePath);
+        var workerExecutablePath = enabled
+            ? _workerProcessService.ResolveWorkerExecutablePath()
+            : _workerProcessService.WorkerExecutablePath;
+
+        _autostartService.SetEnabled(enabled, workerExecutablePath ?? string.Empty);
         RefreshAutostartState();
     }
 
