@@ -80,6 +80,7 @@ public sealed partial class MappingsPage : Page
     private void OnMappingReferenceChanged(object sender, SelectionChangedEventArgs e)
     {
         Controller.RefreshMappingReferences();
+        TrySaveMappingAsync();
     }
 
     private async void OnPickInstalledAppClick(object sender, RoutedEventArgs e)
@@ -94,6 +95,7 @@ public sealed partial class MappingsPage : Page
         if (result == ContentDialogResult.Primary && dialog.SelectedApp is not null && Controller.SelectedMapping is not null)
         {
             Controller.SelectedMapping.Action.Target = dialog.SelectedApp.LaunchTarget;
+            TrySaveMappingAsync();
         }
     }
 
@@ -103,6 +105,7 @@ public sealed partial class MappingsPage : Page
         if (!string.IsNullOrWhiteSpace(path) && Controller.SelectedMapping is not null)
         {
             Controller.SelectedMapping.Action.Target = path;
+            TrySaveMappingAsync();
         }
     }
 
@@ -124,18 +127,7 @@ public sealed partial class MappingsPage : Page
         }
 
         Controller.SetSelectedActionType(dialog.SelectedAction.Key);
-    }
-
-    private async void OnSaveMappingClick(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            Controller.SaveSelectedMapping();
-        }
-        catch (Exception exception)
-        {
-            await ShowMessageAsync("Could not save mapping", exception.Message);
-        }
+        TrySaveMappingAsync();
     }
 
     private async void OnDeleteMappingClick(object sender, RoutedEventArgs e)
@@ -196,5 +188,32 @@ public sealed partial class MappingsPage : Page
         };
 
         await dialog.ShowAsync();
+    }
+
+    private void OnMappingEditorLostFocus(object sender, RoutedEventArgs e)
+    {
+        TrySaveMappingAsync();
+    }
+
+    private void OnMappingEditorSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        TrySaveMappingAsync();
+    }
+
+    private async void TrySaveMappingAsync()
+    {
+        if (Controller.SelectedMapping is null)
+        {
+            return;
+        }
+
+        try
+        {
+            Controller.SaveSelectedMapping();
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("Could not save mapping", exception.Message);
+        }
     }
 }

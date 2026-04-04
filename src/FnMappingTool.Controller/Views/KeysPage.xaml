@@ -88,14 +88,31 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key details" />
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key details" />
+
+                        <Button
+                            Grid.Column="1"
+                            Click="OnDeleteKeyClick"
+                            Style="{StaticResource SubtleButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
+                                <TextBlock Text="Delete" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
 
                     <TextBox
                         Grid.Row="1"
                         Header="Name"
+                        LostFocus="OnKeyNameLostFocus"
                         PlaceholderText="Key name"
                         Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -108,22 +125,6 @@
                         MinHeight="240"
                         Text="{Binding SelectedKey.TriggerDetails, Mode=OneWay}"
                         TextWrapping="Wrap" />
-
-                    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
-                        <Button Click="OnSaveKeyClick" Style="{StaticResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
-                                <TextBlock Text="Save" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button Click="OnDeleteKeyClick" Style="{StaticResource SubtleButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
-                                <TextBlock Text="Delete" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>

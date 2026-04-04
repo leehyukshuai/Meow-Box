@@ -41,8 +41,13 @@ public sealed partial class KeysPage : Page
         }
     }
 
-    private async void OnSaveKeyClick(object sender, RoutedEventArgs e)
+    private async void OnKeyNameLostFocus(object sender, RoutedEventArgs e)
     {
+        if (Controller.SelectedKey is null)
+        {
+            return;
+        }
+
         try
         {
             Controller.SaveSelectedKey();
