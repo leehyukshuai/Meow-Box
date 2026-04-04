@@ -117,7 +117,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public string ConfigPath => _configService.ConfigPath;
 
-    public string OsdIconDirectory => Path.Combine(_configService.ConfigDirectory, "osd-icons");
+    public string OsdIconDirectory => OsdIconPathResolver.GetOsdIconDirectory(_configService.ConfigDirectory);
 
     public int OsdDurationMs
     {

@@ -35,23 +35,26 @@ public sealed partial class MappingsPage : Page
         OsdIconFiles.Add(new OsdIconFileEntry
         {
             DisplayName = "No icon",
-            Path = string.Empty
+            RelativePath = string.Empty
         });
 
         Directory.CreateDirectory(Controller.OsdIconDirectory);
-        foreach (var file in Directory.GetFiles(Controller.OsdIconDirectory, "*.png", SearchOption.TopDirectoryOnly)
-                     .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
+        foreach (var file in Directory.GetFiles(Controller.OsdIconDirectory, "*.png", SearchOption.AllDirectories)
+                     .OrderBy(
+                         static file => Path.GetRelativePath(App.Controller.OsdIconDirectory, file),
+                         StringComparer.OrdinalIgnoreCase))
         {
+            var relativePath = Path.GetRelativePath(Controller.OsdIconDirectory, file);
             OsdIconFiles.Add(new OsdIconFileEntry
             {
-                DisplayName = Path.GetFileNameWithoutExtension(file),
-                Path = file
+                DisplayName = Path.ChangeExtension(relativePath, null) ?? relativePath,
+                RelativePath = relativePath
             });
         }
 
         OsdIconComboBox.ItemsSource = OsdIconFiles;
         OsdIconComboBox.SelectedItem = OsdIconFiles.FirstOrDefault(item =>
-            string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase))
+            string.Equals(item.RelativePath, selectedPath, StringComparison.OrdinalIgnoreCase))
             ?? OsdIconFiles.FirstOrDefault();
     }
 

@@ -162,7 +162,7 @@
                 "Type": "ShowOsd",
                 "OsdIcon": {
                     "Mode": "CustomFile",
-                    "Path": "..\\osd\\fn-lock.png"
+                    "Path": "fn-lock.png"
                 },
                 "OsdTitle": "Fn lock on"
             }
@@ -176,7 +176,7 @@
                 "Type": "ShowOsd",
                 "OsdIcon": {
                     "Mode": "CustomFile",
-                    "Path": "..\\osd\\fn-unlock.png"
+                    "Path": "fn-unlock.png"
                 },
                 "OsdTitle": "Fn lock off"
             }
@@ -275,7 +275,7 @@
                 "OsdTitle": "Backlight off",
                 "OsdIcon": {
                     "Mode": "CustomFile",
-                    "Path": "..\\osd\\backlight-off.png"
+                    "Path": "backlight-off.png"
                 }
             }
         },
@@ -289,7 +289,7 @@
                 "OsdTitle": "Backlight level 1",
                 "OsdIcon": {
                     "Mode": "CustomFile",
-                    "Path": "..\\osd\\backlight-level1.png"
+                    "Path": "backlight-level1.png"
                 }
             }
         },
@@ -303,7 +303,7 @@
                 "OsdTitle": "Backlight level 2",
                 "OsdIcon": {
                     "Mode": "CustomFile",
-                    "Path": "..\\osd\\backlight-level2.png"
+                    "Path": "backlight-level2.png"
                 }
             }
         },
@@ -317,7 +317,7 @@
                 "OsdTitle": "Backlight auto",
                 "OsdIcon": {
                     "Mode": "CustomFile",
-                    "Path": "..\\osd\\backlight-auto.png"
+                    "Path": "backlight-auto.png"
                 }
             }
         },

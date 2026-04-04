@@ -184,15 +184,8 @@ public sealed class AppConfigService
 
     private static IconConfiguration NormalizeIcon(IconConfiguration? icon, string? baseDirectory)
     {
-        var path = NormalizeOptional(icon?.Path);
-        if (!string.IsNullOrWhiteSpace(path) &&
-            !Path.IsPathRooted(path) &&
-            !string.IsNullOrWhiteSpace(baseDirectory))
-        {
-            path = Path.GetFullPath(Path.Combine(baseDirectory, path));
-        }
-
-        var isPng = !string.IsNullOrWhiteSpace(path) && string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase);
+        var path = OsdIconPathResolver.NormalizeConfigPath(icon?.Path, baseDirectory);
+        var isPng = !string.IsNullOrWhiteSpace(path);
 
         return new IconConfiguration
         {
@@ -275,7 +268,7 @@ public sealed class AppConfigService
             OsdIcon = new IconConfiguration
             {
                 Mode = IconSourceMode.CustomFile,
-                Path = BuiltInAssetResolver.ResolveOsdAssetPath(assetKey)
+                Path = assetKey + ".png"
             }
         };
     }

@@ -241,7 +241,7 @@
                                         DisplayMemberPath="DisplayName"
                                         Header="Icon"
                                         SelectedValue="{Binding SelectedMapping.Action.OsdIconPath, Mode=TwoWay}"
-                                        SelectedValuePath="Path" />
+                                        SelectedValuePath="RelativePath" />
 
                                     <TextBlock
                                         Style="{StaticResource CardBodyTextBlockStyle}"
