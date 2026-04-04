@@ -74,10 +74,7 @@ public sealed class AppConfigService
 
     private static AppConfiguration CreateDefaultConfiguration()
     {
-        var configuration = AppConfiguration.CreateDefault();
-        configuration.Keys = CreateDefaultKeys();
-        configuration.Mappings = CreateDefaultMappings();
-        return NormalizeConfiguration(configuration, baseDirectory: null);
+        return NormalizeConfiguration(AppConfiguration.CreateDefault(), baseDirectory: null);
     }
 
     private static AppConfiguration NormalizeConfiguration(AppConfiguration? configuration, string? baseDirectory)
@@ -191,85 +188,6 @@ public sealed class AppConfigService
         {
             Mode = isPng ? IconSourceMode.CustomFile : IconSourceMode.None,
             Path = isPng ? path : null
-        };
-    }
-
-    private static List<KeyDefinitionConfiguration> CreateDefaultKeys()
-    {
-        return
-        [
-            new() { Id = DefaultKeyIds.FnLockOn, Name = "Fn Lock On", Trigger = Wmi("HID_EVENT20", true, "01-07-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.FnLockOff, Name = "Fn Lock Off", Trigger = Wmi("HID_EVENT20", true, "01-07-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.MicrophoneMuteOn, Name = "Microphone Mute On", Trigger = Wmi("HID_EVENT20", true, "01-21-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.MicrophoneMuteOff, Name = "Microphone Mute Off", Trigger = Wmi("HID_EVENT20", true, "01-21-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.XiaoAiPress, Name = "XiaoAi Press", Trigger = Wmi("HID_EVENT20", true, "01-23-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.XiaoAiRelease, Name = "XiaoAi Release", Trigger = Wmi("HID_EVENT20", true, "01-24-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.SettingsPress, Name = "Settings Press", Trigger = Wmi("HID_EVENT20", true, "01-1B-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.ManagerPress, Name = "Manager Press", Trigger = Wmi("HID_EVENT20", true, "01-25-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.ManagerRelease, Name = "Manager Release", Trigger = Wmi("HID_EVENT20", true, "01-26-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.BacklightOff, Name = "Backlight Off", Trigger = Wmi("HID_EVENT20", true, "01-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.BacklightLevel1, Name = "Backlight Level 1", Trigger = Wmi("HID_EVENT20", true, "01-05-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.BacklightLevel2, Name = "Backlight Level 2", Trigger = Wmi("HID_EVENT20", true, "01-05-0A-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.BacklightAuto, Name = "Backlight Auto", Trigger = Wmi("HID_EVENT20", true, "01-05-80-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") },
-            new() { Id = DefaultKeyIds.Projection, Name = "Projection UI", Trigger = Wmi("HID_EVENT20", true, "01-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") }
-        ];
-    }
-
-    private static List<KeyActionMappingConfiguration> CreateDefaultMappings()
-    {
-        return
-        [
-            CreateMapping("mapping-fn-lock-on", "Fn Lock On", DefaultKeyIds.FnLockOn, CreateOsdAction("Fn lock on", BuiltInOsdAsset.FnLock)),
-            CreateMapping("mapping-fn-lock-off", "Fn Lock Off", DefaultKeyIds.FnLockOff, CreateOsdAction("Fn lock off", BuiltInOsdAsset.FnUnlock)),
-            CreateMapping("mapping-mic-on", "Microphone Mute On", DefaultKeyIds.MicrophoneMuteOn, new ActionDefinitionConfiguration { Type = HotkeyActionType.MicrophoneMuteOn }),
-            CreateMapping("mapping-mic-off", "Microphone Mute Off", DefaultKeyIds.MicrophoneMuteOff, new ActionDefinitionConfiguration { Type = HotkeyActionType.MicrophoneMuteOff }),
-            CreateMapping("mapping-xiaoai-press", "XiaoAi Press", DefaultKeyIds.XiaoAiPress, new ActionDefinitionConfiguration { Type = HotkeyActionType.None }),
-            CreateMapping("mapping-xiaoai-release", "XiaoAi Release", DefaultKeyIds.XiaoAiRelease, new ActionDefinitionConfiguration { Type = HotkeyActionType.None }),
-            CreateMapping("mapping-settings", "Settings Press", DefaultKeyIds.SettingsPress, new ActionDefinitionConfiguration { Type = HotkeyActionType.OpenSettings }),
-            CreateMapping("mapping-manager-press", "Manager Press", DefaultKeyIds.ManagerPress, new ActionDefinitionConfiguration { Type = HotkeyActionType.None }),
-            CreateMapping("mapping-manager-release", "Manager Release", DefaultKeyIds.ManagerRelease, new ActionDefinitionConfiguration { Type = HotkeyActionType.None }),
-            CreateMapping("mapping-backlight-off", "Backlight Off", DefaultKeyIds.BacklightOff, CreateOsdAction("Backlight off", BuiltInOsdAsset.BacklightOff)),
-            CreateMapping("mapping-backlight-level1", "Backlight Level 1", DefaultKeyIds.BacklightLevel1, CreateOsdAction("Backlight level 1", BuiltInOsdAsset.BacklightLevel1)),
-            CreateMapping("mapping-backlight-level2", "Backlight Level 2", DefaultKeyIds.BacklightLevel2, CreateOsdAction("Backlight level 2", BuiltInOsdAsset.BacklightLevel2)),
-            CreateMapping("mapping-backlight-auto", "Backlight Auto", DefaultKeyIds.BacklightAuto, CreateOsdAction("Backlight auto", BuiltInOsdAsset.BacklightAuto)),
-            CreateMapping("mapping-projection", "Projection UI", DefaultKeyIds.Projection, new ActionDefinitionConfiguration { Type = HotkeyActionType.OpenProjection })
-        ];
-    }
-
-    private static KeyActionMappingConfiguration CreateMapping(string id, string keyName, string keyId, ActionDefinitionConfiguration action)
-    {
-        return new KeyActionMappingConfiguration
-        {
-            Id = id,
-            Name = DescribeMapping(keyName, action.Type),
-            Enabled = true,
-            KeyId = keyId,
-            Action = NormalizeAction(action, baseDirectory: null)
-        };
-    }
-
-    private static EventMatcherConfiguration Wmi(string className, bool active, string reportHex)
-    {
-        return new EventMatcherConfiguration
-        {
-            Source = InputSourceKind.Wmi,
-            WmiClassName = className,
-            WmiActive = active,
-            ReportHex = reportHex
-        };
-    }
-
-    private static ActionDefinitionConfiguration CreateOsdAction(string title, string assetKey)
-    {
-        return new ActionDefinitionConfiguration
-        {
-            Type = HotkeyActionType.ShowOsd,
-            OsdTitle = title,
-            OsdIcon = new IconConfiguration
-            {
-                Mode = IconSourceMode.CustomFile,
-                Path = assetKey + ".png"
-            }
         };
     }
 
