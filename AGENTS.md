@@ -180,6 +180,8 @@ If you change packaging paths, update:
 - avoid decorative UI without function
 - avoid exposing implementation details to normal users
 - prefer native/system-feeling interaction over flashy custom styling
+- when a requested change naturally suggests a small adjacent polish or fix that is low-risk and clearly improves usability or consistency, do it directly
+- do not stop to ask for confirmation on obvious follow-up polish unless the user explicitly asks for strict scope only or the change has non-obvious tradeoffs
 
 ### Layout
 

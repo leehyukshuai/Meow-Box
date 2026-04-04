@@ -80,25 +80,18 @@
                     <StackPanel
                         x:Name="KeysEmptyStatePanel"
                         Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="8"
+                        Style="{StaticResource EmptyStatePanelStyle}"
                         Visibility="Collapsed">
                         <FontIcon
-                            HorizontalAlignment="Center"
                             FontFamily="Segoe Fluent Icons"
-                            FontSize="24"
+                            Style="{StaticResource EmptyStateIconStyle}"
                             Glyph="&#xE765;" />
                         <TextBlock
-                            HorizontalAlignment="Center"
-                            Style="{StaticResource CardTitleTextBlockStyle}"
+                            Style="{StaticResource EmptyStateTitleTextBlockStyle}"
                             Text="No keys yet" />
                         <TextBlock
-                            HorizontalAlignment="Center"
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="Capture a key to get started."
-                            TextAlignment="Center"
-                            TextWrapping="WrapWholeWords" />
+                            Style="{StaticResource EmptyStateBodyTextBlockStyle}"
+                            Text="Capture a key to get started." />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -156,25 +149,18 @@
 
                     <StackPanel
                         x:Name="KeyDetailsEmptyStatePanel"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="8"
+                        Style="{StaticResource EmptyStatePanelStyle}"
                         Visibility="Collapsed">
                         <FontIcon
-                            HorizontalAlignment="Center"
                             FontFamily="Segoe Fluent Icons"
-                            FontSize="24"
+                            Style="{StaticResource EmptyStateIconStyle}"
                             Glyph="&#xE8FD;" />
                         <TextBlock
-                            HorizontalAlignment="Center"
-                            Style="{StaticResource CardTitleTextBlockStyle}"
+                            Style="{StaticResource EmptyStateTitleTextBlockStyle}"
                             Text="No key selected" />
                         <TextBlock
-                            HorizontalAlignment="Center"
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="Pick a key from the list or capture a new one."
-                            TextAlignment="Center"
-                            TextWrapping="WrapWholeWords" />
+                            Style="{StaticResource EmptyStateBodyTextBlockStyle}"
+                            Text="Pick a key from the list or capture a new one." />
                     </StackPanel>
                 </Grid>
             </Border>
