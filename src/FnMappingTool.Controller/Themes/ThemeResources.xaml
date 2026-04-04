@@ -6,14 +6,23 @@
         <ResourceDictionary x:Key="Light">
             <Color x:Key="AppButtonBackgroundPointerOverColor">#FFF1F3F5</Color>
             <Color x:Key="AppButtonBorderPointerOverColor">#FFD0D7DE</Color>
+            <Color x:Key="DangerButtonBackgroundColor">#FFF8F2F2</Color>
+            <Color x:Key="DangerButtonBorderColor">#FFE6C9C9</Color>
+            <Color x:Key="DangerButtonForegroundColor">#FF8B3A3A</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <Color x:Key="AppButtonBackgroundPointerOverColor">#1AFFFFFF</Color>
             <Color x:Key="AppButtonBorderPointerOverColor">#33FFFFFF</Color>
+            <Color x:Key="DangerButtonBackgroundColor">#14FFB3B3</Color>
+            <Color x:Key="DangerButtonBorderColor">#33FFB3B3</Color>
+            <Color x:Key="DangerButtonForegroundColor">#FFFFC1C1</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Default">
             <Color x:Key="AppButtonBackgroundPointerOverColor">#1AFFFFFF</Color>
             <Color x:Key="AppButtonBorderPointerOverColor">#33FFFFFF</Color>
+            <Color x:Key="DangerButtonBackgroundColor">#14FFB3B3</Color>
+            <Color x:Key="DangerButtonBorderColor">#33FFB3B3</Color>
+            <Color x:Key="DangerButtonForegroundColor">#FFFFC1C1</Color>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
@@ -162,6 +171,13 @@
         <Setter Property="Background" Value="{ThemeResource LayerFillColorAltBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentTextButtonStyle}">
+        <Setter Property="Background" Value="{ThemeResource DangerButtonBackgroundColor}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource DangerButtonBorderColor}" />
+        <Setter Property="Foreground" Value="{ThemeResource DangerButtonForegroundColor}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="ListHostItemStyle" TargetType="ListViewItem">

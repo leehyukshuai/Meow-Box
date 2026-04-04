@@ -112,7 +112,7 @@
                             <Button
                                 Grid.Column="1"
                                 Click="OnDeleteMappingClick"
-                                Style="{StaticResource SubtleButtonStyle}">
+                                Style="{StaticResource DangerButtonStyle}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
                                     <TextBlock Text="Delete" />
