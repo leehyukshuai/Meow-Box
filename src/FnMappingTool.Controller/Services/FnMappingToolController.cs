@@ -27,7 +27,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private bool _autostartEnabled;
     private bool _trayIconEnabled;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
-    private string _osdDisplayMode = OsdDisplayModes.IconAndText;
+    private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
     private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
 

@@ -99,7 +99,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var displayMode = (OsdDisplayModeComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? OsdDisplayMode.IconAndText;
+        var displayMode = (OsdDisplayModeComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? OsdDisplayMode.IconOnly;
         Controller.ApplyOsdPreferences(
             (int)Math.Round(Math.Max(500, OsdDurationNumberBox.Value)),
             displayMode,

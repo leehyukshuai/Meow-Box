@@ -36,7 +36,7 @@ public sealed class AppPreferences
 
 public sealed class OsdPreferences
 {
-    public string DisplayMode { get; set; } = OsdDisplayMode.IconAndText;
+    public string DisplayMode { get; set; } = OsdDisplayMode.IconOnly;
 
     public int DurationMs { get; set; } = RuntimeDefaults.DefaultOsdDurationMs;
 
@@ -241,7 +241,7 @@ public static class RuntimeDefaults
 {
     public const int DefaultOsdDurationMs = 800;
     public const int DefaultOsdBackgroundOpacityPercent = 20;
-    public const int DefaultOsdScalePercent = 100;
+    public const int DefaultOsdScalePercent = 80;
     public const int MaxOsdTitleLength = 32;
 }
 
