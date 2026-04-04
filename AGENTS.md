@@ -151,7 +151,8 @@ Current packaging targets:
 Packaging rules:
 - user-visible entry point is `FnMappingTool.Controller.exe`
 - `Worker` is internal runtime payload and may be staged under a subdirectory
-- WinUI 3 `Publish` was previously unreliable on this machine; prefer the verified Release build copy flow unless that changes and is revalidated
+- package from MSBuild `Publish` outputs
+- the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup
 
 If you change packaging paths, update:
 - `build.ps1`

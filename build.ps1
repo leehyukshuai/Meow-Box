@@ -54,6 +54,28 @@ function Invoke-MSBuildProject {
     }
 }
 
+function Invoke-MSBuildPublishProject {
+    param(
+        [string]$MSBuild,
+        [string]$ProjectPath,
+        [string]$PublishDirectory,
+        [string[]]$Properties = @()
+    )
+
+    $arguments = @(
+        $ProjectPath,
+        '/restore',
+        '/t:Publish',
+        '/verbosity:minimal',
+        "/p:PublishDir=$PublishDirectory"
+    ) + $Properties
+
+    & $MSBuild @arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Publish failed for '$ProjectPath' with exit code $LASTEXITCODE."
+    }
+}
+
 function Copy-DirectoryContent {
     param(
         [string]$SourceDirectory,
@@ -176,6 +198,7 @@ $root = $PSScriptRoot
 $srcRoot = Join-Path $root 'src'
 $buildRoot = Join-Path $root 'build'
 $packageRoot = Join-Path $buildRoot 'package'
+$publishRoot = Join-Path $buildRoot 'publish'
 $packageAppRoot = Join-Path $packageRoot 'FnMappingTool'
 $packageWorkerRoot = Join-Path $packageAppRoot 'runtime\worker'
 $legacyPortableRoot = Join-Path $root 'portable'
@@ -187,8 +210,8 @@ $generatedInstallerSource = Join-Path $srcRoot 'FnMappingTool.Setup\PortableFile
 $coreBuildRoot = Join-Path $buildRoot 'bin\FnMappingTool.Core'
 $controllerBuildRoot = Join-Path $buildRoot 'bin\FnMappingTool.Controller'
 $workerBuildRoot = Join-Path $buildRoot 'bin\FnMappingTool.Worker'
-$controllerBuildOutput = Join-Path $buildRoot 'bin\FnMappingTool.Controller\net8.0-windows10.0.19041.0'
-$workerBuildOutput = Join-Path $buildRoot 'bin\FnMappingTool.Worker\net8.0-windows10.0.19041.0'
+$controllerPublishOutput = Join-Path $publishRoot 'controller'
+$workerPublishOutput = Join-Path $publishRoot 'worker'
 $installerOutputRoot = Join-Path $buildRoot 'bin\FnMappingTool.Setup'
 $portableZipPath = Join-Path $artifactsRoot ("FnMappingTool-portable-v{0}.zip" -f $Version)
 $msiPath = Join-Path $artifactsRoot ("FnMappingTool-setup-v{0}.msi" -f $Version)
@@ -209,24 +232,31 @@ Remove-PathIfExists $artifactsRoot
 Remove-PathIfExists $coreBuildRoot
 Remove-PathIfExists $controllerBuildRoot
 Remove-PathIfExists $workerBuildRoot
+Remove-PathIfExists $publishRoot
 Remove-PathIfExists $installerOutputRoot
 Remove-PathIfExists $generatedInstallerSource
 
 New-Item -ItemType Directory -Force $packageAppRoot | Out-Null
 New-Item -ItemType Directory -Force $packageWorkerRoot | Out-Null
 New-Item -ItemType Directory -Force $artifactsRoot | Out-Null
+New-Item -ItemType Directory -Force $controllerPublishOutput | Out-Null
+New-Item -ItemType Directory -Force $workerPublishOutput | Out-Null
 
-Invoke-MSBuildProject -MSBuild $msbuild -ProjectPath $controllerProject -Properties @(
+Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $controllerProject -PublishDirectory $controllerPublishOutput -Properties @(
     '/p:Configuration=Release',
-    '/p:Platform=x64'
+    '/p:Platform=x64',
+    '/p:RuntimeIdentifier=win-x64',
+    '/p:SelfContained=false'
 )
-Copy-DirectoryContent -SourceDirectory $controllerBuildOutput -DestinationDirectory $packageAppRoot
+Copy-DirectoryContent -SourceDirectory $controllerPublishOutput -DestinationDirectory $packageAppRoot
 
-Invoke-MSBuildProject -MSBuild $msbuild -ProjectPath $workerProject -Properties @(
+Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $workerProject -PublishDirectory $workerPublishOutput -Properties @(
     '/p:Configuration=Release',
-    '/p:Platform=x64'
+    '/p:Platform=x64',
+    '/p:RuntimeIdentifier=win-x64',
+    '/p:SelfContained=false'
 )
-Copy-DirectoryContent -SourceDirectory $workerBuildOutput -DestinationDirectory $packageWorkerRoot
+Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $packageWorkerRoot
 
 Get-ChildItem $packageAppRoot -Recurse -Include *.pdb | Remove-Item -Force
 

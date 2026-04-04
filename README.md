@@ -81,6 +81,7 @@ Optional arguments:
 Main staged outputs:
 
 - `build/bin/`
+- `build/publish/`
 - `build/package/FnMappingTool/`
 
 Final outputs:
@@ -107,7 +108,8 @@ The MSI installer currently provides:
 ## Notes
 
 - Worker is intentionally **not** shipped as a separate user-facing app entry
-- The current packaging flow uses verified **Release build outputs**, not WinUI `Publish`, because `Publish` was previously unstable on this machine
+- The current packaging flow uses **MSBuild Publish** outputs
+- The Controller publish step also copies loose WinUI `.pri` / `.xbf` resources into the publish folder so the unpackaged WinUI app starts correctly
 - The project currently favors a **single clean config schema** over backward-compat migration layers
 
 ## Development guidance

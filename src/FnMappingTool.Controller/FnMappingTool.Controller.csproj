@@ -32,4 +32,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <Target Name="CopyLooseWinUiResourcesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_PublishedLooseWinUiFiles Include="$(TargetDir)**\*.xbf" />
+      <_PublishedLooseWinUiFiles Include="$(TargetDir)$(AssemblyName).pri" Condition="Exists('$(TargetDir)$(AssemblyName).pri')" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_PublishedLooseWinUiFiles)"
+      DestinationFiles="@(_PublishedLooseWinUiFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
 </Project>
