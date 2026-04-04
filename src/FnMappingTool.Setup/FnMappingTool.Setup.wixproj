@@ -1,5 +1,6 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
+    <OutputPath>..\..\build\bin\FnMappingTool.Setup\</OutputPath>
     <OutputType>Package</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
     <Platform>x64</Platform>

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <AssemblyName>FnMappingTool.Worker</AssemblyName>
     <RootNamespace>FnMappingTool.Worker</RootNamespace>
+    <OutputPath>..\..\build\bin\FnMappingTool.Worker\</OutputPath>
     <OutputType>WinExe</OutputType>
     <ApplicationIcon>..\..\assets\app\app.ico</ApplicationIcon>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>

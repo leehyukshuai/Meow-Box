@@ -1,6 +1,5 @@
 # Build outputs
 /build/
-/portable/
 /artifacts/
 **/bin/
 **/obj/
@@ -24,7 +23,7 @@
 *.temp
 *.cache
 *.pid
-installer/FnMappingTool.Setup/PortableFiles.wxs
+src/FnMappingTool.Setup/PortableFiles.wxs
 assets/osd/SVG/
 
 # OS files
