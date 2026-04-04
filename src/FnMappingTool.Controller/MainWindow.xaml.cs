@@ -1,12 +1,12 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.UI;
-using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using FnMappingTool.Controller.Views;
+using FnMappingTool.Core.Services;
 using WinRT.Interop;
 using Windows.Graphics;
 
@@ -14,10 +14,16 @@ namespace FnMappingTool.Controller;
 
 public sealed partial class MainWindow : Window
 {
-    private const int MinimumWidth = 1180;
-    private const int MinimumHeight = 820;
+    private const int InitialWidth = 1080;
+    private const int InitialHeight = 760;
+    private const int MinimumWidth = 980;
+    private const int MinimumHeight = 720;
     private const int GwlWndProc = -4;
     private const int WmGetMinMaxInfo = 0x0024;
+    private const int SwRestore = 9;
+    private const uint SwpNoMove = 0x0002;
+    private const uint SwpNoSize = 0x0001;
+    private static readonly IntPtr HwndTop = IntPtr.Zero;
 
     public Services.FnMappingToolController Controller => App.Controller;
 
@@ -28,11 +34,11 @@ public sealed partial class MainWindow : Window
         ["settings"] = typeof(SettingsPage)
     };
 
-    private readonly Dictionary<string, (string Title, string Subtitle)> _pageMetadata = new()
+    private readonly Dictionary<string, string> _pageTitles = new()
     {
-        ["keys"] = ("Keys", "Capture vendor events and keep a clean, readable key library."),
-        ["mappings"] = ("Mappings", "Connect each captured key to one clear action with minimal setup friction."),
-        ["settings"] = ("Settings", "Manage runtime behavior, startup, presets, and the overall app feel.")
+        ["keys"] = "Keys",
+        ["mappings"] = "Mappings",
+        ["settings"] = "Settings"
     };
 
     private AppWindow? _appWindow;
@@ -49,26 +55,31 @@ public sealed partial class MainWindow : Window
         Closed += OnWindowClosed;
     }
 
+    public void PresentToFront()
+    {
+        if (_windowHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        try
+        {
+            Activate();
+            ShowWindow(_windowHandle, SwRestore);
+            _ = SetWindowPos(_windowHandle, HwndTop, 0, 0, 0, 0, SwpNoMove | SwpNoSize);
+            _ = SetForegroundWindow(_windowHandle);
+            _ = SetFocus(_windowHandle);
+        }
+        catch
+        {
+        }
+    }
+
     private void ConfigureWindowChrome()
     {
-        SystemBackdrop = new MicaBackdrop
-        {
-            Kind = MicaKind.BaseAlt
-        };
-
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
-
         _windowHandle = WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(_windowHandle);
         _appWindow = AppWindow.GetFromWindowId(windowId);
-
-        if (AppWindowTitleBar.IsCustomizationSupported())
-        {
-            _appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
-            _appWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
-            _appWindow.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-        }
 
         if (_appWindow.Presenter is OverlappedPresenter presenter)
         {
@@ -77,8 +88,14 @@ public sealed partial class MainWindow : Window
             presenter.IsMinimizable = true;
         }
 
+        var applicationIconPath = BuiltInAssetResolver.ResolveApplicationIconPath("app");
+        if (!string.IsNullOrWhiteSpace(applicationIconPath))
+        {
+            _appWindow.SetIcon(applicationIconPath);
+        }
+
         InstallWindowProc();
-        _appWindow.Resize(GetMinimumWindowSizePixels());
+        _appWindow.Resize(GetWindowSizePixels(InitialWidth, InitialHeight));
         UpdateServiceIndicator();
         UpdateQuickServiceButton();
     }
@@ -157,18 +174,19 @@ public sealed partial class MainWindow : Window
 
     private void UpdateServiceIndicator()
     {
-        var core = Controller.ServiceRunning ? ColorHelper.FromArgb(255, 76, 196, 115) : ColorHelper.FromArgb(255, 255, 111, 97);
-        var outer = Controller.ServiceRunning ? ColorHelper.FromArgb(214, 76, 196, 115) : ColorHelper.FromArgb(214, 255, 111, 97);
-        var glow = Controller.ServiceRunning ? ColorHelper.FromArgb(72, 76, 196, 115) : ColorHelper.FromArgb(72, 255, 111, 97);
-
-        ServiceStatusCoreInner.Fill = new SolidColorBrush(core);
-        ServiceStatusCoreOuter.Fill = new SolidColorBrush(outer);
-        ServiceStatusGlow.Fill = new SolidColorBrush(glow);
         ServiceStatusTextBlock.Text = Controller.ServiceRunning ? "Service running" : "Service stopped";
-
-        ServiceStatusToolTip.Content = Controller.ServiceRunning
-            ? "Background service running"
-            : "Background service stopped";
+        ServiceStatusGlow.Fill = new SolidColorBrush(
+            Controller.ServiceRunning
+                ? ColorHelper.FromArgb(96, 76, 196, 115)
+                : ColorHelper.FromArgb(96, 255, 111, 97));
+        ServiceStatusHalo.Fill = new SolidColorBrush(
+            Controller.ServiceRunning
+                ? ColorHelper.FromArgb(255, 58, 128, 78)
+                : ColorHelper.FromArgb(255, 144, 54, 48));
+        ServiceStatusCore.Fill = new SolidColorBrush(
+            Controller.ServiceRunning
+                ? ColorHelper.FromArgb(255, 118, 232, 145)
+                : ColorHelper.FromArgb(255, 255, 138, 124));
     }
 
     private void UpdateQuickServiceButton()
@@ -178,13 +196,9 @@ public sealed partial class MainWindow : Window
 
     private void UpdatePageChrome(string key)
     {
-        var metadata = _pageMetadata.TryGetValue(key, out var pageMetadata)
-            ? pageMetadata
-            : (Title: "Fn Mapping Tool", Subtitle: "Configure how your OEM keys should behave.");
-
-        PageTitleTextBlock.Text = metadata.Title;
-        PageSubtitleTextBlock.Text = metadata.Subtitle;
-        PageContextTextBlock.Text = metadata.Subtitle;
+        PageContextTextBlock.Text = _pageTitles.TryGetValue(key, out var title)
+            ? title
+            : "Fn Mapping Tool";
     }
 
     private async void OnQuickServiceButtonClick(object sender, RoutedEventArgs e)
@@ -218,10 +232,15 @@ public sealed partial class MainWindow : Window
 
     private SizeInt32 GetMinimumWindowSizePixels()
     {
+        return GetWindowSizePixels(MinimumWidth, MinimumHeight);
+    }
+
+    private SizeInt32 GetWindowSizePixels(int width, int height)
+    {
         var dpi = GetDpiForWindow(_windowHandle);
         return new SizeInt32(
-            MulDiv(MinimumWidth, dpi, 96),
-            MulDiv(MinimumHeight, dpi, 96));
+            MulDiv(width, dpi, 96),
+            MulDiv(height, dpi, 96));
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -248,6 +267,18 @@ public sealed partial class MainWindow : Window
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr CallWindowProc(IntPtr prevWndFunc, IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetFocus(IntPtr hWnd);
 
     [DllImport("user32.dll")]
     private static extern int GetDpiForWindow(IntPtr hWnd);

@@ -1,0 +1,337 @@
+{
+    "Theme": "System",
+    "Preferences": {
+        "IsListening": true,
+        "ShowTrayIcon": true,
+        "Osd": {
+            "DisplayMode": "IconAndText",
+            "DurationMs": 800,
+            "BackgroundOpacityPercent": 20,
+            "ScalePercent": 100
+        }
+    },
+    "Keys": [
+        {
+            "Id": "key-fn-lock-on",
+            "Name": "Fn Lock On",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-07-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-fn-lock-off",
+            "Name": "Fn Lock Off",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-07-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-mic-mute-on",
+            "Name": "Microphone Mute On",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-21-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-mic-mute-off",
+            "Name": "Microphone Mute Off",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-21-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-xiaoai-press",
+            "Name": "XiaoAi Press",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-23-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-xiaoai-release",
+            "Name": "XiaoAi Release",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-24-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-settings-press",
+            "Name": "Settings Press",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-1B-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-manager-press",
+            "Name": "Manager Press",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-25-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-manager-release",
+            "Name": "Manager Release",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-26-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-backlight-off",
+            "Name": "Backlight Off",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-backlight-level1",
+            "Name": "Backlight Level 1",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-05-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-backlight-level2",
+            "Name": "Backlight Level 2",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-05-0A-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-backlight-auto",
+            "Name": "Backlight Auto",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-05-80-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-projection",
+            "Name": "Projection UI",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        }
+    ],
+    "Mappings": [
+        {
+            "Id": "mapping-fn-lock-on",
+            "Name": "Fn Lock On -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-fn-lock-on",
+            "Action": {
+                "Type": "ShowOsd",
+                "OsdIcon": {
+                    "Mode": "CustomFile",
+                    "Path": "..\\osd\\fn-lock.png"
+                },
+                "OsdTitle": "Fn lock on"
+            }
+        },
+        {
+            "Id": "mapping-fn-lock-off",
+            "Name": "Fn Lock Off -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-fn-lock-off",
+            "Action": {
+                "Type": "ShowOsd",
+                "OsdIcon": {
+                    "Mode": "CustomFile",
+                    "Path": "..\\osd\\fn-unlock.png"
+                },
+                "OsdTitle": "Fn lock off"
+            }
+        },
+        {
+            "Id": "mapping-mic-on",
+            "Name": "Microphone Mute On -> Mute microphone input",
+            "Enabled": true,
+            "KeyId": "key-mic-mute-on",
+            "Action": {
+                "Type": "MicrophoneMuteOn",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-mic-off",
+            "Name": "Microphone Mute Off -> Unmute microphone input",
+            "Enabled": true,
+            "KeyId": "key-mic-mute-off",
+            "Action": {
+                "Type": "MicrophoneMuteOff",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-xiaoai-press",
+            "Name": "XiaoAi Press -> Select action",
+            "Enabled": true,
+            "KeyId": "key-xiaoai-press",
+            "Action": {
+                "Type": "",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-xiaoai-release",
+            "Name": "XiaoAi Release -> Select action",
+            "Enabled": true,
+            "KeyId": "key-xiaoai-release",
+            "Action": {
+                "Type": "",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-settings",
+            "Name": "Settings Press -> Open Windows Settings",
+            "Enabled": true,
+            "KeyId": "key-settings-press",
+            "Action": {
+                "Type": "OpenSettings",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-manager-press",
+            "Name": "Manager Press -> Select action",
+            "Enabled": true,
+            "KeyId": "key-manager-press",
+            "Action": {
+                "Type": "",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-manager-release",
+            "Name": "Manager Release -> Select action",
+            "Enabled": true,
+            "KeyId": "key-manager-release",
+            "Action": {
+                "Type": "",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        },
+        {
+            "Id": "mapping-backlight-off",
+            "Name": "Backlight Off -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-backlight-off",
+            "Action": {
+                "Type": "ShowOsd",
+                "OsdTitle": "Backlight off",
+                "OsdIcon": {
+                    "Mode": "CustomFile",
+                    "Path": "..\\osd\\backlight-off.png"
+                }
+            }
+        },
+        {
+            "Id": "mapping-backlight-level1",
+            "Name": "Backlight Level 1 -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-backlight-level1",
+            "Action": {
+                "Type": "ShowOsd",
+                "OsdTitle": "Backlight level 1",
+                "OsdIcon": {
+                    "Mode": "CustomFile",
+                    "Path": "..\\osd\\backlight-level1.png"
+                }
+            }
+        },
+        {
+            "Id": "mapping-backlight-level2",
+            "Name": "Backlight Level 2 -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-backlight-level2",
+            "Action": {
+                "Type": "ShowOsd",
+                "OsdTitle": "Backlight level 2",
+                "OsdIcon": {
+                    "Mode": "CustomFile",
+                    "Path": "..\\osd\\backlight-level2.png"
+                }
+            }
+        },
+        {
+            "Id": "mapping-backlight-auto",
+            "Name": "Backlight Auto -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-backlight-auto",
+            "Action": {
+                "Type": "ShowOsd",
+                "OsdTitle": "Backlight auto",
+                "OsdIcon": {
+                    "Mode": "CustomFile",
+                    "Path": "..\\osd\\backlight-auto.png"
+                }
+            }
+        },
+        {
+            "Id": "mapping-projection",
+            "Name": "Projection UI -> Open projection switcher",
+            "Enabled": true,
+            "KeyId": "key-projection",
+            "Action": {
+                "Type": "OpenProjection",
+                "OsdIcon": {
+                    "Mode": "None"
+                }
+            }
+        }
+    ]
+}

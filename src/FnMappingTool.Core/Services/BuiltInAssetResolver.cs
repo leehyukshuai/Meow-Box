@@ -5,9 +5,8 @@ public static class BuiltInAssetResolver
     public const string AssetsDirectoryName = "assets";
     public const string AppIconsDirectoryName = "app";
     public const string OsdIconsDirectoryName = "osd";
-    public const string PresetsDirectoryName = "presets";
 
-    private static readonly string[] OsdExtensions = [".svg", ".png", ".jpg", ".jpeg", ".bmp", ".ico"];
+    private static readonly string[] OsdExtensions = [".png"];
     private static readonly string[] AppExtensions = [".ico"];
 
     public static string? ResolveOsdAssetPath(string? assetKey) =>

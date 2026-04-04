@@ -9,43 +9,43 @@
 
     <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="72" />
+            <RowDefinition Height="56" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Grid
             x:Name="AppTitleBar"
             Grid.Row="0"
-            Background="{ThemeResource AppTitleBarBackgroundBrush}">
+            Background="{ThemeResource LayerFillColorAltBrush}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <StackPanel
-                Margin="20,0,0,0"
+                Margin="16,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="14">
+                Spacing="12">
                 <Border
                     Width="38"
                     Height="38"
                     Background="{StaticResource ShellAccentSoftBrush}"
-                    CornerRadius="12">
+                    CornerRadius="10">
                     <FontIcon
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         FontFamily="Segoe Fluent Icons"
-                        FontSize="16"
+                        FontSize="18"
                         Glyph="&#xE765;" />
                 </Border>
 
-                <StackPanel Spacing="2">
+                <StackPanel Spacing="0">
                     <TextBlock Style="{StaticResource TitleBarTitleTextBlockStyle}" Text="Fn Mapping Tool" />
                     <TextBlock
                         x:Name="PageContextTextBlock"
                         Style="{StaticResource TitleBarSubtitleTextBlockStyle}"
-                        Text="Capture vendor keys and shape clean mappings." />
+                        Text="Keys" />
                 </StackPanel>
             </StackPanel>
 
@@ -54,46 +54,43 @@
                 Margin="0,0,16,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal"
-                Spacing="10">
-                <Border
+                Spacing="12">
+                <StackPanel
                     x:Name="ServiceStatusBadge"
-                    Style="{StaticResource BadgeBorderStyle}"
-                    Background="{StaticResource ShellSubtleBrush}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Grid
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Grid
+                        Width="16"
+                        Height="16"
+                        VerticalAlignment="Center">
+                        <Ellipse
+                            x:Name="ServiceStatusGlow"
+                            Width="16"
+                            Height="16"
+                            Fill="#00000000" />
+                        <Ellipse
+                            x:Name="ServiceStatusHalo"
                             Width="10"
                             Height="10"
-                            VerticalAlignment="Center">
-                            <Ellipse
-                                x:Name="ServiceStatusGlow"
-                                Width="10"
-                                Height="10"
-                                Fill="#44FF6F61" />
-                            <Ellipse
-                                x:Name="ServiceStatusCoreOuter"
-                                Width="8"
-                                Height="8"
-                                Fill="#CCFF6F61" />
-                            <Ellipse
-                                x:Name="ServiceStatusCoreInner"
-                                Width="6"
-                                Height="6"
-                                Fill="#FFFF6F61" />
-                            <ToolTipService.ToolTip>
-                                <ToolTip x:Name="ServiceStatusToolTip" Content="Background service stopped" />
-                            </ToolTipService.ToolTip>
-                        </Grid>
-                        <TextBlock
-                            x:Name="ServiceStatusTextBlock"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="Service stopped" />
-                    </StackPanel>
-                </Border>
+                            Fill="#FF4A4A4A" />
+                        <Ellipse
+                            x:Name="ServiceStatusCore"
+                            Width="6"
+                            Height="6"
+                            Fill="#FF707070" />
+                    </Grid>
+                    <TextBlock
+                        x:Name="ServiceStatusTextBlock"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="Service stopped" />
+                </StackPanel>
 
                 <Button
                     x:Name="QuickServiceButton"
                     Click="OnQuickServiceButtonClick"
-                    Style="{StaticResource PrimaryPillButtonStyle}">
+                    Style="{StaticResource AccentButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE768;" />
                         <TextBlock x:Name="QuickServiceButtonTextBlock" Text="Start service" />
@@ -107,46 +104,15 @@
             Grid.Row="1"
             AlwaysShowHeader="False"
             CompactModeThresholdWidth="900"
-            CompactPaneLength="52"
+            CompactPaneLength="48"
             ExpandedModeThresholdWidth="1240"
             IsBackButtonVisible="Collapsed"
             IsPaneVisible="True"
             IsPaneToggleButtonVisible="True"
             IsSettingsVisible="True"
-            OpenPaneLength="236"
+            OpenPaneLength="200"
             PaneDisplayMode="Left"
-            PaneTitle="Workspace"
             SelectionChanged="OnNavigationSelectionChanged">
-
-            <NavigationView.PaneHeader>
-                <StackPanel Margin="8,10,8,18" Spacing="12">
-                    <Border Style="{StaticResource HeroPanelCardStyle}">
-                        <StackPanel Spacing="10">
-                            <TextBlock Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Workflow" />
-                            <TextBlock Style="{StaticResource ShellHeadlineTextBlockStyle}" Text="Map once, use daily." />
-                            <TextBlock
-                                Style="{StaticResource ShellCaptionTextBlockStyle}"
-                                Text="Capture OEM keys, assign actions, and keep the setup calm enough to trust."
-                                TextWrapping="WrapWholeWords" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource SubtlePanelCardStyle}">
-                        <StackPanel Spacing="8">
-                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Current page" />
-                            <TextBlock
-                                x:Name="PageTitleTextBlock"
-                                Style="{StaticResource SectionTitleTextBlockStyle}"
-                                Text="Keys" />
-                            <TextBlock
-                                x:Name="PageSubtitleTextBlock"
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="Capture vendor events and keep a clean, readable key library."
-                                TextWrapping="WrapWholeWords" />
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </NavigationView.PaneHeader>
 
             <NavigationView.MenuItems>
                 <NavigationViewItem

@@ -1,5 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using FnMappingTool.Core.Models;
+using FnMappingTool.Core.Services;
 
 namespace FnMappingTool.Controller.ViewModels;
 
@@ -9,10 +10,6 @@ public sealed class ActionDefinitionViewModel : ObservableObject
     private string _target;
     private string _arguments;
     private string _osdTitle;
-    private string _osdMessage;
-    private double _durationMs;
-    private string _osdIconMode;
-    private string _osdBuiltInAsset;
     private string _osdIconPath;
 
     public ActionDefinitionViewModel(ActionDefinitionConfiguration? model = null)
@@ -24,16 +21,8 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         _target = model.Target ?? string.Empty;
         _arguments = model.Arguments ?? string.Empty;
         _osdTitle = model.OsdTitle ?? string.Empty;
-        _osdMessage = model.OsdMessage ?? string.Empty;
-        _durationMs = model.DurationMs ?? RuntimeDefaults.DefaultOsdDurationMs;
-        _osdIconMode = osdIcon.Mode ?? IconSourceMode.None;
-        _osdBuiltInAsset = osdIcon.BuiltInAsset ?? BuiltInOsdAsset.FnLock;
-        _osdIconPath = osdIcon.Path ?? string.Empty;
+        _osdIconPath = ResolveInitialIconPath(osdIcon);
     }
-
-    public IReadOnlyList<ChoiceOption> IconModes => IconAssetCatalog.IconModes;
-
-    public IReadOnlyList<IconAssetOption> OsdBuiltInAssets => IconAssetCatalog.OsdAssets;
 
     public string Type
     {
@@ -72,37 +61,6 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         set => SetProperty(ref _osdTitle, value);
     }
 
-    public string OsdMessage
-    {
-        get => _osdMessage;
-        set => SetProperty(ref _osdMessage, value);
-    }
-
-    public double DurationMs
-    {
-        get => _durationMs;
-        set => SetProperty(ref _durationMs, Math.Max(500, value));
-    }
-
-    public string OsdIconMode
-    {
-        get => _osdIconMode;
-        set
-        {
-            if (SetProperty(ref _osdIconMode, value))
-            {
-                OnPropertyChanged(nameof(OsdBuiltInVisibility));
-                OnPropertyChanged(nameof(OsdCustomVisibility));
-            }
-        }
-    }
-
-    public string OsdBuiltInAsset
-    {
-        get => _osdBuiltInAsset;
-        set => SetProperty(ref _osdBuiltInAsset, value);
-    }
-
     public string OsdIconPath
     {
         get => _osdIconPath;
@@ -127,27 +85,23 @@ public sealed class ActionDefinitionViewModel : ObservableObject
 
     public Visibility OsdEditorVisibility => Type == HotkeyActionType.ShowOsd ? Visibility.Visible : Visibility.Collapsed;
 
-    public Visibility OsdBuiltInVisibility => OsdIconMode == IconSourceMode.BuiltIn ? Visibility.Visible : Visibility.Collapsed;
-
-    public Visibility OsdCustomVisibility => OsdIconMode == IconSourceMode.CustomFile ? Visibility.Visible : Visibility.Collapsed;
-
     public ActionDefinitionConfiguration ToConfiguration()
     {
+        var iconPath = Type == HotkeyActionType.ShowOsd && !string.IsNullOrWhiteSpace(OsdIconPath)
+            ? OsdIconPath.Trim()
+            : null;
+
         return new ActionDefinitionConfiguration
         {
             Type = Type,
             Target = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Target) ? Target.Trim() : null,
             Arguments = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Arguments) ? Arguments.Trim() : null,
             OsdTitle = Type == HotkeyActionType.ShowOsd && !string.IsNullOrWhiteSpace(OsdTitle) ? OsdTitle.Trim() : null,
-            OsdMessage = Type == HotkeyActionType.ShowOsd && !string.IsNullOrWhiteSpace(OsdMessage) ? OsdMessage.Trim() : null,
-            DurationMs = Type == HotkeyActionType.ShowOsd ? (int)Math.Round(Math.Max(500, DurationMs)) : null,
             OsdIcon = new IconConfiguration
             {
-                Mode = Type == HotkeyActionType.ShowOsd ? OsdIconMode : IconSourceMode.None,
-                BuiltInAsset = Type == HotkeyActionType.ShowOsd && OsdIconMode == IconSourceMode.BuiltIn ? OsdBuiltInAsset : null,
-                Path = Type == HotkeyActionType.ShowOsd && OsdIconMode == IconSourceMode.CustomFile && !string.IsNullOrWhiteSpace(OsdIconPath) ? OsdIconPath.Trim() : null
-            },
-            TrayIcon = new IconConfiguration()
+                Mode = string.IsNullOrWhiteSpace(iconPath) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                Path = iconPath
+            }
         };
     }
 
@@ -157,9 +111,19 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         Target = string.Empty;
         Arguments = string.Empty;
         OsdTitle = string.Empty;
-        OsdMessage = string.Empty;
-        OsdIconMode = IconSourceMode.None;
-        OsdBuiltInAsset = BuiltInOsdAsset.FnLock;
         OsdIconPath = string.Empty;
+    }
+
+    private static string ResolveInitialIconPath(IconConfiguration icon)
+    {
+        return ResolvePreferredPngPath(icon.Path);
+    }
+
+    private static string ResolvePreferredPngPath(string? path)
+    {
+        return !string.IsNullOrWhiteSpace(path) &&
+               string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase)
+            ? path
+            : string.Empty;
     }
 }

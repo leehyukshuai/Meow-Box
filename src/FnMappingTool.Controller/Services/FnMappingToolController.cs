@@ -6,6 +6,7 @@ using FnMappingTool.Core.Contracts;
 using FnMappingTool.Core.Models;
 using FnMappingTool.Core.Services;
 using FnMappingTool.Controller.ViewModels;
+using OsdDisplayModes = FnMappingTool.Core.Models.OsdDisplayMode;
 
 namespace FnMappingTool.Controller.Services;
 
@@ -25,12 +26,14 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private bool _serviceRunning;
     private bool _autostartEnabled;
     private bool _trayIconEnabled;
+    private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
+    private string _osdDisplayMode = OsdDisplayModes.IconAndText;
+    private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
+    private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
 
     public ObservableCollection<KeyDefinitionViewModel> KeyItems { get; } = [];
 
     public ObservableCollection<MappingDefinitionViewModel> MappingItems { get; } = [];
-
-    public ObservableCollection<PresetConfigurationEntry> PresetConfigurations { get; } = [];
 
     public ObservableCollection<ActionOptionItemViewModel> FilteredActionOptions { get; } = [];
 
@@ -110,15 +113,43 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public string ThemePreference => App.ThemeService.CurrentPreference;
 
+    public string ConfigDirectory => _configService.ConfigDirectory;
+
     public string ConfigPath => _configService.ConfigPath;
+
+    public string OsdIconDirectory => Path.Combine(_configService.ConfigDirectory, "osd-icons");
+
+    public int OsdDurationMs
+    {
+        get => _osdDurationMs;
+        private set => SetProperty(ref _osdDurationMs, value);
+    }
+
+    public string OsdDisplayMode
+    {
+        get => _osdDisplayMode;
+        private set => SetProperty(ref _osdDisplayMode, value);
+    }
+
+    public int OsdBackgroundOpacityPercent
+    {
+        get => _osdBackgroundOpacityPercent;
+        private set => SetProperty(ref _osdBackgroundOpacityPercent, value);
+    }
+
+    public int OsdScalePercent
+    {
+        get => _osdScalePercent;
+        private set => SetProperty(ref _osdScalePercent, value);
+    }
 
     public void Initialize(Window window)
     {
+        SyncBundledOsdIconsToConfigDirectory();
         _configuration = _configService.Load();
         ReloadCollectionsFromConfiguration();
 
         App.ThemeService.Initialize(window, _configuration.Theme);
-        LoadPresetCatalog();
         RefreshAutostartState();
         StartStatusPolling();
         _ = RefreshWorkerStatusAsync();
@@ -299,6 +330,17 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         });
     }
 
+    public void OpenOsdIconFolder()
+    {
+        Directory.CreateDirectory(OsdIconDirectory);
+        OpenFolder(OsdIconDirectory);
+    }
+
+    public void RefreshOsdIconCatalog()
+    {
+        SyncBundledOsdIconsToConfigDirectory();
+    }
+
     public async Task<bool> StartWorkerServiceAsync()
     {
         if (!_workerProcessService.IsWorkerInstalled())
@@ -359,6 +401,23 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
+    public void ApplyOsdPreferences(int durationMs, string? displayMode, int backgroundOpacityPercent, int scalePercent)
+    {
+        _configuration.Preferences.Osd.DurationMs = Math.Clamp(durationMs, 500, 10000);
+        _configuration.Preferences.Osd.DisplayMode = displayMode switch
+        {
+            OsdDisplayModes.IconOnly => OsdDisplayModes.IconOnly,
+            OsdDisplayModes.TextOnly => OsdDisplayModes.TextOnly,
+            _ => OsdDisplayModes.IconAndText
+        };
+        _configuration.Preferences.Osd.BackgroundOpacityPercent = Math.Clamp(backgroundOpacityPercent, 0, 100);
+        _configuration.Preferences.Osd.ScalePercent = Math.Clamp(scalePercent, 60, 200);
+
+        SyncOsdPreferenceState();
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
     public void ImportConfiguration(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -366,11 +425,23 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             throw new ArgumentException("The configuration path cannot be empty.", nameof(path));
         }
 
-        _configuration = _configService.LoadFromFile(path);
-        _configService.Save(_configuration);
-        ReloadCollectionsFromConfiguration();
+        var importedConfiguration = _configService.LoadFromFile(path);
+        _configService.Save(importedConfiguration);
+        _configuration = importedConfiguration;
         App.ThemeService.ApplyPreference(_configuration.Theme);
-        _ = ReloadWorkerAsync();
+        ReloadCollectionsFromConfiguration();
+        OnPropertyChanged(nameof(ThemePreference));
+    }
+
+    public async Task<bool> RestartWorkerServiceAsync()
+    {
+        if (_workerProcessService.IsWorkerProcessRunning())
+        {
+            await StopWorkerServiceAsync();
+            await Task.Delay(250);
+        }
+
+        return await StartWorkerServiceAsync();
     }
 
     public void RefreshMappingReferences()
@@ -396,6 +467,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedActionOption));
     }
 
+    public void SetSelectedActionType(string type)
+    {
+        ApplyActionType(type);
+    }
+
     public void Dispose()
     {
         _statusTimer?.Stop();
@@ -406,7 +482,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _configuration.Theme = App.ThemeService.CurrentPreference;
         _configuration.Keys = KeyItems.Select(item => item.ToConfiguration()).ToList();
         _configuration.Mappings = MappingItems.Select(item => item.ToConfiguration()).ToList();
-        _configuration.Actions = null;
         _configService.Save(_configuration);
     }
 
@@ -441,28 +516,50 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
         SelectedActionTag = ActionTags.FirstOrDefault();
         TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
+        SyncOsdPreferenceState();
         RefreshMappingReferences();
         SelectedKey = KeyItems.FirstOrDefault();
         SelectedMapping = MappingItems.FirstOrDefault();
     }
 
-    private void LoadPresetCatalog()
+    private void SyncBundledOsdIconsToConfigDirectory()
     {
-        PresetConfigurations.Clear();
-        var presetDirectory = Path.Combine(AppContext.BaseDirectory, "assets", "presets");
-        if (!Directory.Exists(presetDirectory))
+        Directory.CreateDirectory(OsdIconDirectory);
+
+        var bundledDirectory = Path.Combine(AppContext.BaseDirectory, "assets", BuiltInAssetResolver.OsdIconsDirectoryName);
+        if (!Directory.Exists(bundledDirectory))
         {
             return;
         }
 
-        foreach (var file in Directory.GetFiles(presetDirectory, "*.json", SearchOption.TopDirectoryOnly).OrderBy(Path.GetFileName))
+        foreach (var sourcePath in Directory.GetFiles(bundledDirectory, "*.png", SearchOption.TopDirectoryOnly))
         {
-            PresetConfigurations.Add(new PresetConfigurationEntry
+            var fileName = Path.GetFileName(sourcePath);
+            if (string.IsNullOrWhiteSpace(fileName))
             {
-                Name = Path.GetFileNameWithoutExtension(file),
-                Path = file
-            });
+                continue;
+            }
+
+            var destinationPath = Path.Combine(OsdIconDirectory, fileName);
+            if (!File.Exists(destinationPath) || File.GetLastWriteTimeUtc(sourcePath) > File.GetLastWriteTimeUtc(destinationPath))
+            {
+                File.Copy(sourcePath, destinationPath, overwrite: true);
+            }
         }
+    }
+
+    private void SyncOsdPreferenceState()
+    {
+        var osd = _configuration.Preferences.Osd;
+        OsdDurationMs = Math.Clamp(osd.DurationMs, 500, 10000);
+        OsdDisplayMode = osd.DisplayMode switch
+        {
+            OsdDisplayModes.IconOnly => OsdDisplayModes.IconOnly,
+            OsdDisplayModes.TextOnly => OsdDisplayModes.TextOnly,
+            _ => OsdDisplayModes.IconAndText
+        };
+        OsdBackgroundOpacityPercent = Math.Clamp(osd.BackgroundOpacityPercent, 0, 100);
+        OsdScalePercent = Math.Clamp(osd.ScalePercent, 60, 200);
     }
 
     private void RefreshAutostartState()
@@ -546,16 +643,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             {
                 action.OsdTitle = action.ActionLabel;
             }
-
-            if (action.DurationMs < 500)
-            {
-                action.DurationMs = RuntimeDefaults.DefaultOsdDurationMs;
-            }
-
-            if (action.OsdIconMode == IconSourceMode.None)
-            {
-                action.OsdIconMode = IconSourceMode.BuiltIn;
-            }
         }
     }
 
@@ -631,11 +718,4 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     {
         return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
     }
-}
-
-public sealed class PresetConfigurationEntry
-{
-    public string Name { get; set; } = string.Empty;
-
-    public string Path { get; set; } = string.Empty;
 }

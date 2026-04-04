@@ -19,7 +19,11 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new MainWindow();
-        MainWindow.Activate();
         Controller.Initialize(MainWindow);
+        MainWindow.PresentToFront();
+        MainWindow.DispatcherQueue.TryEnqueue(static () =>
+        {
+            App.MainWindow?.PresentToFront();
+        });
     }
 }

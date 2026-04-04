@@ -239,9 +239,9 @@ internal sealed class WorkerHost : IDisposable
                         {
                             GetOsdService().Show(
                                 action.OsdTitle ?? ActionCatalog.GetLabel(action.Type),
-                                action.OsdMessage,
                                 action.OsdIcon,
-                                action.DurationMs ?? RuntimeDefaults.DefaultOsdDurationMs);
+                                _configuration.Preferences.Osd,
+                                _configuration.Theme);
                         }
                         catch (Exception exception)
                         {
@@ -361,6 +361,8 @@ internal sealed class WorkerHost : IDisposable
     private static IEnumerable<string> EnumerateControllerCandidates()
     {
         yield return Path.Combine(AppContext.BaseDirectory, "FnMappingTool.Controller.exe");
+        yield return Path.Combine(AppContext.BaseDirectory, "..", "FnMappingTool.Controller.exe");
+        yield return Path.Combine(AppContext.BaseDirectory, "..", "..", "FnMappingTool.Controller.exe");
 
         var repositoryRoot = FindRepositoryRoot(AppContext.BaseDirectory);
         if (repositoryRoot is null)

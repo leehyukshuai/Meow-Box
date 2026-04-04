@@ -1,0 +1,26 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="Fn Mapping Tool"
+    Manufacturer="Fn Mapping Tool"
+    Version="$(var.ProductVersion)"
+    UpgradeCode="D69D1A6E-0297-4C76-89FB-C871BD03F540"
+    Scope="perMachine"
+    InstallerVersion="500"
+    Language="1033">
+
+    <SummaryInformation Description="Fn Mapping Tool installer" Manufacturer="Fn Mapping Tool" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Fn Mapping Tool is already installed." />
+
+    <Icon Id="AppIcon.ico" SourceFile="..\..\assets\app\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="FnMappingTool" />
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="Fn Mapping Tool" Level="1">
+      <ComponentGroupRef Id="PortableFiles" />
+    </Feature>
+  </Package>
+</Wix>

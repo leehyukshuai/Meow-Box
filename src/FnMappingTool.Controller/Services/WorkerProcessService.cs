@@ -4,12 +4,11 @@ namespace FnMappingTool.Controller.Services;
 
 public sealed class WorkerProcessService
 {
-    public string WorkerExecutablePath =>
-        Path.Combine(AppContext.BaseDirectory, "FnMappingTool.Worker.exe");
+    public string WorkerExecutablePath => EnumerateWorkerExecutableCandidates().First();
 
     public bool IsWorkerInstalled()
     {
-        return File.Exists(WorkerExecutablePath);
+        return EnumerateWorkerExecutableCandidates().Any(File.Exists);
     }
 
     public bool IsWorkerProcessRunning()
@@ -24,6 +23,12 @@ public sealed class WorkerProcessService
             return false;
         }
 
+        var workerExecutablePath = EnumerateWorkerExecutableCandidates().FirstOrDefault(File.Exists);
+        if (string.IsNullOrWhiteSpace(workerExecutablePath))
+        {
+            return false;
+        }
+
         if (IsWorkerProcessRunning())
         {
             return true;
@@ -31,13 +36,19 @@ public sealed class WorkerProcessService
 
         using var process = Process.Start(new ProcessStartInfo
         {
-            FileName = WorkerExecutablePath,
+            FileName = workerExecutablePath,
             Arguments = "--headless",
             UseShellExecute = false,
             CreateNoWindow = true,
-            WorkingDirectory = Path.GetDirectoryName(WorkerExecutablePath) ?? AppContext.BaseDirectory
+            WorkingDirectory = Path.GetDirectoryName(workerExecutablePath) ?? AppContext.BaseDirectory
         });
 
         return process is not null;
+    }
+
+    private static IEnumerable<string> EnumerateWorkerExecutableCandidates()
+    {
+        yield return Path.Combine(AppContext.BaseDirectory, "runtime", "worker", "FnMappingTool.Worker.exe");
+        yield return Path.Combine(AppContext.BaseDirectory, "FnMappingTool.Worker.exe");
     }
 }

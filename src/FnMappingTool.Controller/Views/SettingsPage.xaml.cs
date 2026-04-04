@@ -1,7 +1,9 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Services;
+using FnMappingTool.Core.Models;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
@@ -12,6 +14,8 @@ public sealed partial class SettingsPage : Page
     private bool _isLoading;
 
     public FnMappingToolController Controller => App.Controller;
+
+    public ObservableCollection<ConfigurationFileEntry> ConfigFiles { get; } = [];
 
     public SettingsPage()
     {
@@ -24,7 +28,9 @@ public sealed partial class SettingsPage : Page
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
+        ConfigFilesComboBox.ItemsSource = ConfigFiles;
         SyncState();
+        RefreshConfigFiles();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -36,7 +42,11 @@ public sealed partial class SettingsPage : Page
     {
         if (e.PropertyName is nameof(FnMappingToolController.ServiceRunning) or
             nameof(FnMappingToolController.AutostartEnabled) or
-            nameof(FnMappingToolController.TrayIconEnabled))
+            nameof(FnMappingToolController.TrayIconEnabled) or
+            nameof(FnMappingToolController.OsdDurationMs) or
+            nameof(FnMappingToolController.OsdDisplayMode) or
+            nameof(FnMappingToolController.OsdBackgroundOpacityPercent) or
+            nameof(FnMappingToolController.OsdScalePercent))
         {
             DispatcherQueue.TryEnqueue(SyncState);
         }
@@ -46,10 +56,55 @@ public sealed partial class SettingsPage : Page
     {
         _isLoading = true;
         SelectComboItem(ThemeComboBox, Controller.ThemePreference);
+        SelectComboItem(OsdDisplayModeComboBox, Controller.OsdDisplayMode);
         ServiceToggleSwitch.IsOn = Controller.ServiceRunning;
         AutostartToggleSwitch.IsOn = Controller.AutostartEnabled;
         TrayIconToggleSwitch.IsOn = Controller.TrayIconEnabled;
+        OsdDurationNumberBox.Value = Controller.OsdDurationMs;
+        OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
+        OsdScaleNumberBox.Value = Controller.OsdScalePercent;
+        OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
         _isLoading = false;
+    }
+
+    private void RefreshConfigFiles()
+    {
+        var selectedPath = (ConfigFilesComboBox.SelectedItem as ConfigurationFileEntry)?.Path;
+        var configDirectory = Controller.ConfigDirectory;
+        Directory.CreateDirectory(configDirectory);
+
+        ConfigFiles.Clear();
+
+        foreach (var file in Directory.GetFiles(configDirectory, "*.json", SearchOption.TopDirectoryOnly)
+                     .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
+        {
+            ConfigFiles.Add(new ConfigurationFileEntry
+            {
+                DisplayName = Path.GetFileName(file),
+                Path = file
+            });
+        }
+
+        ConfigFilesComboBox.SelectedItem = ConfigFiles.FirstOrDefault(item =>
+            string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase))
+            ?? ConfigFiles.FirstOrDefault(item =>
+                string.Equals(item.Path, Controller.ConfigPath, StringComparison.OrdinalIgnoreCase))
+            ?? ConfigFiles.FirstOrDefault();
+    }
+
+    private void ApplyOsdSettingsFromControls()
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        var displayMode = (OsdDisplayModeComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? OsdDisplayMode.IconAndText;
+        Controller.ApplyOsdPreferences(
+            (int)Math.Round(Math.Max(500, OsdDurationNumberBox.Value)),
+            displayMode,
+            (int)Math.Round(Math.Clamp(OsdBackgroundOpacityNumberBox.Value, 0, 100)),
+            (int)Math.Round(Math.Clamp(OsdScaleNumberBox.Value, 60, 200)));
     }
 
     private void OnThemeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -63,6 +118,16 @@ public sealed partial class SettingsPage : Page
         {
             Controller.ApplyThemePreference(theme);
         }
+    }
+
+    private void OnOsdSettingChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ApplyOsdSettingsFromControls();
+    }
+
+    private void OnOsdNumberValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        ApplyOsdSettingsFromControls();
     }
 
     private async void OnServiceStateChanged(object sender, RoutedEventArgs e)
@@ -119,7 +184,6 @@ public sealed partial class SettingsPage : Page
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary
         };
         picker.FileTypeFilter.Add(".json");
-        picker.FileTypeFilter.Add("*");
         InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
         var file = await picker.PickSingleFileAsync();
         if (file is not null)
@@ -127,7 +191,8 @@ public sealed partial class SettingsPage : Page
             try
             {
                 Controller.ImportConfiguration(file.Path);
-                SyncState();
+                RefreshConfigFiles();
+                await ShowImportAppliedAsync();
             }
             catch (Exception exception)
             {
@@ -136,25 +201,44 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private async void OnLoadPresetClick(object sender, RoutedEventArgs e)
+    private async void OnImportSelectedConfigClick(object sender, RoutedEventArgs e)
     {
-        if (PresetComboBox.SelectedItem is PresetConfigurationEntry preset)
+        if (ConfigFilesComboBox.SelectedItem is not ConfigurationFileEntry configurationFile)
         {
-            try
-            {
-                Controller.ImportConfiguration(preset.Path);
-                SyncState();
-            }
-            catch (Exception exception)
-            {
-                await ShowMessageAsync("Could not load preset", exception.Message);
-            }
+            return;
         }
+
+        try
+        {
+            Controller.ImportConfiguration(configurationFile.Path);
+            RefreshConfigFiles();
+            await ShowImportAppliedAsync();
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync("Could not import configuration", exception.Message);
+        }
+    }
+
+    private void OnRefreshConfigFilesClick(object sender, RoutedEventArgs e)
+    {
+        RefreshConfigFiles();
+    }
+
+    private void OnOpenOsdIconFolderClick(object sender, RoutedEventArgs e)
+    {
+        Controller.OpenOsdIconFolder();
+    }
+
+    private void OnRefreshOsdIconFolderClick(object sender, RoutedEventArgs e)
+    {
+        Controller.RefreshOsdIconCatalog();
+        SyncState();
     }
 
     private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
     {
-        Controller.OpenFolder(Path.GetDirectoryName(Controller.ConfigPath) ?? Controller.ConfigPath);
+        Controller.OpenFolder(Controller.ConfigDirectory);
     }
 
     private static void SelectComboItem(ComboBox comboBox, string value)
@@ -183,4 +267,45 @@ public sealed partial class SettingsPage : Page
 
         await dialog.ShowAsync();
     }
+
+    private async Task ShowImportAppliedAsync()
+    {
+        var serviceRunning = Controller.ServiceRunning;
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = "Configuration imported",
+            Content = serviceRunning
+                ? "The file has been imported. Restart the service to apply it. If you want the editor to show the imported keys and mappings immediately, reopen the controller."
+                : "The file has been imported. Start the service when you're ready to apply it. If you want the editor to show the imported keys and mappings immediately, reopen the controller.",
+            CloseButtonText = "Later"
+        };
+
+        if (serviceRunning)
+        {
+            dialog.PrimaryButtonText = "Restart service";
+            dialog.DefaultButton = ContentDialogButton.Primary;
+        }
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        if (!await Controller.RestartWorkerServiceAsync())
+        {
+            await ShowMessageAsync("Could not restart service", "The background worker could not be restarted.");
+            SyncState();
+            return;
+        }
+
+        SyncState();
+    }
+}
+
+public sealed class ConfigurationFileEntry
+{
+    public string DisplayName { get; set; } = string.Empty;
+
+    public string Path { get; set; } = string.Empty;
 }

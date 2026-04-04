@@ -1,11 +1,11 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using FnMappingTool.Core.Models;
 using FnMappingTool.Core.Services;
-using Svg;
 
 namespace FnMappingTool.Worker.Services;
 
@@ -13,9 +13,9 @@ internal sealed class WorkerOsdService : IDisposable
 {
     private readonly OsdForm _form = new();
 
-    public void Show(string title, string? message, IconConfiguration icon, int durationMs)
+    public void Show(string title, IconConfiguration icon, OsdPreferences preferences, string themePreference)
     {
-        _form.ShowOsd(title, message, icon, durationMs, IsDarkTheme());
+        _form.ShowOsd(title, icon, preferences, ResolveDarkTheme(themePreference));
     }
 
     public void Dispose()
@@ -23,7 +23,17 @@ internal sealed class WorkerOsdService : IDisposable
         _form.Dispose();
     }
 
-    private static bool IsDarkTheme()
+    private static bool ResolveDarkTheme(string? themePreference)
+    {
+        return themePreference switch
+        {
+            ThemePreference.Dark => true,
+            ThemePreference.Light => false,
+            _ => IsSystemDarkTheme()
+        };
+    }
+
+    private static bool IsSystemDarkTheme()
     {
         try
         {
@@ -40,14 +50,20 @@ internal sealed class WorkerOsdService : IDisposable
 
 internal sealed class OsdForm : Form
 {
-    private const int BaseClientSizePx = 220;
+    private const float SizeBaselineFactor = 0.7f;
+    private const int BaseIconOnlySizePx = 220;
+    private const int BaseTextOnlyWidthPx = 360;
+    private const int BaseTextOnlyHeightPx = 96;
+    private const int BaseBothWidthPx = 320;
+    private const int BaseBothHeightPx = 194;
     private const int BaseIconSizePx = 92;
-    private const int BasePaddingLeftPx = 32;
-    private const int BasePaddingTopPx = 24;
-    private const int BasePaddingRightPx = 32;
-    private const int BasePaddingBottomPx = 26;
+    private const int BaseTitleFontPx = 26;
+    private const int BaseHorizontalPaddingPx = 20;
+    private const int BaseTopPaddingPx = 18;
+    private const int BaseBottomPaddingPx = 18;
+    private const int BaseItemSpacingPx = 8;
     private const int BaseBottomMarginPx = 54;
-    private const int CornerRadius = 40;
+    private const int CornerRadius = 28;
     private const int DwMwWindowCornerPreference = 33;
     private const int DwMwSystemBackdropType = 38;
     private const int DwmwcpRound = 2;
@@ -57,9 +73,6 @@ internal sealed class OsdForm : Form
     private const int WsExNoActivate = 0x08000000;
     private const int ShowAnimationDurationMs = 180;
     private const int HideAnimationDurationMs = 150;
-    private const int BuiltInImageSize = 160;
-
-    private readonly PictureBox _pictureBox;
     private readonly System.Windows.Forms.Timer _displayTimer;
     private readonly System.Windows.Forms.Timer _animationTimer;
 
@@ -76,18 +89,27 @@ internal sealed class OsdForm : Form
     private int _showOffsetPx = 18;
     private int _hideOffsetPx = 10;
     private int _bottomMarginPx = BaseBottomMarginPx;
-    private double _steadyOpacity = 0.9d;
+    private int _backgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
+    private int _scaledHorizontalPaddingPx = BaseHorizontalPaddingPx;
+    private int _scaledTopPaddingPx = BaseTopPaddingPx;
+    private int _scaledBottomPaddingPx = BaseBottomPaddingPx;
+    private int _scaledItemSpacingPx = BaseItemSpacingPx;
+    private int _scaledStandardIconSizePx = BaseIconSizePx;
+    private int _scaledIconOnlyIconSizePx = 132;
+    private string _requestedDisplayMode = OsdDisplayMode.IconAndText;
+    private string _titleText = string.Empty;
+    private Color _titleColor = Color.White;
+    private Bitmap? _iconBitmap;
+    private Rectangle _iconBounds = Rectangle.Empty;
+    private Rectangle _titleBounds = Rectangle.Empty;
+    private Font _titleFont;
+    private Color _contentColor = Color.White;
 
     public OsdForm()
     {
         SuspendLayout();
 
-        _pictureBox = new PictureBox
-        {
-            Size = new Size(92, 92),
-            SizeMode = PictureBoxSizeMode.Zoom,
-            BackColor = Color.Transparent
-        };
+        _titleFont = CreateTitleFont(BaseTitleFontPx);
 
         _displayTimer = new System.Windows.Forms.Timer();
         _displayTimer.Tick += (_, _) =>
@@ -107,7 +129,6 @@ internal sealed class OsdForm : Form
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
         AutoScaleMode = AutoScaleMode.Dpi;
-        Padding = new Padding(BasePaddingLeftPx, BasePaddingTopPx, BasePaddingRightPx, BasePaddingBottomPx);
         DoubleBuffered = true;
         BackColor = Color.Black;
 
@@ -118,8 +139,7 @@ internal sealed class OsdForm : Form
             ControlStyles.UserPaint,
             true);
 
-        Controls.Add(_pictureBox);
-        ClientSize = new Size(BaseClientSizePx, BaseClientSizePx);
+        ClientSize = new Size(BaseBothWidthPx, BaseBothHeightPx);
         ResumeLayout(false);
     }
 
@@ -149,27 +169,53 @@ internal sealed class OsdForm : Form
         LayoutContent();
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _iconBitmap?.Dispose();
+            _titleFont.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
 
         e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
         e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
-        DrawIconHalo(e.Graphics);
+
+        if (ShouldShowIcon() && _iconBitmap is not null && !_iconBounds.IsEmpty)
+        {
+            DrawIconHalo(e.Graphics);
+            e.Graphics.DrawImage(_iconBitmap, _iconBounds);
+        }
+
+        if (ShouldShowText() && !_titleBounds.IsEmpty && !string.IsNullOrWhiteSpace(_titleText))
+        {
+            DrawTitle(e.Graphics);
+        }
     }
 
-    public void ShowOsd(string title, string? message, IconConfiguration icon, int durationMs, bool darkTheme)
+    public void ShowOsd(string title, IconConfiguration icon, OsdPreferences preferences, bool darkTheme)
     {
         _darkTheme = darkTheme;
-        _steadyOpacity = darkTheme ? 0.89d : 0.92d;
+        _backgroundOpacityPercent = Math.Clamp(preferences.BackgroundOpacityPercent, 0, 100);
+        _requestedDisplayMode = preferences.DisplayMode;
+        _titleText = title ?? string.Empty;
+        _contentColor = GetContentColor(darkTheme);
+        _titleColor = _contentColor;
 
         LoadImage(icon, darkTheme);
         EnsureWindowReady();
         var targetWindow = ResolveTargetWindowHandle();
         var targetScreen = ResolveTargetScreen(targetWindow);
-        ApplyScaledLayout(ResolveScaleFactor(targetWindow));
+        ApplyScaledLayout(ResolveScaleFactor(targetWindow), preferences);
         UpdateSteadyPosition(targetScreen.WorkingArea);
-        BeginShowAnimation(Math.Max(500, durationMs));
+        BeginShowAnimation(Math.Clamp(preferences.DurationMs, 500, 10000));
+        Invalidate();
     }
 
     private void BeginShowAnimation(int durationMs)
@@ -192,19 +238,53 @@ internal sealed class OsdForm : Form
         }
 
         BringToFront();
-        StartAnimation(AnimationPhase.Showing, Top, _steadyTop, Opacity, _steadyOpacity, ShowAnimationDurationMs);
+        StartAnimation(AnimationPhase.Showing, Top, _steadyTop, Opacity, 1d, ShowAnimationDurationMs);
         _displayTimer.Interval = durationMs;
     }
 
     private void LayoutContent()
     {
-        if (IsDisposed || Disposing || Controls.Count == 0)
+        if (IsDisposed || Disposing)
         {
             return;
         }
 
-        _pictureBox.Left = (Width - _pictureBox.Width) / 2;
-        _pictureBox.Top = (Height - _pictureBox.Height) / 2;
+        var showIcon = ShouldShowIcon();
+        var showText = ShouldShowText();
+        _iconBounds = Rectangle.Empty;
+        _titleBounds = Rectangle.Empty;
+
+        if (showIcon && showText)
+        {
+            var iconSize = _scaledStandardIconSizePx;
+            var iconLeft = (ClientSize.Width - iconSize) / 2;
+            var iconTop = _scaledTopPaddingPx;
+            _iconBounds = new Rectangle(iconLeft, iconTop, iconSize, iconSize);
+
+            var titleWidth = Math.Max(120, ClientSize.Width - (_scaledHorizontalPaddingPx * 2));
+            var titleHeight = Math.Max(28, ClientSize.Height - _iconBounds.Bottom - _scaledItemSpacingPx - _scaledBottomPaddingPx);
+            var titleLeft = (ClientSize.Width - titleWidth) / 2;
+            var titleTop = _iconBounds.Bottom + _scaledItemSpacingPx;
+            _titleBounds = new Rectangle(titleLeft, titleTop, titleWidth, titleHeight);
+            return;
+        }
+
+        if (showIcon)
+        {
+            var iconSize = _scaledIconOnlyIconSizePx;
+            var iconLeft = (ClientSize.Width - iconSize) / 2;
+            var iconTop = (ClientSize.Height - iconSize) / 2;
+            _iconBounds = new Rectangle(iconLeft, iconTop, iconSize, iconSize);
+        }
+
+        if (showText)
+        {
+            var titleWidth = Math.Max(160, ClientSize.Width - (_scaledHorizontalPaddingPx * 2));
+            var titleHeight = Math.Max(32, ClientSize.Height - _scaledTopPaddingPx - _scaledBottomPaddingPx);
+            var titleLeft = (ClientSize.Width - titleWidth) / 2;
+            var titleTop = (ClientSize.Height - titleHeight) / 2;
+            _titleBounds = new Rectangle(titleLeft, titleTop, titleWidth, titleHeight);
+        }
     }
 
     private void EnsureWindowReady()
@@ -226,22 +306,45 @@ internal sealed class OsdForm : Form
         PerformLayout();
     }
 
-    private void ApplyScaledLayout(float scaleFactor)
+    private void ApplyScaledLayout(float dpiScaleFactor, OsdPreferences preferences)
     {
-        var scale = Math.Max(1f, scaleFactor);
+        var scale = Math.Max(0.42f, dpiScaleFactor * (Math.Clamp(preferences.ScalePercent, 60, 200) / 100f) * SizeBaselineFactor);
         _showOffsetPx = ScaleValue(18, scale);
         _hideOffsetPx = ScaleValue(10, scale);
         _bottomMarginPx = ScaleValue(BaseBottomMarginPx, scale);
+        _scaledHorizontalPaddingPx = ScaleValue(BaseHorizontalPaddingPx, scale);
+        _scaledTopPaddingPx = ScaleValue(BaseTopPaddingPx, scale);
+        _scaledBottomPaddingPx = ScaleValue(BaseBottomPaddingPx, scale);
+        _scaledItemSpacingPx = ScaleValue(BaseItemSpacingPx, scale);
 
-        _pictureBox.Size = new Size(ScaleValue(BaseIconSizePx, scale), ScaleValue(BaseIconSizePx, scale));
-        Padding = new Padding(
-            ScaleValue(BasePaddingLeftPx, scale),
-            ScaleValue(BasePaddingTopPx, scale),
-            ScaleValue(BasePaddingRightPx, scale),
-            ScaleValue(BasePaddingBottomPx, scale));
-        ClientSize = new Size(ScaleValue(BaseClientSizePx, scale), ScaleValue(BaseClientSizePx, scale));
+        _scaledStandardIconSizePx = ScaleValue(BaseIconSizePx, scale);
+        _scaledIconOnlyIconSizePx = Math.Min(
+            ScaleValue(132, scale),
+            Math.Max(ScaleValue(84, scale), ScaleValue(BaseIconOnlySizePx, scale) - ScaleValue(36, scale)));
+        _titleFont.Dispose();
+        _titleFont = CreateTitleFont(Math.Max(19, ScaleValue(BaseTitleFontPx, scale)));
+
+        var displayMode = ResolveEffectiveDisplayMode();
+        var measuredTitleWidth = Math.Min(
+            ScaleValue(520, scale),
+            Math.Max(
+                ScaleValue(160, scale),
+                TextRenderer.MeasureText(_titleText, _titleFont).Width + ScaleValue(12, scale)));
+
+        ClientSize = displayMode switch
+        {
+            OsdDisplayMode.IconOnly => new Size(ScaleValue(BaseIconOnlySizePx, scale), ScaleValue(BaseIconOnlySizePx, scale)),
+            OsdDisplayMode.TextOnly => new Size(
+                Math.Max(ScaleValue(BaseTextOnlyWidthPx, scale), measuredTitleWidth + (_scaledHorizontalPaddingPx * 2)),
+                ScaleValue(BaseTextOnlyHeightPx, scale)),
+            _ => new Size(
+                Math.Max(ScaleValue(BaseBothWidthPx, scale), measuredTitleWidth + (_scaledHorizontalPaddingPx * 2)),
+                ScaleValue(BaseBothHeightPx, scale))
+        };
+
         ApplyRoundedRegion();
         LayoutContent();
+        Invalidate();
     }
 
     private void UpdateSteadyPosition(Rectangle bounds)
@@ -252,25 +355,32 @@ internal sealed class OsdForm : Form
 
     private void LoadImage(IconConfiguration icon, bool darkTheme)
     {
-        _pictureBox.Image?.Dispose();
+        _iconBitmap?.Dispose();
+        _iconBitmap = null;
 
-        if (icon.Mode == IconSourceMode.CustomFile)
+        var path = ResolvePreferredIconPath(icon);
+        if (string.IsNullOrWhiteSpace(path))
         {
-            _pictureBox.Image = LoadRequiredBitmap(icon.Path, darkTheme, "custom OSD icon");
             return;
         }
 
-        var builtInPath = BuiltInAssetResolver.ResolveOsdAssetPath(icon.BuiltInAsset ?? BuiltInOsdAsset.FnLock);
-        if (string.IsNullOrWhiteSpace(builtInPath))
-        {
-            throw new FileNotFoundException(
-                $"Built-in OSD asset '{icon.BuiltInAsset ?? BuiltInOsdAsset.FnLock}' was not found under assets\\{BuiltInAssetResolver.OsdIconsDirectoryName}.");
-        }
-
-        _pictureBox.Image = LoadRequiredBitmap(builtInPath, darkTheme, $"built-in OSD asset '{icon.BuiltInAsset ?? BuiltInOsdAsset.FnLock}'");
+        _iconBitmap = LoadRequiredBitmap(path, _contentColor, "OSD icon");
     }
 
-    private static Bitmap LoadRequiredBitmap(string? path, bool darkTheme, string label)
+    private static string? ResolvePreferredIconPath(IconConfiguration icon)
+    {
+        return ResolvePngPath(icon.Path);
+    }
+
+    private static string? ResolvePngPath(string? path)
+    {
+        return !string.IsNullOrWhiteSpace(path) &&
+               string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase)
+            ? path
+            : null;
+    }
+
+    private static Bitmap LoadRequiredBitmap(string path, Color tintColor, string label)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
         {
@@ -279,15 +389,9 @@ internal sealed class OsdForm : Form
 
         try
         {
-            if (string.Equals(Path.GetExtension(path), ".svg", StringComparison.OrdinalIgnoreCase))
-            {
-                var svgDocument = SvgDocument.Open<SvgDocument>(path);
-                return TintBitmap(svgDocument.Draw(BuiltInImageSize, BuiltInImageSize), darkTheme ? Color.White : Color.Black);
-            }
-
             using var stream = File.OpenRead(path);
             using var image = Image.FromStream(stream);
-            return new Bitmap(image);
+            return TintBitmap(new Bitmap(image), tintColor);
         }
         catch (Exception exception)
         {
@@ -309,6 +413,25 @@ internal sealed class OsdForm : Form
 
         source.Dispose();
         return tinted;
+    }
+
+    private static Font CreateTitleFont(float pixelSize)
+    {
+        try
+        {
+            return new Font("Segoe UI Variable Text", pixelSize, FontStyle.Regular, GraphicsUnit.Pixel);
+        }
+        catch
+        {
+            return new Font("Segoe UI", pixelSize, FontStyle.Regular, GraphicsUnit.Pixel);
+        }
+    }
+
+    private static Color GetContentColor(bool darkTheme)
+    {
+        return darkTheme
+            ? Color.FromArgb(245, 248, 250)
+            : Color.FromArgb(72, 76, 84);
     }
 
     private void ApplyWindowMaterial()
@@ -351,13 +474,14 @@ internal sealed class OsdForm : Form
     {
         try
         {
+            var alpha = (int)Math.Round(255 * (_backgroundOpacityPercent / 100d));
             var accent = new AccentPolicy
             {
                 AccentState = AccentEnableAcrylicBlurBehind,
                 AccentFlags = 0,
                 GradientColor = ToAbgr(_darkTheme
-                    ? Color.FromArgb(148, 10, 10, 14)
-                    : Color.FromArgb(112, 245, 245, 248))
+                    ? Color.FromArgb(alpha, 10, 10, 14)
+                    : Color.FromArgb(alpha, 245, 245, 248))
             };
 
             var size = Marshal.SizeOf<AccentPolicy>();
@@ -390,7 +514,7 @@ internal sealed class OsdForm : Form
             return;
         }
 
-        var scaleFactor = Math.Max(Width / (float)BaseClientSizePx, Height / (float)BaseClientSizePx);
+        var scaleFactor = Math.Max(Width / (float)BaseBothWidthPx, Height / (float)BaseBothHeightPx);
         var cornerDiameter = ScaleValue(CornerRadius * 2, scaleFactor);
         var regionHandle = CreateRoundRectRgn(0, 0, Width + 1, Height + 1, cornerDiameter, cornerDiameter);
         Region?.Dispose();
@@ -461,13 +585,13 @@ internal sealed class OsdForm : Form
 
     private void DrawIconHalo(Graphics graphics)
     {
-        var horizontalHalo = Math.Max(16, (int)Math.Round(_pictureBox.Width * 0.28));
-        var verticalHalo = Math.Max(12, (int)Math.Round(_pictureBox.Height * 0.18));
+        var horizontalHalo = Math.Max(16, (int)Math.Round(_iconBounds.Width * 0.28));
+        var verticalHalo = Math.Max(12, (int)Math.Round(_iconBounds.Height * 0.18));
         var haloBounds = new RectangleF(
-            _pictureBox.Left - horizontalHalo,
-            _pictureBox.Top - verticalHalo,
-            _pictureBox.Width + (horizontalHalo * 2),
-            _pictureBox.Height + (verticalHalo * 2.6f));
+            _iconBounds.Left - horizontalHalo,
+            _iconBounds.Top - verticalHalo,
+            _iconBounds.Width + (horizontalHalo * 2),
+            _iconBounds.Height + (verticalHalo * 2.6f));
 
         using var haloPath = new GraphicsPath();
         haloPath.AddEllipse(haloBounds);
@@ -478,6 +602,59 @@ internal sealed class OsdForm : Form
         };
 
         graphics.FillPath(haloBrush, haloPath);
+    }
+
+    private void DrawTitle(Graphics graphics)
+    {
+        graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+
+        using var brush = new SolidBrush(_titleColor);
+        using var format = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center,
+            Trimming = StringTrimming.EllipsisWord
+        };
+        format.FormatFlags = StringFormatFlags.LineLimit;
+        graphics.DrawString(_titleText, _titleFont, brush, _titleBounds, format);
+    }
+
+    private string ResolveEffectiveDisplayMode()
+    {
+        var hasIcon = _iconBitmap is not null;
+        var hasText = !string.IsNullOrWhiteSpace(_titleText);
+
+        return _requestedDisplayMode switch
+        {
+            OsdDisplayMode.IconOnly when hasIcon => OsdDisplayMode.IconOnly,
+            OsdDisplayMode.TextOnly when hasText => OsdDisplayMode.TextOnly,
+            OsdDisplayMode.IconAndText when hasIcon && hasText => OsdDisplayMode.IconAndText,
+            _ when hasIcon && hasText => OsdDisplayMode.IconAndText,
+            _ when hasIcon => OsdDisplayMode.IconOnly,
+            _ => OsdDisplayMode.TextOnly
+        };
+    }
+
+    private bool ShouldShowIcon()
+    {
+        if (_iconBitmap is null)
+        {
+            return false;
+        }
+
+        var displayMode = ResolveEffectiveDisplayMode();
+        return displayMode is OsdDisplayMode.IconOnly or OsdDisplayMode.IconAndText;
+    }
+
+    private bool ShouldShowText()
+    {
+        if (string.IsNullOrWhiteSpace(_titleText))
+        {
+            return false;
+        }
+
+        var displayMode = ResolveEffectiveDisplayMode();
+        return displayMode is OsdDisplayMode.TextOnly or OsdDisplayMode.IconAndText;
     }
 
     private static float ResolveScaleFactor(IntPtr targetWindow)
@@ -598,5 +775,3 @@ internal sealed class OsdForm : Form
     [DllImport("gdi32.dll")]
     private static extern IntPtr CreateRoundRectRgn(int left, int top, int right, int bottom, int width, int height);
 }
-
-

@@ -8,7 +8,7 @@ public sealed class NativeActionService
 {
     public void OpenSettings()
     {
-        Launch("ms-settings:");
+        SendModifiedVirtualKey(VkLeftWindows, VkLetterI);
     }
 
     public void OpenProjection()
@@ -184,6 +184,16 @@ public sealed class NativeActionService
         keybd_event(key, 0, 2, 0);
     }
 
+    private static void SendModifiedVirtualKey(byte modifier, byte key)
+    {
+        keybd_event(modifier, 0, 0, 0);
+        keybd_event(key, 0, 0, 0);
+        keybd_event(key, 0, 2, 0);
+        keybd_event(modifier, 0, 2, 0);
+    }
+
+    private const byte VkLeftWindows = 0x5B;
+    private const byte VkLetterI = 0x49;
     private const byte VkVolumeMute = 0xAD;
     private const byte VkVolumeDown = 0xAE;
     private const byte VkVolumeUp = 0xAF;

@@ -11,9 +11,6 @@ public sealed class AppConfiguration
 
     public List<KeyDefinitionConfiguration> Keys { get; set; } = new();
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<ActionDefinitionConfiguration>? Actions { get; set; }
-
     public List<KeyActionMappingConfiguration> Mappings { get; set; } = new();
 
     public static AppConfiguration CreateDefault()
@@ -33,6 +30,19 @@ public sealed class AppPreferences
     public bool IsListening { get; set; } = true;
 
     public bool ShowTrayIcon { get; set; } = true;
+
+    public OsdPreferences Osd { get; set; } = new();
+}
+
+public sealed class OsdPreferences
+{
+    public string DisplayMode { get; set; } = OsdDisplayMode.IconAndText;
+
+    public int DurationMs { get; set; } = RuntimeDefaults.DefaultOsdDurationMs;
+
+    public int BackgroundOpacityPercent { get; set; } = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
+
+    public int ScalePercent { get; set; } = RuntimeDefaults.DefaultOsdScalePercent;
 }
 
 public sealed class KeyDefinitionConfiguration
@@ -46,9 +56,6 @@ public sealed class KeyDefinitionConfiguration
 
 public sealed class ActionDefinitionConfiguration
 {
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Id { get; set; }
-
     public string Type { get; set; } = HotkeyActionType.None;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -60,15 +67,7 @@ public sealed class ActionDefinitionConfiguration
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? OsdTitle { get; set; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? OsdMessage { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? DurationMs { get; set; }
-
     public IconConfiguration OsdIcon { get; set; } = new();
-
-    public IconConfiguration TrayIcon { get; set; } = new();
 }
 
 public sealed class KeyActionMappingConfiguration
@@ -80,9 +79,6 @@ public sealed class KeyActionMappingConfiguration
     public bool Enabled { get; set; } = true;
 
     public string KeyId { get; set; } = string.Empty;
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ActionId { get; set; }
 
     public ActionDefinitionConfiguration Action { get; set; } = new();
 }
@@ -202,9 +198,6 @@ public sealed class IconConfiguration
     public string Mode { get; set; } = IconSourceMode.None;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? BuiltInAsset { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Path { get; set; }
 }
 
@@ -246,13 +239,22 @@ public static class HotkeyActionType
 
 public static class RuntimeDefaults
 {
-    public const int DefaultOsdDurationMs = 1400;
+    public const int DefaultOsdDurationMs = 800;
+    public const int DefaultOsdBackgroundOpacityPercent = 20;
+    public const int DefaultOsdScalePercent = 100;
+    public const int MaxOsdTitleLength = 32;
+}
+
+public static class OsdDisplayMode
+{
+    public const string IconAndText = "IconAndText";
+    public const string IconOnly = "IconOnly";
+    public const string TextOnly = "TextOnly";
 }
 
 public static class IconSourceMode
 {
     public const string None = "None";
-    public const string BuiltIn = "BuiltIn";
     public const string CustomFile = "CustomFile";
 }
 
@@ -403,28 +405,12 @@ public static class ActionCatalog
 
 public static class IconAssetCatalog
 {
-    public static IReadOnlyList<ChoiceOption> IconModes { get; } =
+    public static IReadOnlyList<ChoiceOption> OsdDisplayModes { get; } =
     [
-        new(IconSourceMode.None, "None"),
-        new(IconSourceMode.BuiltIn, "Built-in"),
-        new(IconSourceMode.CustomFile, "Custom file")
+        new(OsdDisplayMode.IconAndText, "Icon + title"),
+        new(OsdDisplayMode.IconOnly, "Icon only"),
+        new(OsdDisplayMode.TextOnly, "Title only")
     ];
-
-    public static IReadOnlyList<IconAssetOption> OsdAssets { get; } =
-    [
-        new(BuiltInOsdAsset.FnLock, "Fn lock", "\uE72E"),
-        new(BuiltInOsdAsset.FnUnlock, "Fn unlock", "\uE785"),
-        new(BuiltInOsdAsset.BacklightOff, "Backlight off", "\uE706"),
-        new(BuiltInOsdAsset.BacklightLevel1, "Backlight level 1", "\uE706"),
-        new(BuiltInOsdAsset.BacklightLevel2, "Backlight level 2", "\uE706"),
-        new(BuiltInOsdAsset.BacklightAuto, "Backlight auto", "\uE7F4")
-    ];
-
-    public static string GetLabel(string key)
-    {
-        return OsdAssets
-            .FirstOrDefault(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase))?.Label ?? key;
-    }
 }
 
 public static class DefaultKeyIds

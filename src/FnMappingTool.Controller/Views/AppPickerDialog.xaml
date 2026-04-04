@@ -35,23 +35,19 @@
         <ListView
             x:Name="AppsListView"
             Height="400"
+            ItemContainerStyle="{StaticResource ListHostItemStyle}"
+            Style="{StaticResource ListHostStyle}"
             SelectionMode="Single"
             SelectionChanged="OnSelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border
-                        Margin="0,0,0,8"
-                        Padding="14,12"
-                        Background="{ThemeResource LayerFillColorAltBrush}"
-                        CornerRadius="14">
-                        <StackPanel Spacing="4">
-                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Name}" />
-                            <TextBlock
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{Binding AppId}"
-                                TextWrapping="WrapWholeWords" />
-                        </StackPanel>
-                    </Border>
+                    <StackPanel Spacing="4">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Name}" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{Binding AppId}"
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

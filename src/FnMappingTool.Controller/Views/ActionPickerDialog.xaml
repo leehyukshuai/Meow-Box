@@ -1,0 +1,92 @@
+<ContentDialog
+    x:Class="FnMappingTool.Controller.Views.ActionPickerDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    PrimaryButtonText="Choose action"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+
+    <Grid Width="640" RowSpacing="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="6">
+            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Choose action" />
+            <TextBlock
+                Style="{StaticResource CardBodyTextBlockStyle}"
+                Text="Pick the action this mapping should run."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ComboBox
+                x:Name="CategoryComboBox"
+                DisplayMemberPath="Label"
+                Header="Category"
+                SelectionChanged="OnFilterChanged" />
+
+            <TextBox
+                x:Name="SearchTextBox"
+                Grid.Column="1"
+                Header="Search"
+                PlaceholderText="Type part of the action name"
+                TextChanged="OnFilterChanged" />
+        </Grid>
+
+        <ListView
+            x:Name="ActionsListView"
+            Grid.Row="2"
+            Height="420"
+            ItemContainerStyle="{StaticResource ListHostItemStyle}"
+            Style="{StaticResource ListHostStyle}"
+            SelectionMode="Single"
+            SelectionChanged="OnSelectionChanged">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border
+                            Width="32"
+                            Height="32"
+                            Background="{StaticResource ShellInfoSoftBrush}"
+                            CornerRadius="8">
+                            <FontIcon
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="14"
+                                Glyph="{Binding IconGlyph}" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="3">
+                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Label}" />
+                            <TextBlock
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{Binding TagsText}"
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="{Binding Description}"
+                                TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</ContentDialog>

@@ -6,117 +6,114 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer>
-        <Grid Padding="{StaticResource AppPagePadding}" RowSpacing="20">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Grid Padding="{StaticResource AppPagePadding}" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Grid ColumnSpacing="16">
+            <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Settings" />
+
+            <Grid
+                x:Name="SettingsSectionsGrid"
+                Grid.Row="1"
+                RowSpacing="16">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup>
+                        <VisualState x:Name="WideLayout">
+                            <VisualState.StateTriggers>
+                                <AdaptiveTrigger MinWindowWidth="1040" />
+                            </VisualState.StateTriggers>
+                            <VisualState.Setters>
+                                <Setter Target="SettingsSectionsGrid.ColumnSpacing" Value="16" />
+                                <Setter Target="SettingsLeftColumn.Width" Value="*" />
+                                <Setter Target="SettingsRightColumn.Width" Value="*" />
+                                <Setter Target="ServiceCard.(Grid.Row)" Value="0" />
+                                <Setter Target="ServiceCard.(Grid.Column)" Value="0" />
+                                <Setter Target="AppearanceCard.(Grid.Row)" Value="0" />
+                                <Setter Target="AppearanceCard.(Grid.Column)" Value="1" />
+                                <Setter Target="ConfigsCard.(Grid.Row)" Value="1" />
+                                <Setter Target="ConfigsCard.(Grid.Column)" Value="0" />
+                                <Setter Target="FilesCard.(Grid.Row)" Value="1" />
+                                <Setter Target="FilesCard.(Grid.Column)" Value="1" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="420" />
-                    <ColumnDefinition Width="*" MinWidth="280" />
+                    <ColumnDefinition x:Name="SettingsLeftColumn" Width="*" />
+                    <ColumnDefinition x:Name="SettingsRightColumn" Width="0" />
                 </Grid.ColumnDefinitions>
 
-                <Border Style="{StaticResource HeroPanelCardStyle}">
-                    <StackPanel Spacing="10">
-                        <TextBlock Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Runtime preferences" />
-                        <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Keep the tool quiet, reliable, and easy to trust" />
-                        <TextBlock
-                            Style="{StaticResource PageSubtitleTextBlockStyle}"
-                            Text="Service state, startup behavior, tray visibility, and presets all live here so the rest of the app can stay focused on editing."
-                            TextWrapping="WrapWholeWords" />
-                    </StackPanel>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    x:Name="ServiceCard"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Style="{StaticResource PanelCardStyle}">
+                    <Grid RowSpacing="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Service" />
+
+                        <Grid Grid.Row="1" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Running" />
+                            <ToggleSwitch
+                                x:Name="ServiceToggleSwitch"
+                                Grid.Column="1"
+                                Toggled="OnServiceStateChanged" />
+                        </Grid>
+
+                        <Grid Grid.Row="2" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Start with Windows" />
+                            <ToggleSwitch
+                                x:Name="AutostartToggleSwitch"
+                                Grid.Column="1"
+                                Toggled="OnAutostartChanged" />
+                        </Grid>
+
+                        <Grid Grid.Row="3" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
+                            <ToggleSwitch
+                                x:Name="TrayIconToggleSwitch"
+                                Grid.Column="1"
+                                Toggled="OnTrayIconChanged" />
+                        </Grid>
+                    </Grid>
                 </Border>
 
-                <StackPanel Grid.Column="1" Spacing="16">
-                    <Border Style="{StaticResource StatCardStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Service status" />
-                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ServiceStatusLabel}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource StatCardStyle}">
-                        <StackPanel Spacing="6">
-                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Configuration" />
-                            <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="The UI edits config only. The worker applies changes immediately when it is running." TextWrapping="WrapWholeWords" />
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="1" ColumnSpacing="20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
-                    <StackPanel Spacing="18">
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Background service" />
-
-                        <Border Style="{StaticResource SubtlePanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="4">
-                                    <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Service" />
-                                    <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="Turn the worker on when you want OEM events to be captured and mappings to execute." TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <ToggleSwitch
-                                    x:Name="ServiceToggleSwitch"
-                                    Grid.Column="1"
-                                    Header="Running"
-                                    Toggled="OnServiceStateChanged" />
-                            </Grid>
-                        </Border>
-
-                        <Border Style="{StaticResource SubtlePanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="4">
-                                    <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Start with Windows" />
-                                    <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="Recommended if you want laptop keys to keep working without opening the controller first." TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <ToggleSwitch
-                                    x:Name="AutostartToggleSwitch"
-                                    Grid.Column="1"
-                                    Header="Enabled"
-                                    Toggled="OnAutostartChanged" />
-                            </Grid>
-                        </Border>
-
-                        <Border Style="{StaticResource SubtlePanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="4">
-                                    <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
-                                    <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="Keep a lightweight system tray presence for quick open and exit controls." TextWrapping="WrapWholeWords" />
-                                </StackPanel>
-                                <ToggleSwitch
-                                    x:Name="TrayIconToggleSwitch"
-                                    Grid.Column="1"
-                                    Header="Shown"
-                                    Toggled="OnTrayIconChanged" />
-                            </Grid>
-                        </Border>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="1" Style="{StaticResource PanelCardStyle}">
-                    <StackPanel Spacing="18">
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance and files" />
+                <Border
+                    x:Name="AppearanceCard"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
 
                         <ComboBox
                             x:Name="ThemeComboBox"
@@ -126,53 +123,155 @@
                             <ComboBoxItem Content="Light" Tag="Light" />
                             <ComboBoxItem Content="Dark" Tag="Dark" />
                         </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    x:Name="ConfigsCard"
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Style="{StaticResource PanelCardStyle}">
+                    <Grid RowSpacing="14">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configs" />
+
+                        <Grid Grid.Row="1" ColumnSpacing="16" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <ComboBox
+                                x:Name="OsdDisplayModeComboBox"
+                                Header="OSD content"
+                                SelectionChanged="OnOsdSettingChanged">
+                                <ComboBoxItem Content="Icon + title" Tag="IconAndText" />
+                                <ComboBoxItem Content="Icon only" Tag="IconOnly" />
+                                <ComboBoxItem Content="Title only" Tag="TextOnly" />
+                            </ComboBox>
+
+                            <NumberBox
+                                x:Name="OsdDurationNumberBox"
+                                Grid.Column="1"
+                                Header="OSD duration (ms)"
+                                Minimum="500"
+                                Maximum="10000"
+                                SmallChange="100"
+                                SpinButtonPlacementMode="Inline"
+                                ValueChanged="OnOsdNumberValueChanged" />
+
+                            <NumberBox
+                                x:Name="OsdBackgroundOpacityNumberBox"
+                                Grid.Row="1"
+                                Header="Background opacity (%)"
+                                Minimum="0"
+                                Maximum="100"
+                                SmallChange="5"
+                                SpinButtonPlacementMode="Inline"
+                                ValueChanged="OnOsdNumberValueChanged" />
+
+                            <NumberBox
+                                x:Name="OsdScaleNumberBox"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Header="OSD size (%)"
+                                Minimum="60"
+                                Maximum="200"
+                                SmallChange="10"
+                                SpinButtonPlacementMode="Inline"
+                                ValueChanged="OnOsdNumberValueChanged" />
+
+                            <TextBox
+                                x:Name="OsdIconFolderTextBox"
+                                Grid.Row="2"
+                                Grid.ColumnSpan="2"
+                                Header="OSD icon folder"
+                                IsReadOnly="True" />
+
+                            <StackPanel
+                                Grid.Row="3"
+                                Grid.ColumnSpan="2"
+                                Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Button Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
+                                    <Button Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />
+                                </StackPanel>
+
+                                <TextBlock
+                                    Style="{StaticResource CardBodyTextBlockStyle}"
+                                    Text="Icon spec: transparent PNG, square canvas, 256×256 recommended, single-color glyph, and leave some padding near the edge."
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border
+                    x:Name="FilesCard"
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Style="{StaticResource PanelCardStyle}">
+                    <Grid RowSpacing="14">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Files" />
 
                         <TextBox
-                            Header="Config file"
+                            x:Name="ConfigPathTextBox"
+                            Grid.Row="1"
+                            Header="Current config file"
                             IsReadOnly="True"
                             Text="{Binding ConfigPath}" />
 
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnOpenConfigFolderClick" Content="Open Config Folder" Style="{StaticResource SubtleButtonStyle}" />
-                            <Button Click="OnImportConfigClick" Content="Import JSON File" Style="{StaticResource SubtleButtonStyle}" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource SubtleButtonStyle}" />
+                            <Button Click="OnImportConfigClick" Content="Browse JSON" Style="{StaticResource SubtleButtonStyle}" />
                         </StackPanel>
-                    </StackPanel>
+
+                        <Grid Grid.Row="3" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox
+                                x:Name="ConfigFilesComboBox"
+                                DisplayMemberPath="DisplayName"
+                                Header="Configs in folder"
+                                PlaceholderText="No JSON files found"
+                                SelectedValuePath="Path" />
+
+                            <Button
+                                Grid.Column="1"
+                                Click="OnRefreshConfigFilesClick"
+                                Content="Refresh"
+                                Style="{StaticResource SubtleButtonStyle}" />
+
+                            <Button
+                                Grid.Column="2"
+                                Click="OnImportSelectedConfigClick"
+                                Content="Import JSON"
+                                Style="{StaticResource AccentButtonStyle}" />
+                        </Grid>
+                    </Grid>
                 </Border>
             </Grid>
-
-            <Border Grid.Row="2" Style="{StaticResource PanelCardStyle}">
-                <Grid ColumnSpacing="20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="280" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Spacing="16">
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Presets" />
-                        <TextBlock
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="Load a prepared mapping profile when you want a fast starting point for a supported laptop model."
-                            TextWrapping="WrapWholeWords" />
-
-                        <ComboBox
-                            x:Name="PresetComboBox"
-                            DisplayMemberPath="Name"
-                            Header="Built-in preset"
-                            ItemsSource="{Binding PresetConfigurations}" />
-                    </StackPanel>
-
-                    <Border Grid.Column="1" Style="{StaticResource SubtlePanelCardStyle}">
-                        <StackPanel Spacing="14">
-                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Apply preset" />
-                            <TextBlock
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="This replaces the current configuration with the selected preset. Use it when you want a clean starting configuration."
-                                TextWrapping="WrapWholeWords" />
-                            <Button Click="OnLoadPresetClick" Content="Load Preset" HorizontalAlignment="Left" Style="{StaticResource AccentButtonStyle}" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
-            </Border>
         </Grid>
     </ScrollViewer>
 </Page>
