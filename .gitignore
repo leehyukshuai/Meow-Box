@@ -23,6 +23,7 @@
 *.temp
 *.cache
 *.pid
+assets/osd/SVG/
 
 # OS files
 Thumbs.db

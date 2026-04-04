@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="FnMappingTool.Controller.Views.KeysPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,108 +6,233 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="20,16,20,20">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="340" MinWidth="280" />
-            <ColumnDefinition Width="18" />
-            <ColumnDefinition Width="*" MinWidth="520" />
-        </Grid.ColumnDefinitions>
+    <Grid Padding="{StaticResource AppPagePadding}" RowSpacing="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
-            <Grid RowSpacing="16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" MinWidth="360" />
+                <ColumnDefinition Width="*" MinWidth="260" />
+            </Grid.ColumnDefinitions>
 
-                <StackPanel Spacing="4">
-                    <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Keys" />
-                    <TextBlock
-                        Style="{StaticResource CardBodyTextBlockStyle}"
-                        Text="Capture vendor key events from the background service and keep a clean named key list."
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
+            <Border Style="{StaticResource HeroPanelCardStyle}">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <ListView
-                    x:Name="KeysListView"
-                    Grid.Row="1"
-                    ItemsSource="{Binding KeyItems}"
-                    SelectedItem="{Binding SelectedKey, Mode=TwoWay}"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Padding="2,10">
-                                <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ListTitle}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-
-                <Button
-                    Grid.Row="2"
-                    Click="OnAddKeyClick"
-                    HorizontalAlignment="Stretch"
-                    Style="{StaticResource AccentButtonStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
-                        <TextBlock Text="Capture New Key" />
+                    <StackPanel Spacing="10">
+                        <TextBlock Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Capture workflow" />
+                        <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Build a clean vendor key library" />
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextBlockStyle}"
+                            Text="Capture the real OEM event once, give it a human name, and keep the raw matcher available when you need confidence."
+                            TextWrapping="WrapWholeWords" />
                     </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
 
-        <Border Grid.Column="2" Style="{StaticResource PanelCardStyle}">
-            <Grid RowSpacing="18">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                    <StackPanel
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                        <Border Style="{StaticResource StatCardStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Worker status" />
+                                <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ServiceStatusLabel}" />
+                            </StackPanel>
+                        </Border>
 
-                <StackPanel Spacing="4">
-                    <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key Details" />
-                    <TextBlock
-                        Style="{StaticResource CardBodyTextBlockStyle}"
-                        Text="Rename the selected captured event and review the raw matcher that will be used by the worker."
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
+                        <Button
+                            Click="OnAddKeyClick"
+                            HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
+                                <TextBlock Text="Capture New Key" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-                <TextBox
-                    Grid.Row="1"
-                    Header="Key name"
-                    PlaceholderText="Unique title"
-                    Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel Grid.Column="1" Spacing="16">
+                <Border Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Design principle" />
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="Name keys for what they mean on the device, not for the raw WMI class. It keeps mappings easier to scan later."
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
 
-                <TextBox
-                    Grid.Row="2"
-                    AcceptsReturn="True"
-                    FontFamily="Consolas"
-                    Header="Captured event"
-                    IsReadOnly="True"
-                    Text="{Binding SelectedKey.TriggerDetails, Mode=OneWay}"
-                    TextWrapping="Wrap" />
+                <Border Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Editing tip" />
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="The event payload stays intact. Renaming only improves clarity in the UI and mapping list."
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
 
-                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
-                    <Button
-                        Click="OnSaveKeyClick"
-                        HorizontalAlignment="Left"
-                        Style="{StaticResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
-                            <TextBlock Text="Save Key" />
+        <Grid Grid.Row="1" ColumnSpacing="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="360" MinWidth="300" />
+                <ColumnDefinition Width="*" MinWidth="560" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
+                <Grid RowSpacing="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Saved keys" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="Your captured OEM events live here. Pick one to rename or review."
+                                TextWrapping="WrapWholeWords" />
                         </StackPanel>
-                    </Button>
 
-                    <Button Click="OnDeleteKeyClick" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
-                            <TextBlock Text="Delete Key" />
+                        <Border
+                            Grid.Column="1"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource BadgeBorderStyle}">
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Library" />
+                        </Border>
+                    </Grid>
+
+                    <ListView
+                        x:Name="KeysListView"
+                        Grid.Row="1"
+                        Style="{StaticResource ListHostStyle}"
+                        ItemsSource="{Binding KeyItems}"
+                        SelectedItem="{Binding SelectedKey, Mode=TwoWay}"
+                        SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,0,8"
+                                    Padding="14,12"
+                                    Background="{ThemeResource LayerFillColorAltBrush}"
+                                    CornerRadius="14">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Border
+                                            Width="34"
+                                            Height="34"
+                                            Background="{StaticResource ShellAccentSoftBrush}"
+                                            CornerRadius="10">
+                                            <FontIcon
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Segoe Fluent Icons"
+                                                Glyph="&#xE765;" />
+                                        </Border>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ListTitle}" />
+                                            <TextBlock
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Text="Captured vendor event"
+                                                TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <Border Grid.Row="2" Style="{StaticResource SubtlePanelCardStyle}">
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="Need another key? Start the worker if needed, press the hardware key once, and this list updates immediately."
+                            TextWrapping="WrapWholeWords" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource PanelCardStyle}">
+                <Grid RowSpacing="18">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key details" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="Keep the name readable for yourself later. The raw matcher remains visible below so you can trust exactly what was captured."
+                                TextWrapping="WrapWholeWords" />
                         </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
+
+                        <Border
+                            Grid.Column="1"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource BadgeBorderStyle}">
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Selected key" />
+                        </Border>
+                    </Grid>
+
+                    <TextBox
+                        Grid.Row="1"
+                        Header="Key name"
+                        PlaceholderText="Give this key a clear name"
+                        Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBox
+                        Grid.Row="2"
+                        AcceptsReturn="True"
+                        FontFamily="Consolas"
+                        Header="Captured event"
+                        IsReadOnly="True"
+                        MinHeight="360"
+                        Text="{Binding SelectedKey.TriggerDetails, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
+                        <Button
+                            Click="OnSaveKeyClick"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
+                                <TextBlock Text="Save Key" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Click="OnDeleteKeyClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
+                                <TextBlock Text="Delete Key" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

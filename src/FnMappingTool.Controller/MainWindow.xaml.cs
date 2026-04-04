@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
@@ -26,6 +26,13 @@ public sealed partial class MainWindow : Window
         ["keys"] = typeof(KeysPage),
         ["mappings"] = typeof(MappingsPage),
         ["settings"] = typeof(SettingsPage)
+    };
+
+    private readonly Dictionary<string, (string Title, string Subtitle)> _pageMetadata = new()
+    {
+        ["keys"] = ("Keys", "Capture vendor events and keep a clean, readable key library."),
+        ["mappings"] = ("Mappings", "Connect each captured key to one clear action with minimal setup friction."),
+        ["settings"] = ("Settings", "Manage runtime behavior, startup, presets, and the overall app feel.")
     };
 
     private AppWindow? _appWindow;
@@ -73,6 +80,7 @@ public sealed partial class MainWindow : Window
         InstallWindowProc();
         _appWindow.Resize(GetMinimumWindowSizePixels());
         UpdateServiceIndicator();
+        UpdateQuickServiceButton();
     }
 
     private void ConfigureNavigation()
@@ -100,6 +108,7 @@ public sealed partial class MainWindow : Window
         if (_pages.TryGetValue(key, out var pageType))
         {
             ContentFrame.Navigate(pageType);
+            UpdatePageChrome(key);
         }
     }
 
@@ -138,7 +147,11 @@ public sealed partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(Services.FnMappingToolController.ServiceRunning))
         {
-            DispatcherQueue.TryEnqueue(UpdateServiceIndicator);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateServiceIndicator();
+                UpdateQuickServiceButton();
+            });
         }
     }
 
@@ -151,10 +164,49 @@ public sealed partial class MainWindow : Window
         ServiceStatusCoreInner.Fill = new SolidColorBrush(core);
         ServiceStatusCoreOuter.Fill = new SolidColorBrush(outer);
         ServiceStatusGlow.Fill = new SolidColorBrush(glow);
+        ServiceStatusTextBlock.Text = Controller.ServiceRunning ? "Service running" : "Service stopped";
 
         ServiceStatusToolTip.Content = Controller.ServiceRunning
             ? "Background service running"
             : "Background service stopped";
+    }
+
+    private void UpdateQuickServiceButton()
+    {
+        QuickServiceButtonTextBlock.Text = Controller.ServiceRunning ? "Stop service" : "Start service";
+    }
+
+    private void UpdatePageChrome(string key)
+    {
+        var metadata = _pageMetadata.TryGetValue(key, out var pageMetadata)
+            ? pageMetadata
+            : (Title: "Fn Mapping Tool", Subtitle: "Configure how your OEM keys should behave.");
+
+        PageTitleTextBlock.Text = metadata.Title;
+        PageSubtitleTextBlock.Text = metadata.Subtitle;
+        PageContextTextBlock.Text = metadata.Subtitle;
+    }
+
+    private async void OnQuickServiceButtonClick(object sender, RoutedEventArgs e)
+    {
+        QuickServiceButton.IsEnabled = false;
+        try
+        {
+            if (Controller.ServiceRunning)
+            {
+                await Controller.StopWorkerServiceAsync();
+            }
+            else
+            {
+                await Controller.StartWorkerServiceAsync();
+            }
+        }
+        finally
+        {
+            UpdateServiceIndicator();
+            UpdateQuickServiceButton();
+            QuickServiceButton.IsEnabled = true;
+        }
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs args)

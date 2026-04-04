@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="FnMappingTool.Controller.Views.MappingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,249 +7,401 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="20,16,20,20">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="360" MinWidth="300" />
-            <ColumnDefinition Width="18" />
-            <ColumnDefinition Width="*" MinWidth="560" />
-        </Grid.ColumnDefinitions>
+    <Grid Padding="{StaticResource AppPagePadding}" RowSpacing="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
-            <Grid RowSpacing="16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" MinWidth="420" />
+                <ColumnDefinition Width="*" MinWidth="300" />
+            </Grid.ColumnDefinitions>
 
-                <StackPanel Spacing="4">
-                    <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Mappings" />
-                    <TextBlock
-                        Style="{StaticResource CardBodyTextBlockStyle}"
-                        Text="Each mapping connects one captured key to one action."
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
+            <Border Style="{StaticResource HeroPanelCardStyle}">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <ListView
-                    x:Name="MappingsListView"
-                    Grid.Row="1"
-                    ItemsSource="{Binding MappingItems}"
-                    SelectedItem="{Binding SelectedMapping, Mode=TwoWay}"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Padding="2,10">
+                    <StackPanel Spacing="10">
+                        <TextBlock Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Mapping workflow" />
+                        <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Turn hardware intent into useful actions" />
+                        <TextBlock
+                            Style="{StaticResource PageSubtitleTextBlockStyle}"
+                            Text="Choose the captured key, pick an action that feels natural, and only reveal extra configuration when the action actually needs it."
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                        <Border Style="{StaticResource StatCardStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Editing model" />
+                                <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Key → Action" />
+                            </StackPanel>
+                        </Border>
+
+                        <Button
+                            Click="OnAddMappingClick"
+                            HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
+                                <TextBlock Text="Add Mapping" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Column="1" Spacing="16">
+                <Border Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Good default" />
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="For device feedback keys like Fn lock or backlight, showing a small OSD usually feels clearer than launching a larger Windows surface."
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Keep it scan-friendly" />
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="The list on the left should read like a quick story of what every hardware key will do."
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnSpacing="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="360" MinWidth="300" />
+                <ColumnDefinition Width="*" MinWidth="620" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
+                <Grid RowSpacing="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mappings" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="Pick any row to edit its target key and action."
+                                TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+
+                        <Border
+                            Grid.Column="1"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource BadgeBorderStyle}">
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Working list" />
+                        </Border>
+                    </Grid>
+
+                    <ListView
+                        x:Name="MappingsListView"
+                        Grid.Row="1"
+                        Style="{StaticResource ListHostStyle}"
+                        ItemsSource="{Binding MappingItems}"
+                        SelectedItem="{Binding SelectedMapping, Mode=TwoWay}"
+                        SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,0,8"
+                                    Padding="14,12"
+                                    Background="{ThemeResource LayerFillColorAltBrush}"
+                                    CornerRadius="14">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border
+                                            Width="34"
+                                            Height="34"
+                                            Background="{StaticResource ShellInfoSoftBrush}"
+                                            CornerRadius="10">
+                                            <FontIcon
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                FontFamily="Segoe Fluent Icons"
+                                                Glyph="{Binding ActionIconGlyph}" />
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" Spacing="3">
+                                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ListTitle}" />
+                                            <TextBlock
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Text="{Binding Summary}"
+                                                TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <Border Grid.Row="2" Style="{StaticResource SubtlePanelCardStyle}">
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="New mappings are intentionally lightweight: choose the key and the action first, then refine only the parts that matter."
+                            TextWrapping="WrapWholeWords" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource PanelCardStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid RowSpacing="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping details" />
+                                <TextBlock
+                                    Style="{StaticResource CardBodyTextBlockStyle}"
+                                    Text="Choose the key, narrow the action category, then pick the exact behavior from the card grid."
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                VerticalAlignment="Top"
+                                Style="{StaticResource BadgeBorderStyle}">
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Focused editor" />
+                            </Border>
+                        </Grid>
+
+                        <Border Grid.Row="1" Style="{StaticResource SubtlePanelCardStyle}">
+                            <Grid ColumnSpacing="14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <FontIcon
-                                    Width="20"
-                                    Height="20"
-                                    Margin="0,2,12,0"
-                                    FontFamily="Segoe Fluent Icons"
-                                    FontSize="16"
-                                    Glyph="{Binding ActionIconGlyph}" />
+                                <Border
+                                    Width="42"
+                                    Height="42"
+                                    Background="{StaticResource ShellAccentSoftBrush}"
+                                    CornerRadius="12">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe Fluent Icons"
+                                        FontSize="18"
+                                        Glyph="{Binding SelectedMapping.Action.ActionIconGlyph, Mode=OneWay}" />
+                                </Border>
 
-                                <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ListTitle}" />
+                                <StackPanel Grid.Column="1" Spacing="4">
                                     <TextBlock
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="{Binding Summary}"
+                                        Style="{StaticResource CardTitleTextBlockStyle}"
+                                        Text="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
+                                    <TextBlock
+                                        Style="{StaticResource CardBodyTextBlockStyle}"
+                                        Text="{Binding SelectedMapping.Action.ActionDescription, Mode=OneWay}"
                                         TextWrapping="WrapWholeWords" />
                                 </StackPanel>
                             </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                        </Border>
 
-                <Button
-                    Grid.Row="2"
-                    Click="OnAddMappingClick"
-                    HorizontalAlignment="Stretch"
-                    Style="{StaticResource AccentButtonStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
-                        <TextBlock Text="Add Mapping" />
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
+                        <Grid Grid.Row="2" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="240" />
+                            </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="2" Style="{StaticResource PanelCardStyle}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid RowSpacing="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping Details" />
-                        <TextBlock
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="Pick a key, choose an action category, then select the exact action."
-                            TextWrapping="WrapWholeWords" />
-                    </StackPanel>
-
-                    <ComboBox
-                        Grid.Row="1"
-                        DisplayMemberPath="ListTitle"
-                        Header="Key"
-                        ItemsSource="{Binding KeyItems}"
-                        SelectedValue="{Binding SelectedMapping.KeyId, Mode=TwoWay}"
-                        SelectedValuePath="Id"
-                        SelectionChanged="OnMappingReferenceChanged" />
-
-                    <Grid Grid.Row="2" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="220" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CardTitleTextBlockStyle}"
-                            Text="Action category" />
-
-                        <ComboBox
-                            Grid.Column="1"
-                            DisplayMemberPath="Label"
-                            ItemsSource="{Binding ActionTags}"
-                            SelectedItem="{Binding SelectedActionTag, Mode=TwoWay}" />
-                    </Grid>
-
-                    <ListView
-                        Grid.Row="3"
-                        ItemsSource="{Binding FilteredActionOptions}"
-                        SelectedItem="{Binding SelectedActionOption, Mode=TwoWay}"
-                        SelectionMode="Single">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="viewModels:ActionOptionItemViewModel">
-                                <Grid Padding="2,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <FontIcon
-                                        Width="20"
-                                        Height="20"
-                                        Margin="0,2,12,0"
-                                        FontFamily="Segoe Fluent Icons"
-                                        FontSize="16"
-                                        Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
-
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{x:Bind Label, Mode=OneWay}" />
-                                        <TextBlock
-                                            Style="{StaticResource CaptionTextBlockStyle}"
-                                            Text="{x:Bind Description, Mode=OneWay}"
-                                            TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-
-                    <InfoBar
-                        Grid.Row="4"
-                        IsClosable="False"
-                        IsOpen="True"
-                        Message="{Binding SelectedMapping.Action.ActionDescription, Mode=OneWay}"
-                        Severity="Informational"
-                        Title="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
-
-                    <StackPanel Grid.Row="5" Spacing="16">
-                        <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.TargetVisibility}">
-                            <TextBox
-                                Header="Target"
-                                PlaceholderText="Installed app target or executable path"
-                                Text="{Binding SelectedMapping.Action.Target, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding SelectedMapping.Action.InstalledAppPickerVisibility}">
-                                <Button Click="OnPickInstalledAppClick" Content="Choose Installed App" />
-                                <Button Click="OnBrowseExecutableClick" Content="Browse File" />
-                            </StackPanel>
-
-                            <TextBox
-                                Header="Arguments"
-                                PlaceholderText="Optional arguments"
-                                Text="{Binding SelectedMapping.Action.Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                Visibility="{Binding SelectedMapping.Action.ArgumentsVisibility}" />
-                        </StackPanel>
-
-                        <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.OsdEditorVisibility}">
-                            <TextBox
-                                Header="OSD title"
-                                Text="{Binding SelectedMapping.Action.OsdTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBox
-                                Header="OSD message"
-                                Text="{Binding SelectedMapping.Action.OsdMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <NumberBox
-                                Header="OSD duration (ms)"
-                                Minimum="500"
-                                SmallChange="100"
-                                SpinButtonPlacementMode="Inline"
-                                Value="{Binding SelectedMapping.Action.DurationMs, Mode=TwoWay}" />
                             <ComboBox
+                                DisplayMemberPath="ListTitle"
+                                Header="Key"
+                                ItemsSource="{Binding KeyItems}"
+                                SelectedValue="{Binding SelectedMapping.KeyId, Mode=TwoWay}"
+                                SelectedValuePath="Id"
+                                SelectionChanged="OnMappingReferenceChanged" />
+
+                            <ComboBox
+                                Grid.Column="1"
                                 DisplayMemberPath="Label"
-                                Header="OSD icon source"
-                                ItemsSource="{Binding SelectedMapping.Action.IconModes}"
-                                SelectedValue="{Binding SelectedMapping.Action.OsdIconMode, Mode=TwoWay}"
-                                SelectedValuePath="Key" />
-                            <ComboBox
-                                Header="Built-in OSD icon"
-                                ItemsSource="{Binding SelectedMapping.Action.OsdBuiltInAssets}"
-                                SelectedValue="{Binding SelectedMapping.Action.OsdBuiltInAsset, Mode=TwoWay}"
-                                SelectedValuePath="Key"
-                                Visibility="{Binding SelectedMapping.Action.OsdBuiltInVisibility}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="{Binding IconGlyph}" />
-                                            <TextBlock Text="{Binding Label}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.OsdCustomVisibility}">
+                                Header="Action category"
+                                ItemsSource="{Binding ActionTags}"
+                                SelectedItem="{Binding SelectedActionTag, Mode=TwoWay}" />
+                        </Grid>
+
+                        <GridView
+                            Grid.Row="3"
+                            Style="{StaticResource GridHostStyle}"
+                            ItemsSource="{Binding FilteredActionOptions}"
+                            SelectedItem="{Binding SelectedActionOption, Mode=TwoWay}"
+                            SelectionMode="Single">
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid MaximumRowsOrColumns="2" Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemTemplate>
+                                <DataTemplate x:DataType="viewModels:ActionOptionItemViewModel">
+                                    <Border
+                                        Width="244"
+                                        Margin="0,0,12,12"
+                                        Padding="16"
+                                        Background="{ThemeResource LayerFillColorAltBrush}"
+                                        CornerRadius="16">
+                                        <Grid RowSpacing="10">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <Border
+                                                Width="36"
+                                                Height="36"
+                                                Background="{StaticResource ShellInfoSoftBrush}"
+                                                CornerRadius="12">
+                                                <FontIcon
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Segoe Fluent Icons"
+                                                    Glyph="{x:Bind IconGlyph, Mode=OneWay}" />
+                                            </Border>
+
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Style="{StaticResource CardTitleTextBlockStyle}"
+                                                Text="{x:Bind Label, Mode=OneWay}"
+                                                TextWrapping="WrapWholeWords" />
+
+                                            <TextBlock
+                                                Grid.Row="2"
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind Description, Mode=OneWay}"
+                                                TextWrapping="WrapWholeWords" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                        </GridView>
+
+                        <StackPanel Grid.Row="4" Spacing="16">
+                            <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.TargetVisibility}">
                                 <TextBox
-                                    Header="Custom OSD icon"
-                                    Text="{Binding SelectedMapping.Action.OsdIconPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <Button Click="OnBrowseOsdIconClick" Content="Browse OSD Icon" HorizontalAlignment="Left" />
+                                    Header="Target"
+                                    PlaceholderText="Installed app target or executable path"
+                                    Text="{Binding SelectedMapping.Action.Target, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding SelectedMapping.Action.InstalledAppPickerVisibility}">
+                                    <Button Click="OnPickInstalledAppClick" Content="Choose Installed App" Style="{StaticResource SubtleButtonStyle}" />
+                                    <Button Click="OnBrowseExecutableClick" Content="Browse File" Style="{StaticResource SubtleButtonStyle}" />
+                                </StackPanel>
+
+                                <TextBox
+                                    Header="Arguments"
+                                    PlaceholderText="Optional launch arguments"
+                                    Text="{Binding SelectedMapping.Action.Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Visibility="{Binding SelectedMapping.Action.ArgumentsVisibility}" />
                             </StackPanel>
+
+                            <Border Visibility="{Binding SelectedMapping.Action.OsdEditorVisibility}" Style="{StaticResource SubtlePanelCardStyle}">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD appearance" />
+                                    <TextBox
+                                        Header="OSD title"
+                                        Text="{Binding SelectedMapping.Action.OsdTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox
+                                        Header="OSD message"
+                                        Text="{Binding SelectedMapping.Action.OsdMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <NumberBox
+                                        Header="OSD duration (ms)"
+                                        Minimum="500"
+                                        SmallChange="100"
+                                        SpinButtonPlacementMode="Inline"
+                                        Value="{Binding SelectedMapping.Action.DurationMs, Mode=TwoWay}" />
+                                    <ComboBox
+                                        DisplayMemberPath="Label"
+                                        Header="OSD icon source"
+                                        ItemsSource="{Binding SelectedMapping.Action.IconModes}"
+                                        SelectedValue="{Binding SelectedMapping.Action.OsdIconMode, Mode=TwoWay}"
+                                        SelectedValuePath="Key" />
+                                    <ComboBox
+                                        Header="Built-in OSD icon"
+                                        ItemsSource="{Binding SelectedMapping.Action.OsdBuiltInAssets}"
+                                        SelectedValue="{Binding SelectedMapping.Action.OsdBuiltInAsset, Mode=TwoWay}"
+                                        SelectedValuePath="Key"
+                                        Visibility="{Binding SelectedMapping.Action.OsdBuiltInVisibility}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="{Binding IconGlyph}" />
+                                                    <TextBlock Text="{Binding Label}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.OsdCustomVisibility}">
+                                        <TextBox
+                                            Header="Custom OSD icon"
+                                            Text="{Binding SelectedMapping.Action.OsdIconPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button Click="OnBrowseOsdIconClick" Content="Browse OSD Icon" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
 
-                    </StackPanel>
+                        <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="12">
+                            <Button
+                                Click="OnSaveMappingClick"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
+                                    <TextBlock Text="Save Mapping" />
+                                </StackPanel>
+                            </Button>
 
-                    <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="12">
-                        <Button
-                            Click="OnSaveMappingClick"
-                            HorizontalAlignment="Left"
-                            Style="{StaticResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
-                                <TextBlock Text="Save Mapping" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button Click="OnDeleteMappingClick" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
-                                <TextBlock Text="Delete Mapping" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </ScrollViewer>
-        </Border>
+                            <Button Click="OnDeleteMappingClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
+                                    <TextBlock Text="Delete Mapping" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

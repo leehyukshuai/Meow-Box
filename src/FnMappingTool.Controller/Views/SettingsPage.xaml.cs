@@ -1,8 +1,6 @@
-﻿using System.ComponentModel;
-using Microsoft.UI;
+using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using FnMappingTool.Controller.Services;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -48,13 +46,9 @@ public sealed partial class SettingsPage : Page
     {
         _isLoading = true;
         SelectComboItem(ThemeComboBox, Controller.ThemePreference);
-        ServiceOnRadioButton.IsChecked = Controller.ServiceRunning;
-        ServiceOffRadioButton.IsChecked = !Controller.ServiceRunning;
-        AutostartOnRadioButton.IsChecked = Controller.AutostartEnabled;
-        AutostartOffRadioButton.IsChecked = !Controller.AutostartEnabled;
-        TrayIconOnRadioButton.IsChecked = Controller.TrayIconEnabled;
-        TrayIconOffRadioButton.IsChecked = !Controller.TrayIconEnabled;
-        ServiceStatusGlyph.Background = new SolidColorBrush(Controller.ServiceRunning ? Colors.SeaGreen : Colors.IndianRed);
+        ServiceToggleSwitch.IsOn = Controller.ServiceRunning;
+        AutostartToggleSwitch.IsOn = Controller.AutostartEnabled;
+        TrayIconToggleSwitch.IsOn = Controller.TrayIconEnabled;
         _isLoading = false;
     }
 
@@ -78,16 +72,18 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        if (ReferenceEquals(sender, ServiceOnRadioButton))
+        if (ServiceToggleSwitch.IsOn)
         {
             if (!await Controller.StartWorkerServiceAsync())
             {
                 await ShowMessageAsync("Could not start service", "The background worker could not be started or did not respond.");
+                SyncState();
             }
         }
         else
         {
             await Controller.StopWorkerServiceAsync();
+            SyncState();
         }
     }
 
@@ -98,7 +94,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        Controller.SetAutostart(ReferenceEquals(sender, AutostartOnRadioButton));
+        Controller.SetAutostart(AutostartToggleSwitch.IsOn);
     }
 
     private void OnTrayIconChanged(object sender, RoutedEventArgs e)
@@ -108,7 +104,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        Controller.SetTrayIconEnabled(ReferenceEquals(sender, TrayIconOnRadioButton));
+        Controller.SetTrayIconEnabled(TrayIconToggleSwitch.IsOn);
     }
 
     private async void OnImportConfigClick(object sender, RoutedEventArgs e)
