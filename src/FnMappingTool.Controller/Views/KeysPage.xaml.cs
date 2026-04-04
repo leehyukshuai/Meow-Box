@@ -120,6 +120,7 @@ public sealed partial class KeysPage : Page
 
         KeysListView.Visibility = hasKeys ? Visibility.Visible : Visibility.Collapsed;
         KeysEmptyStatePanel.Visibility = hasKeys ? Visibility.Collapsed : Visibility.Visible;
+        KeyDetailsContentPanel.Visibility = hasSelection ? Visibility.Visible : Visibility.Collapsed;
         KeyDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
     }
 

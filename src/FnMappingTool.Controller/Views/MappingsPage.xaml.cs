@@ -250,6 +250,7 @@ public sealed partial class MappingsPage : Page
 
         MappingsListView.Visibility = hasMappings ? Visibility.Visible : Visibility.Collapsed;
         MappingsEmptyStatePanel.Visibility = hasMappings ? Visibility.Collapsed : Visibility.Visible;
+        MappingDetailsContentPanel.Visibility = hasSelection ? Visibility.Visible : Visibility.Collapsed;
         MappingDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
     }
 }

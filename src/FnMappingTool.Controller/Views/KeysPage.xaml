@@ -107,52 +107,55 @@
                 x:Name="KeyDetailsPane"
                 Grid.Column="1"
                 Style="{StaticResource PanelCardStyle}">
-                <Grid RowSpacing="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                <Grid>
+                    <Grid
+                        x:Name="KeyDetailsContentPanel"
+                        RowSpacing="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key details" />
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key details" />
 
-                        <Button
-                            Grid.Column="1"
-                            Click="OnDeleteKeyClick"
-                            Style="{StaticResource DangerButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
-                                <TextBlock Text="Delete" />
-                            </StackPanel>
-                        </Button>
+                            <Button
+                                Grid.Column="1"
+                                Click="OnDeleteKeyClick"
+                                Style="{StaticResource DangerButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
+                                    <TextBlock Text="Delete" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <TextBox
+                            Grid.Row="1"
+                            Header="Name"
+                            LostFocus="OnKeyNameLostFocus"
+                            PlaceholderText="Key name"
+                            Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBox
+                            Grid.Row="2"
+                            AcceptsReturn="True"
+                            FontFamily="Consolas"
+                            Header="Captured event"
+                            IsReadOnly="True"
+                            MinHeight="240"
+                            Text="{Binding SelectedKey.TriggerDetails, Mode=OneWay}"
+                            TextWrapping="Wrap" />
                     </Grid>
-
-                    <TextBox
-                        Grid.Row="1"
-                        Header="Name"
-                        LostFocus="OnKeyNameLostFocus"
-                        PlaceholderText="Key name"
-                        Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBox
-                        Grid.Row="2"
-                        AcceptsReturn="True"
-                        FontFamily="Consolas"
-                        Header="Captured event"
-                        IsReadOnly="True"
-                        MinHeight="240"
-                        Text="{Binding SelectedKey.TriggerDetails, Mode=OneWay}"
-                        TextWrapping="Wrap" />
 
                     <StackPanel
                         x:Name="KeyDetailsEmptyStatePanel"
-                        Grid.RowSpan="3"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Spacing="8"
