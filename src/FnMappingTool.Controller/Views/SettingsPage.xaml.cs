@@ -60,23 +60,23 @@ public sealed partial class SettingsPage : Page
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
         OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
-        ConfigDirectoryTextBox.Text = Controller.ConfigDirectory;
+        PresetDirectoryTextBox.Text = Controller.PresetDirectory;
         _isLoading = false;
     }
 
     private void RefreshConfigFiles(string? preferredPath = null)
     {
         var selectedPath = preferredPath ?? (ConfigFilesComboBox.SelectedItem as ConfigurationFileEntry)?.Path;
-        var configDirectory = Controller.ConfigDirectory;
-        Directory.CreateDirectory(configDirectory);
+        Controller.RefreshPresetCatalog();
+        var presetDirectory = Controller.PresetDirectory;
+        Directory.CreateDirectory(presetDirectory);
 
         _isLoading = true;
         ConfigFilesComboBox.SelectedItem = null;
         ConfigFilesComboBox.ItemsSource = null;
         ConfigFiles.Clear();
 
-        foreach (var file in Directory.GetFiles(configDirectory, "*.json", SearchOption.TopDirectoryOnly)
-                     .Where(file => !string.Equals(file, Controller.ConfigPath, StringComparison.OrdinalIgnoreCase))
+        foreach (var file in Directory.GetFiles(presetDirectory, "*.json", SearchOption.TopDirectoryOnly)
                      .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
         {
             ConfigFiles.Add(new ConfigurationFileEntry
@@ -222,9 +222,10 @@ public sealed partial class SettingsPage : Page
         SyncState();
     }
 
-    private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
+    private void OnOpenPresetFolderClick(object sender, RoutedEventArgs e)
     {
-        Controller.OpenFolder(Controller.ConfigDirectory);
+        Controller.RefreshPresetCatalog();
+        Controller.OpenFolder(Controller.PresetDirectory);
     }
 
     private void UpdatePresetSelectionState()

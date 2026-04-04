@@ -117,6 +117,8 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public string ConfigPath => _configService.ConfigPath;
 
+    public string PresetDirectory => Path.Combine(_configService.ConfigDirectory, "presets");
+
     public string OsdIconDirectory => OsdIconPathResolver.GetOsdIconDirectory(_configService.ConfigDirectory);
 
     public int OsdDurationMs
@@ -146,6 +148,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     public void Initialize(Window window)
     {
         SyncBundledOsdIconsToConfigDirectory();
+        SyncBundledPresetsToConfigDirectory();
         _configuration = _configService.Load();
         ReloadCollectionsFromConfiguration();
 
@@ -339,6 +342,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     public void RefreshOsdIconCatalog()
     {
         SyncBundledOsdIconsToConfigDirectory();
+    }
+
+    public void RefreshPresetCatalog()
+    {
+        SyncBundledPresetsToConfigDirectory();
     }
 
     public async Task<bool> StartWorkerServiceAsync()
@@ -541,6 +549,32 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             }
 
             var destinationPath = Path.Combine(OsdIconDirectory, fileName);
+            if (!File.Exists(destinationPath) || File.GetLastWriteTimeUtc(sourcePath) > File.GetLastWriteTimeUtc(destinationPath))
+            {
+                File.Copy(sourcePath, destinationPath, overwrite: true);
+            }
+        }
+    }
+
+    private void SyncBundledPresetsToConfigDirectory()
+    {
+        Directory.CreateDirectory(PresetDirectory);
+
+        var bundledDirectory = Path.Combine(AppContext.BaseDirectory, "assets", "config");
+        if (!Directory.Exists(bundledDirectory))
+        {
+            return;
+        }
+
+        foreach (var sourcePath in Directory.GetFiles(bundledDirectory, "*.json", SearchOption.TopDirectoryOnly))
+        {
+            var fileName = Path.GetFileName(sourcePath);
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                continue;
+            }
+
+            var destinationPath = Path.Combine(PresetDirectory, fileName);
             if (!File.Exists(destinationPath) || File.GetLastWriteTimeUtc(sourcePath) > File.GetLastWriteTimeUtc(destinationPath))
             {
                 File.Copy(sourcePath, destinationPath, overwrite: true);

@@ -234,18 +234,18 @@
                         <StackPanel Grid.Row="1" Spacing="12">
                             <TextBlock
                                 Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="Open the config folder, copy preset JSON files into it, then pick one here and load it."
+                                Text="Preset files live in their own folder. Copy JSON presets there, refresh the list, then load one."
                                 TextWrapping="WrapWholeWords" />
 
                             <TextBox
-                                x:Name="ConfigDirectoryTextBox"
-                                Header="Config folder"
+                                x:Name="PresetDirectoryTextBox"
+                                Header="Preset folder"
                                 IsReadOnly="True"
-                                Text="{Binding ConfigDirectory}" />
+                                Text="{Binding PresetDirectory}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource AccentButtonStyle}" />
+                            <Button Click="OnOpenPresetFolderClick" Content="Open preset folder" Style="{StaticResource AccentButtonStyle}" />
                             <Button Click="OnRefreshConfigFilesClick" Content="Refresh list" Style="{StaticResource SubtleButtonStyle}" />
                         </StackPanel>
 
@@ -258,7 +258,7 @@
                             <ComboBox
                                 x:Name="ConfigFilesComboBox"
                                 DisplayMemberPath="DisplayName"
-                                Header="Preset files in config folder"
+                                Header="Preset files"
                                 PlaceholderText="No preset JSON files found"
                                 SelectionChanged="OnConfigFileSelectionChanged"
                                 SelectedValuePath="Path" />
