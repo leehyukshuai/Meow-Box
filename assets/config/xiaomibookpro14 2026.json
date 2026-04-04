@@ -4,10 +4,10 @@
         "IsListening": true,
         "ShowTrayIcon": true,
         "Osd": {
-            "DisplayMode": "IconAndText",
+            "DisplayMode": "IconOnly",
             "DurationMs": 800,
             "BackgroundOpacityPercent": 20,
-            "ScalePercent": 100
+            "ScalePercent": 80
         }
     },
     "Keys": [
