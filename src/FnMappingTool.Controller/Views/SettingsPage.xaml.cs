@@ -4,9 +4,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Services;
 using FnMappingTool.Core.Models;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
-
 namespace FnMappingTool.Controller.Views;
 
 public sealed partial class SettingsPage : Page
@@ -64,6 +61,7 @@ public sealed partial class SettingsPage : Page
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
         OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
+        ConfigDirectoryTextBox.Text = Controller.ConfigDirectory;
         _isLoading = false;
     }
 
@@ -76,6 +74,7 @@ public sealed partial class SettingsPage : Page
         ConfigFiles.Clear();
 
         foreach (var file in Directory.GetFiles(configDirectory, "*.json", SearchOption.TopDirectoryOnly)
+                     .Where(file => !string.Equals(file, Controller.ConfigPath, StringComparison.OrdinalIgnoreCase))
                      .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
         {
             ConfigFiles.Add(new ConfigurationFileEntry
@@ -87,9 +86,9 @@ public sealed partial class SettingsPage : Page
 
         ConfigFilesComboBox.SelectedItem = ConfigFiles.FirstOrDefault(item =>
             string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase))
-            ?? ConfigFiles.FirstOrDefault(item =>
-                string.Equals(item.Path, Controller.ConfigPath, StringComparison.OrdinalIgnoreCase))
             ?? ConfigFiles.FirstOrDefault();
+
+        UpdatePresetSelectionState();
     }
 
     private void ApplyOsdSettingsFromControls()
@@ -172,35 +171,6 @@ public sealed partial class SettingsPage : Page
         Controller.SetTrayIconEnabled(TrayIconToggleSwitch.IsOn);
     }
 
-    private async void OnImportConfigClick(object sender, RoutedEventArgs e)
-    {
-        if (App.MainWindow is null)
-        {
-            return;
-        }
-
-        var picker = new FileOpenPicker
-        {
-            SuggestedStartLocation = PickerLocationId.DocumentsLibrary
-        };
-        picker.FileTypeFilter.Add(".json");
-        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
-        var file = await picker.PickSingleFileAsync();
-        if (file is not null)
-        {
-            try
-            {
-                Controller.ImportConfiguration(file.Path);
-                RefreshConfigFiles();
-                await ShowImportAppliedAsync();
-            }
-            catch (Exception exception)
-            {
-                await ShowMessageAsync("Could not import configuration", exception.Message);
-            }
-        }
-    }
-
     private async void OnImportSelectedConfigClick(object sender, RoutedEventArgs e)
     {
         if (ConfigFilesComboBox.SelectedItem is not ConfigurationFileEntry configurationFile)
@@ -225,6 +195,11 @@ public sealed partial class SettingsPage : Page
         RefreshConfigFiles();
     }
 
+    private void OnConfigFileSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdatePresetSelectionState();
+    }
+
     private void OnOpenOsdIconFolderClick(object sender, RoutedEventArgs e)
     {
         Controller.OpenOsdIconFolder();
@@ -239,6 +214,11 @@ public sealed partial class SettingsPage : Page
     private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
     {
         Controller.OpenFolder(Controller.ConfigDirectory);
+    }
+
+    private void UpdatePresetSelectionState()
+    {
+        LoadPresetButton.IsEnabled = ConfigFilesComboBox.SelectedItem is ConfigurationFileEntry;
     }
 
     private static void SelectComboItem(ComboBox comboBox, string value)

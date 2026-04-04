@@ -231,42 +231,43 @@
 
                         <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Files" />
 
-                        <TextBox
-                            x:Name="ConfigPathTextBox"
-                            Grid.Row="1"
-                            Header="Current config file"
-                            IsReadOnly="True"
-                            Text="{Binding ConfigPath}" />
+                        <StackPanel Grid.Row="1" Spacing="12">
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="Open the config folder, copy preset JSON files into it, then pick one here and load it."
+                                TextWrapping="WrapWholeWords" />
+
+                            <TextBox
+                                x:Name="ConfigDirectoryTextBox"
+                                Header="Config folder"
+                                IsReadOnly="True"
+                                Text="{Binding ConfigDirectory}" />
+                        </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource SubtleButtonStyle}" />
-                            <Button Click="OnImportConfigClick" Content="Browse JSON" Style="{StaticResource SubtleButtonStyle}" />
+                            <Button Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource AccentButtonStyle}" />
+                            <Button Click="OnRefreshConfigFilesClick" Content="Refresh list" Style="{StaticResource SubtleButtonStyle}" />
                         </StackPanel>
 
                         <Grid Grid.Row="3" ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <ComboBox
                                 x:Name="ConfigFilesComboBox"
                                 DisplayMemberPath="DisplayName"
-                                Header="Configs in folder"
-                                PlaceholderText="No JSON files found"
+                                Header="Preset files in config folder"
+                                PlaceholderText="No preset JSON files found"
+                                SelectionChanged="OnConfigFileSelectionChanged"
                                 SelectedValuePath="Path" />
 
                             <Button
+                                x:Name="LoadPresetButton"
                                 Grid.Column="1"
-                                Click="OnRefreshConfigFilesClick"
-                                Content="Refresh"
-                                Style="{StaticResource SubtleButtonStyle}" />
-
-                            <Button
-                                Grid.Column="2"
                                 Click="OnImportSelectedConfigClick"
-                                Content="Import JSON"
+                                Content="Load preset"
                                 Style="{StaticResource AccentButtonStyle}" />
                         </Grid>
                     </Grid>
