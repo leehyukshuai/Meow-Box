@@ -1,0 +1,113 @@
+﻿<Page
+    x:Class="FnMappingTool.Controller.Views.KeysPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="20,16,20,20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340" MinWidth="280" />
+            <ColumnDefinition Width="18" />
+            <ColumnDefinition Width="*" MinWidth="520" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
+            <Grid RowSpacing="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Keys" />
+                    <TextBlock
+                        Style="{StaticResource CardBodyTextBlockStyle}"
+                        Text="Capture vendor key events from the background service and keep a clean named key list."
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+
+                <ListView
+                    x:Name="KeysListView"
+                    Grid.Row="1"
+                    ItemsSource="{Binding KeyItems}"
+                    SelectedItem="{Binding SelectedKey, Mode=TwoWay}"
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="2,10">
+                                <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ListTitle}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <Button
+                    Grid.Row="2"
+                    Click="OnAddKeyClick"
+                    HorizontalAlignment="Stretch"
+                    Style="{StaticResource AccentButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
+                        <TextBlock Text="Capture New Key" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="2" Style="{StaticResource PanelCardStyle}">
+            <Grid RowSpacing="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key Details" />
+                    <TextBlock
+                        Style="{StaticResource CardBodyTextBlockStyle}"
+                        Text="Rename the selected captured event and review the raw matcher that will be used by the worker."
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+
+                <TextBox
+                    Grid.Row="1"
+                    Header="Key name"
+                    PlaceholderText="Unique title"
+                    Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBox
+                    Grid.Row="2"
+                    AcceptsReturn="True"
+                    FontFamily="Consolas"
+                    Header="Captured event"
+                    IsReadOnly="True"
+                    Text="{Binding SelectedKey.TriggerDetails, Mode=OneWay}"
+                    TextWrapping="Wrap" />
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
+                    <Button
+                        Click="OnSaveKeyClick"
+                        HorizontalAlignment="Left"
+                        Style="{StaticResource AccentButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
+                            <TextBlock Text="Save Key" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Click="OnDeleteKeyClick" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
+                            <TextBlock Text="Delete Key" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

@@ -1,0 +1,136 @@
+﻿<Page
+    x:Class="FnMappingTool.Controller.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <Grid Padding="20,16,20,20" RowSpacing="18">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Settings" />
+
+            <Border Grid.Row="1" Style="{StaticResource PanelCardStyle}">
+                <StackPanel Spacing="16">
+                    <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Background Service" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border
+                            x:Name="ServiceStatusGlyph"
+                            Width="10"
+                            Height="10"
+                            VerticalAlignment="Center"
+                            Background="{ThemeResource SystemFillColorCriticalBrush}"
+                            CornerRadius="5" />
+                        <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="{Binding ServiceStatusLabel}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Service state" />
+                        <StackPanel Orientation="Horizontal" Spacing="18">
+                            <RadioButton
+                                x:Name="ServiceOnRadioButton"
+                                Checked="OnServiceStateChanged"
+                                Content="Running"
+                                GroupName="ServiceState" />
+                            <RadioButton
+                                x:Name="ServiceOffRadioButton"
+                                Checked="OnServiceStateChanged"
+                                Content="Stopped"
+                                GroupName="ServiceState" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Start service with Windows" />
+                        <StackPanel Orientation="Horizontal" Spacing="18">
+                            <RadioButton
+                                x:Name="AutostartOnRadioButton"
+                                Checked="OnAutostartChanged"
+                                Content="Enabled"
+                                GroupName="AutostartState" />
+                            <RadioButton
+                                x:Name="AutostartOffRadioButton"
+                                Checked="OnAutostartChanged"
+                                Content="Disabled"
+                                GroupName="AutostartState" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
+                        <StackPanel Orientation="Horizontal" Spacing="18">
+                            <RadioButton
+                                x:Name="TrayIconOnRadioButton"
+                                Checked="OnTrayIconChanged"
+                                Content="Shown"
+                                GroupName="TrayIconState" />
+                            <RadioButton
+                                x:Name="TrayIconOffRadioButton"
+                                Checked="OnTrayIconChanged"
+                                Content="Hidden"
+                                GroupName="TrayIconState" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="2" ColumnSpacing="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
+
+                        <ComboBox
+                            x:Name="ThemeComboBox"
+                            Header="Theme"
+                            SelectionChanged="OnThemeSelectionChanged">
+                            <ComboBoxItem Content="System" Tag="System" />
+                            <ComboBoxItem Content="Light" Tag="Light" />
+                            <ComboBoxItem Content="Dark" Tag="Dark" />
+                        </ComboBox>
+
+                        <TextBox
+                            Header="Config file"
+                            IsReadOnly="True"
+                            Text="{Binding ConfigPath}" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="OnOpenConfigFolderClick" Content="Open Config Folder" />
+                            <Button Click="OnImportConfigClick" Content="Import JSON File" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Presets" />
+
+                        <TextBlock
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="Load a prepared mapping profile for a supported laptop model."
+                            TextWrapping="WrapWholeWords" />
+
+                        <ComboBox
+                            x:Name="PresetComboBox"
+                            DisplayMemberPath="Name"
+                            Header="Built-in preset"
+                            ItemsSource="{Binding PresetConfigurations}" />
+
+                        <Button Click="OnLoadPresetClick" Content="Load Preset" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</Page>

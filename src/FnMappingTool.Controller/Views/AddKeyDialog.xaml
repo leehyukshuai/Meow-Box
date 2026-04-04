@@ -1,0 +1,49 @@
+﻿<ContentDialog
+    x:Class="FnMappingTool.Controller.Views.AddKeyDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    PrimaryButtonText="Add"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    mc:Ignorable="d">
+
+    <StackPanel Spacing="16">
+        <StackPanel Spacing="4">
+            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Capture OEM Key" />
+            <TextBlock
+                Style="{StaticResource CardBodyTextBlockStyle}"
+                Text="Press the vendor key now. The next event captured by the worker will become a new key definition."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+
+        <InfoBar
+            x:Name="CaptureInfoBar"
+            IsClosable="False"
+            IsOpen="True"
+            Severity="Informational"
+            Title="Capture status" />
+
+        <ProgressRing
+            x:Name="CaptureProgressRing"
+            Width="36"
+            Height="36"
+            IsActive="True"
+            HorizontalAlignment="Left" />
+
+        <TextBox
+            x:Name="NameTextBox"
+            Header="Key name"
+            PlaceholderText="Unique title"
+            TextChanged="OnNameTextChanged" />
+
+        <TextBox
+            x:Name="TriggerTextBox"
+            Header="Captured event"
+            FontFamily="Consolas"
+            IsReadOnly="True"
+            MinHeight="132"
+            TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>
