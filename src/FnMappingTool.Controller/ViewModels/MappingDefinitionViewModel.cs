@@ -24,7 +24,8 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         get => _keyId;
         set
         {
-            if (SetProperty(ref _keyId, value))
+            var normalizedValue = value ?? string.Empty;
+            if (SetProperty(ref _keyId, normalizedValue))
             {
                 OnPropertyChanged(nameof(ListTitle));
             }

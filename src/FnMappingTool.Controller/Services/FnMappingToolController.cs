@@ -467,7 +467,10 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
         foreach (var mapping in MappingItems)
         {
-            var key = keyLookup.TryGetValue(mapping.KeyId, out var keyVm) ? keyVm : null;
+            var key = !string.IsNullOrWhiteSpace(mapping.KeyId) &&
+                      keyLookup.TryGetValue(mapping.KeyId, out var keyVm)
+                ? keyVm
+                : null;
             mapping.UpdateDisplay(key?.ListTitle ?? "Select key");
         }
 

@@ -46,25 +46,25 @@ public sealed class ActionDefinitionViewModel : ObservableObject
     public string Target
     {
         get => _target;
-        set => SetProperty(ref _target, value);
+        set => SetProperty(ref _target, value ?? string.Empty);
     }
 
     public string Arguments
     {
         get => _arguments;
-        set => SetProperty(ref _arguments, value);
+        set => SetProperty(ref _arguments, value ?? string.Empty);
     }
 
     public string OsdTitle
     {
         get => _osdTitle;
-        set => SetProperty(ref _osdTitle, value);
+        set => SetProperty(ref _osdTitle, value ?? string.Empty);
     }
 
     public string OsdIconPath
     {
         get => _osdIconPath;
-        set => SetProperty(ref _osdIconPath, value);
+        set => SetProperty(ref _osdIconPath, value ?? string.Empty);
     }
 
     public string ActionLabel => ActionCatalog.GetLabel(Type);
