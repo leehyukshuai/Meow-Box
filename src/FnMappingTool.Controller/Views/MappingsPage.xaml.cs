@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Models;
@@ -19,11 +21,21 @@ public sealed partial class MappingsPage : Page
         InitializeComponent();
         DataContext = Controller;
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        Controller.PropertyChanged += OnControllerPropertyChanged;
+        Controller.MappingItems.CollectionChanged += OnMappingItemsCollectionChanged;
         RefreshOsdIcons();
+        UpdateEmptyStates();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        Controller.PropertyChanged -= OnControllerPropertyChanged;
+        Controller.MappingItems.CollectionChanged -= OnMappingItemsCollectionChanged;
     }
 
     private void RefreshOsdIcons()
@@ -65,6 +77,7 @@ public sealed partial class MappingsPage : Page
             Controller.AddMapping();
             MappingsListView.UpdateLayout();
             RefreshOsdIcons();
+            UpdateEmptyStates();
             if (Controller.SelectedMapping is not null)
             {
                 MappingsListView.ScrollIntoView(Controller.SelectedMapping);
@@ -215,5 +228,28 @@ public sealed partial class MappingsPage : Page
         {
             await ShowMessageAsync("Could not save mapping", exception.Message);
         }
+    }
+
+    private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FnMappingToolController.SelectedMapping))
+        {
+            DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+        }
+    }
+
+    private void OnMappingItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+    }
+
+    private void UpdateEmptyStates()
+    {
+        var hasMappings = Controller.MappingItems.Count > 0;
+        var hasSelection = Controller.SelectedMapping is not null;
+
+        MappingsListView.Visibility = hasMappings ? Visibility.Visible : Visibility.Collapsed;
+        MappingsEmptyStatePanel.Visibility = hasMappings ? Visibility.Collapsed : Visibility.Visible;
+        MappingDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
     }
 }

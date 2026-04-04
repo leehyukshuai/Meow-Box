@@ -85,6 +85,30 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
+
+                    <StackPanel
+                        x:Name="MappingsEmptyStatePanel"
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="8"
+                        Visibility="Collapsed">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            FontFamily="Segoe Fluent Icons"
+                            FontSize="24"
+                            Glyph="&#xE8D2;" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource CardTitleTextBlockStyle}"
+                            Text="No mappings yet" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource CardBodyTextBlockStyle}"
+                            Text="Add a mapping to connect a key to an action."
+                            TextAlignment="Center"
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
                 </Grid>
             </Border>
 
@@ -269,6 +293,30 @@
                                         TextWrapping="WrapWholeWords" />
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+
+                        <StackPanel
+                            x:Name="MappingDetailsEmptyStatePanel"
+                            Grid.RowSpan="4"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="8"
+                            Visibility="Collapsed">
+                            <FontIcon
+                                HorizontalAlignment="Center"
+                                FontFamily="Segoe Fluent Icons"
+                                FontSize="24"
+                                Glyph="&#xE7C3;" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                Style="{StaticResource CardTitleTextBlockStyle}"
+                                Text="No mapping selected" />
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="Pick a mapping from the list or add a new one."
+                                TextAlignment="Center"
+                                TextWrapping="WrapWholeWords" />
                         </StackPanel>
 
                     </Grid>

@@ -1,6 +1,8 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Services;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace FnMappingTool.Controller.Views;
 
@@ -12,6 +14,21 @@ public sealed partial class KeysPage : Page
     {
         InitializeComponent();
         DataContext = Controller;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        Controller.PropertyChanged += OnControllerPropertyChanged;
+        Controller.KeyItems.CollectionChanged += OnKeyItemsCollectionChanged;
+        UpdateEmptyStates();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        Controller.PropertyChanged -= OnControllerPropertyChanged;
+        Controller.KeyItems.CollectionChanged -= OnKeyItemsCollectionChanged;
     }
 
     private async void OnAddKeyClick(object sender, RoutedEventArgs e)
@@ -81,6 +98,29 @@ public sealed partial class KeysPage : Page
         }
 
         Controller.DeleteSelectedKey();
+    }
+
+    private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FnMappingToolController.SelectedKey))
+        {
+            DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+        }
+    }
+
+    private void OnKeyItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+    }
+
+    private void UpdateEmptyStates()
+    {
+        var hasKeys = Controller.KeyItems.Count > 0;
+        var hasSelection = Controller.SelectedKey is not null;
+
+        KeysListView.Visibility = hasKeys ? Visibility.Visible : Visibility.Collapsed;
+        KeysEmptyStatePanel.Visibility = hasKeys ? Visibility.Collapsed : Visibility.Visible;
+        KeyDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private async Task ShowMessageAsync(string title, string message)
