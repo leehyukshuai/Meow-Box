@@ -25,7 +25,6 @@ public sealed partial class SettingsPage : Page
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
-        ConfigFilesComboBox.ItemsSource = ConfigFiles;
         SyncState();
         RefreshConfigFiles();
     }
@@ -65,12 +64,15 @@ public sealed partial class SettingsPage : Page
         _isLoading = false;
     }
 
-    private void RefreshConfigFiles()
+    private void RefreshConfigFiles(string? preferredPath = null)
     {
-        var selectedPath = (ConfigFilesComboBox.SelectedItem as ConfigurationFileEntry)?.Path;
+        var selectedPath = preferredPath ?? (ConfigFilesComboBox.SelectedItem as ConfigurationFileEntry)?.Path;
         var configDirectory = Controller.ConfigDirectory;
         Directory.CreateDirectory(configDirectory);
 
+        _isLoading = true;
+        ConfigFilesComboBox.SelectedItem = null;
+        ConfigFilesComboBox.ItemsSource = null;
         ConfigFiles.Clear();
 
         foreach (var file in Directory.GetFiles(configDirectory, "*.json", SearchOption.TopDirectoryOnly)
@@ -84,10 +86,11 @@ public sealed partial class SettingsPage : Page
             });
         }
 
+        ConfigFilesComboBox.ItemsSource = ConfigFiles;
         ConfigFilesComboBox.SelectedItem = ConfigFiles.FirstOrDefault(item =>
             string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase))
             ?? ConfigFiles.FirstOrDefault();
-
+        _isLoading = false;
         UpdatePresetSelectionState();
     }
 
@@ -178,16 +181,19 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
+        var presetPath = configurationFile.Path;
         try
         {
-            Controller.ImportConfiguration(configurationFile.Path);
-            RefreshConfigFiles();
-            await ShowImportAppliedAsync();
+            Controller.ImportConfiguration(presetPath);
         }
         catch (Exception exception)
         {
             await ShowMessageAsync("Could not import configuration", exception.Message);
+            return;
         }
+
+        RefreshConfigFiles(presetPath);
+        await ShowImportAppliedAsync();
     }
 
     private void OnRefreshConfigFilesClick(object sender, RoutedEventArgs e)
@@ -197,6 +203,11 @@ public sealed partial class SettingsPage : Page
 
     private void OnConfigFileSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_isLoading)
+        {
+            return;
+        }
+
         UpdatePresetSelectionState();
     }
 
@@ -256,8 +267,8 @@ public sealed partial class SettingsPage : Page
             XamlRoot = Content.XamlRoot,
             Title = "Configuration imported",
             Content = serviceRunning
-                ? "The file has been imported. Restart the service to apply it. If you want the editor to show the imported keys and mappings immediately, reopen the controller."
-                : "The file has been imported. Start the service when you're ready to apply it. If you want the editor to show the imported keys and mappings immediately, reopen the controller.",
+                ? "The file has been imported. Restart the service to apply it."
+                : "The file has been imported. Start the service when you're ready to apply it.",
             CloseButtonText = "Later"
         };
 
