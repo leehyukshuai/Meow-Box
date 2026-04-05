@@ -2,15 +2,9 @@
 
 ## 中文说明
 
+![banner](screenshots\banner.jpeg)
+
 ### Screenshots
-
-![Keys panel](screenshots/keys%20panel.png)
-
-`screenshots/keys panel.png` 展示了 Keys 界面。
-
-![Choose action](screenshots/choose%20action.png)
-
-`screenshots/choose action.png` 展示了动作选择界面。
 
 ### 这是什么
 
@@ -171,12 +165,6 @@ Fn Mapping Tool 是一个给 Windows 笔记本用的 OEM / 厂商特殊按键映
 ## English
 
 ### Screenshots
-
-![Keys panel](screenshots/keys%20panel.png)
-
-`screenshots/keys panel.png` shows the Keys page.
-
-![Choose action](screenshots/choose%20action.png)
 
 `screenshots/choose action.png` shows the action picker UI.
 
