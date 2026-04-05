@@ -246,7 +246,8 @@ Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $controllerProject -
     '/p:Configuration=Release',
     '/p:Platform=x64',
     '/p:RuntimeIdentifier=win-x64',
-    '/p:SelfContained=false'
+    '/p:SelfContained=true',
+    '/p:WindowsAppSDKSelfContained=true'
 )
 Copy-DirectoryContent -SourceDirectory $controllerPublishOutput -DestinationDirectory $packageAppRoot
 
@@ -254,7 +255,7 @@ Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $workerProject -Publ
     '/p:Configuration=Release',
     '/p:Platform=x64',
     '/p:RuntimeIdentifier=win-x64',
-    '/p:SelfContained=false'
+    '/p:SelfContained=true'
 )
 Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $packageWorkerRoot
 

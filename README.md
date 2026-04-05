@@ -89,6 +89,8 @@ Final outputs:
 - `artifacts/FnMappingTool-portable-v<version>.zip`
 - `artifacts/FnMappingTool-setup-v<version>.msi`
 
+The portable zip is published as a **self-contained win-x64** build so it can be copied to another supported Windows x64 PC and run without preinstalling .NET or Windows App Runtime.
+
 The package staging folder contains:
 
 - `FnMappingTool.Controller.exe` — user-facing launcher
@@ -109,6 +111,7 @@ The MSI installer currently provides:
 
 - Worker is intentionally **not** shipped as a separate user-facing app entry
 - The current packaging flow uses **MSBuild Publish** outputs
+- Portable and installer payloads are built as **self-contained win-x64** packages
 - The Controller publish step also copies loose WinUI `.pri` / `.xbf` resources into the publish folder so the unpackaged WinUI app starts correctly
 - The project currently favors a **single clean config schema** over backward-compat migration layers
 
