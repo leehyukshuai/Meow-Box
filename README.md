@@ -2,6 +2,16 @@
 
 ## 中文说明
 
+### Screenshots
+
+![Keys panel](screenshots/keys%20panel.png)
+
+`screenshots/keys panel.png` 展示了 Keys 界面。
+
+![Choose action](screenshots/choose%20action.png)
+
+`screenshots/choose action.png` 展示了动作选择界面。
+
 ### 这是什么
 
 Fn Mapping Tool 是一个给 Windows 笔记本用的 OEM / 厂商特殊按键映射工具。
@@ -142,9 +152,33 @@ Fn Mapping Tool 是一个给 Windows 笔记本用的 OEM / 厂商特殊按键映
 - `build/` — 中间产物
 - `artifacts/` — 最终发布产物
 
+### 图标来源
+
+项目中使用的部分免费图标来源于：
+
+- https://www.flaticon.com
+
+如需二次分发或继续扩展，请同时注意对应图标作者与站点的署名 / 使用要求。
+
+### 作者与协议
+
+- 作者：https://github.com/leehyukshuai
+- 仓库：https://github.com/leehyukshuai/Fn-Mapping-Tool
+- 协议：**GPL-3.0**（见仓库中的 `LICENSE`）
+
 ---
 
 ## English
+
+### Screenshots
+
+![Keys panel](screenshots/keys%20panel.png)
+
+`screenshots/keys panel.png` shows the Keys page.
+
+![Choose action](screenshots/choose%20action.png)
+
+`screenshots/choose action.png` shows the action picker UI.
 
 ### What this project is
 
@@ -284,3 +318,17 @@ Final artifacts:
 - `assets/` — packaged assets and presets
 - `build/` — intermediate outputs
 - `artifacts/` — final distributables
+
+### Icon attribution
+
+Some free icons used in this project come from:
+
+- https://www.flaticon.com
+
+If you redistribute or extend the project, please also follow the attribution / usage requirements of the corresponding icon authors and the site.
+
+### Author and license
+
+- Author: https://github.com/leehyukshuai
+- Repository: https://github.com/leehyukshuai/Fn-Mapping-Tool
+- License: **GPL-3.0** (see `LICENSE`)
