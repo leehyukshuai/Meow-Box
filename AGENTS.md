@@ -152,7 +152,8 @@ Packaging rules:
 - user-visible entry point is `FnMappingTool.Controller.exe`
 - `Worker` is internal runtime payload and may be staged under a subdirectory
 - package from MSBuild `Publish` outputs
-- portable and installer payloads should prefer self-contained `win-x64` publish output so the app is as copy-and-run as possible on another PC
+- default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
+- use self-contained publish only when explicitly needed for a copy-and-run distribution
 - the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup
 
 If you change packaging paths, update:

@@ -2,7 +2,8 @@ param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version = '0.1.0',
     [switch]$SkipZip,
-    [switch]$SkipMsi
+    [switch]$SkipMsi,
+    [switch]$SelfContained
 )
 
 $ErrorActionPreference = 'Stop'
@@ -242,21 +243,28 @@ New-Item -ItemType Directory -Force $artifactsRoot | Out-Null
 New-Item -ItemType Directory -Force $controllerPublishOutput | Out-Null
 New-Item -ItemType Directory -Force $workerPublishOutput | Out-Null
 
-Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $controllerProject -PublishDirectory $controllerPublishOutput -Properties @(
+$controllerPublishProperties = @(
     '/p:Configuration=Release',
     '/p:Platform=x64',
     '/p:RuntimeIdentifier=win-x64',
-    '/p:SelfContained=true',
-    '/p:WindowsAppSDKSelfContained=true'
+    ('/p:SelfContained={0}' -f $SelfContained.ToString().ToLowerInvariant())
 )
+
+if ($SelfContained) {
+    $controllerPublishProperties += '/p:WindowsAppSDKSelfContained=true'
+}
+
+$workerPublishProperties = @(
+    '/p:Configuration=Release',
+    '/p:Platform=x64',
+    '/p:RuntimeIdentifier=win-x64',
+    ('/p:SelfContained={0}' -f $SelfContained.ToString().ToLowerInvariant())
+)
+
+Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $controllerProject -PublishDirectory $controllerPublishOutput -Properties $controllerPublishProperties
 Copy-DirectoryContent -SourceDirectory $controllerPublishOutput -DestinationDirectory $packageAppRoot
 
-Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $workerProject -PublishDirectory $workerPublishOutput -Properties @(
-    '/p:Configuration=Release',
-    '/p:Platform=x64',
-    '/p:RuntimeIdentifier=win-x64',
-    '/p:SelfContained=true'
-)
+Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $workerProject -PublishDirectory $workerPublishOutput -Properties $workerPublishProperties
 Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $packageWorkerRoot
 
 Get-ChildItem $packageAppRoot -Recurse -Include *.pdb | Remove-Item -Force
@@ -308,6 +316,7 @@ Remove-PathIfExists (Join-Path $srcRoot 'FnMappingTool.Worker\obj')
 Remove-PathIfExists (Join-Path $srcRoot 'FnMappingTool.Setup\obj')
 Remove-PathIfExists $generatedInstallerSource
 
+Write-Host 'Packaging mode:' ($(if ($SelfContained) { 'self-contained win-x64' } else { 'framework-dependent win-x64' }))
 Write-Host 'Package staging folder:' $packageAppRoot
 Write-Host 'Launcher:' (Join-Path $packageAppRoot 'FnMappingTool.Controller.exe')
 Write-Host 'Internal worker:' (Join-Path $packageWorkerRoot 'FnMappingTool.Worker.exe')

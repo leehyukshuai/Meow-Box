@@ -74,6 +74,7 @@ Optional arguments:
 .\build.ps1 -Version 0.1.0
 .\build.ps1 -SkipZip
 .\build.ps1 -SkipMsi
+.\build.ps1 -SelfContained
 ```
 
 ## Build outputs
@@ -89,7 +90,15 @@ Final outputs:
 - `artifacts/FnMappingTool-portable-v<version>.zip`
 - `artifacts/FnMappingTool-setup-v<version>.msi`
 
-The portable zip is published as a **self-contained win-x64** build so it can be copied to another supported Windows x64 PC and run without preinstalling .NET or Windows App Runtime.
+Default builds are published as a **framework-dependent win-x64** package to keep the artifacts much smaller.
+
+If you want a fully bundled build, use:
+
+```powershell
+.\build.ps1 -SelfContained
+```
+
+That produces a **self-contained win-x64** package that is much larger but closer to copy-and-run on another supported Windows x64 PC.
 
 The package staging folder contains:
 
@@ -111,7 +120,9 @@ The MSI installer currently provides:
 
 - Worker is intentionally **not** shipped as a separate user-facing app entry
 - The current packaging flow uses **MSBuild Publish** outputs
-- Portable and installer payloads are built as **self-contained win-x64** packages
+- Default portable and installer payloads are **framework-dependent win-x64** packages
+- Framework-dependent packages expect the target PC to already have the needed runtimes installed
+- `-SelfContained` can be used when you want larger but more portable packages
 - The Controller publish step also copies loose WinUI `.pri` / `.xbf` resources into the publish folder so the unpackaged WinUI app starts correctly
 - The project currently favors a **single clean config schema** over backward-compat migration layers
 
