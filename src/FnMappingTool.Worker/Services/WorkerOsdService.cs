@@ -189,7 +189,6 @@ internal sealed class OsdForm : Form
 
         if (ShouldShowIcon() && _iconBitmap is not null && !_iconBounds.IsEmpty)
         {
-            DrawIconHalo(e.Graphics);
             e.Graphics.DrawImage(_iconBitmap, _iconBounds);
         }
 
@@ -584,30 +583,9 @@ internal sealed class OsdForm : Form
         }
     }
 
-    private void DrawIconHalo(Graphics graphics)
-    {
-        var horizontalHalo = Math.Max(16, (int)Math.Round(_iconBounds.Width * 0.28));
-        var verticalHalo = Math.Max(12, (int)Math.Round(_iconBounds.Height * 0.18));
-        var haloBounds = new RectangleF(
-            _iconBounds.Left - horizontalHalo,
-            _iconBounds.Top - verticalHalo,
-            _iconBounds.Width + (horizontalHalo * 2),
-            _iconBounds.Height + (verticalHalo * 2.6f));
-
-        using var haloPath = new GraphicsPath();
-        haloPath.AddEllipse(haloBounds);
-        using var haloBrush = new PathGradientBrush(haloPath)
-        {
-            CenterColor = _darkTheme ? Color.FromArgb(18, 255, 255, 255) : Color.FromArgb(14, 255, 255, 255),
-            SurroundColors = [Color.Transparent]
-        };
-
-        graphics.FillPath(haloBrush, haloPath);
-    }
-
     private void DrawTitle(Graphics graphics)
     {
-        graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+        graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
         using var brush = new SolidBrush(_titleColor);
         using var format = new StringFormat
