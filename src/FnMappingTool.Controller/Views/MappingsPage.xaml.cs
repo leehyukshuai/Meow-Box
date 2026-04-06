@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Models;
 using FnMappingTool.Controller.Services;
+using FnMappingTool.Core.Models;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
@@ -13,6 +14,10 @@ namespace FnMappingTool.Controller.Views;
 public sealed partial class MappingsPage : Page
 {
     public FnMappingToolController Controller => App.Controller;
+
+    public IReadOnlyList<StandardKeyGroupOption> StandardKeyGroups { get; } = StandardKeyCatalog.GroupOptions;
+
+    public ObservableCollection<StandardKeyOption> FilteredStandardKeys { get; } = [];
 
     public ObservableCollection<OsdIconFileEntry> OsdIconFiles { get; } = [];
 
@@ -29,6 +34,7 @@ public sealed partial class MappingsPage : Page
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Controller.MappingItems.CollectionChanged += OnMappingItemsCollectionChanged;
         RefreshOsdIcons();
+        RefreshStandardKeyChoices();
         UpdateEmptyStates();
     }
 
@@ -140,6 +146,7 @@ public sealed partial class MappingsPage : Page
         }
 
         Controller.SetSelectedActionType(dialog.SelectedAction.Key);
+        RefreshStandardKeyChoices();
         TrySaveMappingAsync();
     }
 
@@ -213,6 +220,12 @@ public sealed partial class MappingsPage : Page
         TrySaveMappingAsync();
     }
 
+    private void OnStandardKeyGroupSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        RefreshStandardKeyChoices();
+        TrySaveMappingAsync();
+    }
+
     private async void TrySaveMappingAsync()
     {
         if (Controller.SelectedMapping is null)
@@ -234,7 +247,11 @@ public sealed partial class MappingsPage : Page
     {
         if (e.PropertyName == nameof(FnMappingToolController.SelectedMapping))
         {
-            DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                RefreshStandardKeyChoices();
+                UpdateEmptyStates();
+            });
         }
     }
 
@@ -252,5 +269,16 @@ public sealed partial class MappingsPage : Page
         MappingsEmptyStatePanel.Visibility = hasMappings ? Visibility.Collapsed : Visibility.Visible;
         MappingDetailsContentPanel.Visibility = hasSelection ? Visibility.Visible : Visibility.Collapsed;
         MappingDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void RefreshStandardKeyChoices()
+    {
+        var selectedGroup = Controller.SelectedMapping?.Action.StandardKeyGroup;
+
+        FilteredStandardKeys.Clear();
+        foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))
+        {
+            FilteredStandardKeys.Add(option);
+        }
     }
 }

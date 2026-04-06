@@ -59,6 +59,9 @@ public sealed class ActionDefinitionConfiguration
     public string Type { get; set; } = HotkeyActionType.None;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? StandardKey { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Target { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -217,6 +220,7 @@ public static class InputSourceKind
 public static class HotkeyActionType
 {
     public const string None = "";
+    public const string SendStandardKey = "SendStandardKey";
     public const string OpenSettings = "OpenSettings";
     public const string OpenProjection = "OpenProjection";
     public const string MicrophoneMuteOn = "MicrophoneMuteOn";
@@ -272,6 +276,7 @@ public static class ActionTag
 {
     public const string All = "all";
     public const string System = "system";
+    public const string Keyboard = "keyboard";
     public const string Display = "display";
     public const string Audio = "audio";
     public const string Media = "media";
@@ -332,6 +337,7 @@ public static class ActionCatalog
     [
         new(ActionTag.All, "All"),
         new(ActionTag.System, "System"),
+        new(ActionTag.Keyboard, "Keyboard"),
         new(ActionTag.Display, "Display"),
         new(ActionTag.Audio, "Audio"),
         new(ActionTag.Media, "Media"),
@@ -340,6 +346,7 @@ public static class ActionCatalog
 
     public static IReadOnlyList<ActionOption> All { get; } = new[]
     {
+        new ActionOption(HotkeyActionType.SendStandardKey, "Send standard key", "Sends a standard keyboard or media key that you choose.", "\uE765", ActionTag.Keyboard, ActionTag.System),
         new ActionOption(HotkeyActionType.OpenSettings, "Open Windows Settings", "Launches the native Settings app.", "\uE713", ActionTag.System),
         new ActionOption(HotkeyActionType.OpenProjection, "Open projection switcher", "Launches the native projection overlay.", "\uE7F4", ActionTag.System, ActionTag.Display),
         new ActionOption(HotkeyActionType.MicrophoneMuteOn, "Mute microphone input", "Turns the default microphone capture device off.", "\uE720", ActionTag.System, ActionTag.Audio),

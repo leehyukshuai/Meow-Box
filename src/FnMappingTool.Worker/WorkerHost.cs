@@ -184,6 +184,9 @@ internal sealed class WorkerHost : IDisposable
             {
                 case HotkeyActionType.None:
                     return;
+                case HotkeyActionType.SendStandardKey:
+                    _nativeActionService.SendConfiguredStandardKey(action.StandardKey);
+                    break;
                 case HotkeyActionType.OpenSettings:
                     _nativeActionService.OpenSettings();
                     break;

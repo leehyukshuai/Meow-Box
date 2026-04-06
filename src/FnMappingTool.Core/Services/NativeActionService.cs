@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
+using FnMappingTool.Core.Models;
 
 namespace FnMappingTool.Core.Services;
 
@@ -19,6 +20,16 @@ public sealed class NativeActionService
     public void OpenCalculator()
     {
         Launch("calc.exe");
+    }
+
+    public void SendConfiguredStandardKey(string? standardKey)
+    {
+        if (!StandardKeyCatalog.TryGetVirtualKey(standardKey, out var virtualKey))
+        {
+            return;
+        }
+
+        SendVirtualKey(virtualKey);
     }
 
     public void VolumeUp()

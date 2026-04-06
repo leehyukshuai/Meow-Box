@@ -16,6 +16,18 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <_Vs2022BuildToolsAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022BuildToolsAppxMSBuildToolsPath>
+    <_Vs2022CommunityAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022CommunityAppxMSBuildToolsPath>
+    <_Vs2022ProfessionalAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022ProfessionalAppxMSBuildToolsPath>
+    <_Vs2022EnterpriseAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022EnterpriseAppxMSBuildToolsPath>
+
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022BuildToolsAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022BuildToolsAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022CommunityAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022CommunityAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022ProfessionalAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022ProfessionalAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022EnterpriseAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022EnterpriseAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\\FnMappingTool.Core\\FnMappingTool.Core.csproj" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.260224002" />

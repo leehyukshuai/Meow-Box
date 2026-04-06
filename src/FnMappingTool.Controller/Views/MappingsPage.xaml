@@ -1,5 +1,6 @@
 <Page
     x:Class="FnMappingTool.Controller.Views.MappingsPage"
+    x:Name="MappingsPageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -260,6 +261,48 @@
                                         Text="{Binding SelectedMapping.Action.Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Visibility="{Binding SelectedMapping.Action.ArgumentsVisibility}" />
                                 </StackPanel>
+
+                                <Border Visibility="{Binding SelectedMapping.Action.StandardKeyEditorVisibility}" Style="{StaticResource SubtlePanelCardStyle}">
+                                    <StackPanel Spacing="12">
+                                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="Standard key" />
+
+                                        <TextBlock
+                                            Style="{StaticResource CardBodyTextBlockStyle}"
+                                            Text="Choose the standard keyboard key this OEM key should emit."
+                                            TextWrapping="WrapWholeWords" />
+
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="220" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <ComboBox
+                                                x:Name="StandardKeyGroupComboBox"
+                                                DisplayMemberPath="Label"
+                                                Header="Group"
+                                                ItemsSource="{x:Bind StandardKeyGroups, Mode=OneTime}"
+                                                SelectedValue="{Binding SelectedMapping.Action.StandardKeyGroup, Mode=TwoWay}"
+                                                SelectedValuePath="Key"
+                                                SelectionChanged="OnStandardKeyGroupSelectionChanged" />
+
+                                            <ComboBox
+                                                x:Name="StandardKeyComboBox"
+                                                Grid.Column="1"
+                                                DisplayMemberPath="Label"
+                                                Header="Key"
+                                                ItemsSource="{x:Bind FilteredStandardKeys, Mode=OneTime}"
+                                                SelectedValue="{Binding SelectedMapping.Action.StandardKey, Mode=TwoWay}"
+                                                SelectedValuePath="Key"
+                                                SelectionChanged="OnMappingEditorSelectionChanged" />
+                                        </Grid>
+
+                                        <TextBlock
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding SelectedMapping.Action.ActionDescription, Mode=OneWay}"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Border>
 
                                 <Border Visibility="{Binding SelectedMapping.Action.OsdEditorVisibility}" Style="{StaticResource SubtlePanelCardStyle}">
                                     <StackPanel Spacing="12">

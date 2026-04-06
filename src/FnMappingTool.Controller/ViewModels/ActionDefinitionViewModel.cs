@@ -7,6 +7,8 @@ namespace FnMappingTool.Controller.ViewModels;
 public sealed class ActionDefinitionViewModel : ObservableObject
 {
     private string _type;
+    private string _standardKey;
+    private string _standardKeyGroup;
     private string _target;
     private string _arguments;
     private string _osdTitle;
@@ -18,6 +20,8 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         var osdIcon = model.OsdIcon ?? new IconConfiguration();
 
         _type = model.Type ?? HotkeyActionType.None;
+        _standardKey = StandardKeyCatalog.NormalizeKey(model.StandardKey);
+        _standardKeyGroup = StandardKeyCatalog.GetPreferredGroupKey(_standardKey);
         _target = model.Target ?? string.Empty;
         _arguments = model.Arguments ?? string.Empty;
         _osdTitle = model.OsdTitle ?? string.Empty;
@@ -38,7 +42,53 @@ public sealed class ActionDefinitionViewModel : ObservableObject
                 OnPropertyChanged(nameof(TargetVisibility));
                 OnPropertyChanged(nameof(ArgumentsVisibility));
                 OnPropertyChanged(nameof(InstalledAppPickerVisibility));
+                OnPropertyChanged(nameof(StandardKeyEditorVisibility));
                 OnPropertyChanged(nameof(OsdEditorVisibility));
+            }
+        }
+    }
+
+    public string StandardKey
+    {
+        get => _standardKey;
+        set
+        {
+            var normalizedValue = StandardKeyCatalog.NormalizeKey(value);
+            if (!SetProperty(ref _standardKey, normalizedValue))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(normalizedValue))
+            {
+                var preferredGroup = StandardKeyCatalog.GetPreferredGroupKey(normalizedValue);
+                if (!string.Equals(_standardKeyGroup, preferredGroup, StringComparison.OrdinalIgnoreCase))
+                {
+                    _standardKeyGroup = preferredGroup;
+                    OnPropertyChanged(nameof(StandardKeyGroup));
+                }
+            }
+
+            OnPropertyChanged(nameof(StandardKeyLabel));
+            OnPropertyChanged(nameof(ActionDescription));
+        }
+    }
+
+    public string StandardKeyGroup
+    {
+        get => _standardKeyGroup;
+        set
+        {
+            var normalizedValue = StandardKeyCatalog.NormalizeGroupKey(value);
+            if (!SetProperty(ref _standardKeyGroup, normalizedValue))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(StandardKey) &&
+                !StandardKeyCatalog.MatchesGroup(StandardKey, normalizedValue))
+            {
+                StandardKey = string.Empty;
             }
         }
     }
@@ -69,11 +119,13 @@ public sealed class ActionDefinitionViewModel : ObservableObject
 
     public string ActionLabel => ActionCatalog.GetLabel(Type);
 
-    public string ActionDescription => ActionCatalog.GetDescription(Type);
+    public string ActionDescription => BuildActionDescription();
 
     public string ActionIconGlyph => ActionCatalog.GetIconGlyph(Type);
 
     public string ActionTagsText => ActionCatalog.GetTagsText(Type);
+
+    public string StandardKeyLabel => StandardKeyCatalog.GetLabel(StandardKey);
 
     public bool HasAssignedAction => !string.IsNullOrWhiteSpace(Type);
 
@@ -82,6 +134,8 @@ public sealed class ActionDefinitionViewModel : ObservableObject
     public Visibility ArgumentsVisibility => Type == HotkeyActionType.OpenApplication ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility InstalledAppPickerVisibility => Type == HotkeyActionType.OpenApplication ? Visibility.Visible : Visibility.Collapsed;
+
+    public Visibility StandardKeyEditorVisibility => Type == HotkeyActionType.SendStandardKey ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility OsdEditorVisibility => Type == HotkeyActionType.ShowOsd ? Visibility.Visible : Visibility.Collapsed;
 
@@ -94,6 +148,7 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         return new ActionDefinitionConfiguration
         {
             Type = Type,
+            StandardKey = Type == HotkeyActionType.SendStandardKey && !string.IsNullOrWhiteSpace(StandardKey) ? StandardKey : null,
             Target = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Target) ? Target.Trim() : null,
             Arguments = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Arguments) ? Arguments.Trim() : null,
             OsdTitle = Type == HotkeyActionType.ShowOsd && !string.IsNullOrWhiteSpace(OsdTitle) ? OsdTitle.Trim() : null,
@@ -108,10 +163,24 @@ public sealed class ActionDefinitionViewModel : ObservableObject
     public void ClearAssignment()
     {
         Type = HotkeyActionType.None;
+        StandardKey = string.Empty;
+        StandardKeyGroup = StandardKeyCatalog.GroupOptions[0].Key;
         Target = string.Empty;
         Arguments = string.Empty;
         OsdTitle = string.Empty;
         OsdIconPath = string.Empty;
+    }
+
+    private string BuildActionDescription()
+    {
+        if (Type == HotkeyActionType.SendStandardKey)
+        {
+            return string.IsNullOrWhiteSpace(StandardKey)
+                ? "Sends a standard keyboard or media key that you choose below."
+                : $"Sends the standard key {StandardKeyLabel}.";
+        }
+
+        return ActionCatalog.GetDescription(Type);
     }
 
     private static string ResolveInitialIconPath(IconConfiguration icon)
