@@ -71,8 +71,12 @@ internal sealed class OsdForm : Form
     private const int WcaAccentPolicy = 19;
     private const int AccentEnableAcrylicBlurBehind = 4;
     private const int WsExNoActivate = 0x08000000;
+    private const int SwShowNoActivate = 4;
+    private const uint SwpNoActivate = 0x0010;
+    private const uint SwpShowWindow = 0x0040;
     private const int ShowAnimationDurationMs = 180;
     private const int HideAnimationDurationMs = 150;
+    private static readonly IntPtr HwndTopMost = new(-1);
     private readonly System.Windows.Forms.Timer _displayTimer;
     private readonly System.Windows.Forms.Timer _animationTimer;
 
@@ -220,24 +224,12 @@ internal sealed class OsdForm : Form
     private void BeginShowAnimation(int durationMs)
     {
         _displayTimer.Stop();
+        _animationTimer.Stop();
 
-        if (!Visible)
-        {
-            Opacity = 0;
-            Left = _steadyLeft;
-            Top = _steadyTop + _showOffsetPx;
-            Show();
-            Left = _steadyLeft;
-            Top = _steadyTop + _showOffsetPx;
-        }
-        else
-        {
-            Left = _steadyLeft;
-            Top = _steadyTop;
-        }
+        var startTop = _steadyTop + _showOffsetPx;
+        PresentTopmostWindow(startTop, 0d);
 
-        BringToFront();
-        StartAnimation(AnimationPhase.Showing, Top, _steadyTop, Opacity, 1d, ShowAnimationDurationMs);
+        StartAnimation(AnimationPhase.Showing, startTop, _steadyTop, Opacity, 1d, ShowAnimationDurationMs);
         _displayTimer.Interval = durationMs;
     }
 
@@ -303,6 +295,33 @@ internal sealed class OsdForm : Form
         ApplyRoundedRegion();
         LayoutContent();
         PerformLayout();
+    }
+
+    private void PresentTopmostWindow(int top, double opacity)
+    {
+        if (!IsHandleCreated)
+        {
+            return;
+        }
+
+        Opacity = Math.Clamp(opacity, 0d, 1d);
+        Left = _steadyLeft;
+        Top = top;
+
+        if (!Visible)
+        {
+            Show();
+        }
+
+        ShowWindow(Handle, SwShowNoActivate);
+        SetWindowPos(
+            Handle,
+            HwndTopMost,
+            _steadyLeft,
+            top,
+            Width,
+            Height,
+            SwpNoActivate | SwpShowWindow);
     }
 
     private void ApplyScaledLayout(float dpiScaleFactor, OsdPreferences preferences)
@@ -570,6 +589,7 @@ internal sealed class OsdForm : Form
             case AnimationPhase.Showing:
                 _animationPhase = AnimationPhase.Visible;
                 _animationTimer.Stop();
+                PresentTopmostWindow(_steadyTop, 1d);
                 _displayTimer.Start();
                 break;
             case AnimationPhase.Hiding:
@@ -741,6 +761,19 @@ internal sealed class OsdForm : Form
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(
+        IntPtr hWnd,
+        IntPtr hWndInsertAfter,
+        int x,
+        int y,
+        int cx,
+        int cy,
+        uint uFlags);
 
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hwnd);
