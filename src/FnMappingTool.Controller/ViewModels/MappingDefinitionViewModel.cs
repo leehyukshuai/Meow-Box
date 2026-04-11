@@ -28,10 +28,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         set
         {
             var normalizedValue = value ?? string.Empty;
-            if (SetProperty(ref _keyId, normalizedValue))
-            {
-                OnPropertyChanged(nameof(ListTitle));
-            }
+            SetProperty(ref _keyId, normalizedValue);
         }
     }
 
@@ -51,7 +48,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         }
     }
 
-    public string ListTitle => $"{KeyDisplayName} -> {MappingDisplayCatalog.BuildListActionLabel(Action.Type, Osd.Enabled)}";
+    public string ListTitle => KeyDisplayName;
 
     public string Summary => BuildSummary();
 
@@ -67,7 +64,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         return new KeyActionMappingConfiguration
         {
             Id = Id,
-            Name = ListTitle,
+            Name = KeyDisplayName,
             Enabled = true,
             KeyId = KeyId,
             Action = Action.ToConfiguration(),
@@ -100,14 +97,12 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        OnPropertyChanged(nameof(ListTitle));
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(ActionIconGlyph));
     }
 
     private void OnOsdChanged(object? sender, PropertyChangedEventArgs e)
     {
-        OnPropertyChanged(nameof(ListTitle));
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(ActionIconGlyph));
     }

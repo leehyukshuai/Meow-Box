@@ -35,7 +35,7 @@
 
                         <TextBlock x:Uid="MappingsPageListTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mappings" />
 
-                        <Button Grid.Column="1" Click="OnAddMappingClick" Style="{StaticResource AccentButtonStyle}">
+                        <Button x:Name="AddMappingButton" Grid.Column="1" Click="OnAddMappingClick" Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
                                 <TextBlock x:Uid="MappingsPageAddMappingButtonText" Text="Add mapping" />
@@ -120,7 +120,7 @@
                                             <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.KeyDisplayName, Mode=OneWay}" />
                                             <TextBlock x:Uid="ChooseKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Pick the OEM key event this mapping should respond to." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
-                                        <ComboBox x:Uid="KeySelectorCombo" x:Name="KeySelectorCombo" DisplayMemberPath="ListTitle" Header="Choose key" ItemsSource="{Binding KeyItems}" SelectedValue="{Binding SelectedMapping.KeyId, Mode=TwoWay}" SelectedValuePath="Id" SelectionChanged="OnMappingReferenceChanged" />
+                                        <ComboBox x:Name="KeySelectorCombo" DisplayMemberPath="ListTitle" ItemsSource="{Binding KeyItems}" SelectedValue="{Binding SelectedMapping.KeyId, Mode=TwoWay}" SelectedValuePath="Id" SelectionChanged="OnMappingReferenceChanged" />
                                     </StackPanel>
                                 </Border>
 
@@ -131,7 +131,7 @@
                                             <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
                                             <TextBlock x:Uid="ChooseActionDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Choose what happens after that key is pressed." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
-                                        <Button x:Name="ChooseActionButton" Click="OnChooseActionClick" HorizontalAlignment="Stretch" Style="{StaticResource SubtleButtonStyle}">
+                                        <Button x:Name="ChooseActionButton" Click="OnChooseActionClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE70F;" />
                                                 <TextBlock x:Uid="ChooseActionButtonText" Text="Choose action" />

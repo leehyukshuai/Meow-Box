@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Services;
 using FnMappingTool.Core.Models;
@@ -14,6 +15,7 @@ public sealed partial class ActionPickerDialog : ContentDialog
         InitializeComponent();
         XamlStringLocalizer.Apply(this);
         PrimaryButtonClick += OnPrimaryButtonClick;
+        Opened += OnOpened;
         IsPrimaryButtonEnabled = false;
 
         FilteredActions = [];
@@ -34,6 +36,12 @@ public sealed partial class ActionPickerDialog : ContentDialog
     public IReadOnlyList<ActionTagOption> CategoryOptions { get; }
 
     public ActionOption? SelectedAction => ActionsListView.SelectedItem as ActionOption;
+
+
+    private void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
+    {
+        ApplyDialogButtonStyles();
+    }
 
     private void OnFilterChanged(object sender, object e)
     {
@@ -76,6 +84,19 @@ public sealed partial class ActionPickerDialog : ContentDialog
         if (SelectedAction is null)
         {
             args.Cancel = true;
+        }
+    }
+
+    private void ApplyDialogButtonStyles()
+    {
+        if (Application.Current.Resources["AccentButtonStyle"] is Style accentStyle && GetTemplateChild("PrimaryButton") is Button primaryButton)
+        {
+            primaryButton.Style = accentStyle;
+        }
+
+        if (Application.Current.Resources["SubtleButtonStyle"] is Style subtleStyle && GetTemplateChild("CloseButton") is Button closeButton)
+        {
+            closeButton.Style = subtleStyle;
         }
     }
 }
