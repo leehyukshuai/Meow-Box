@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using FnMappingTool.Core.Models;
 
 namespace FnMappingTool.Controller.ViewModels;
@@ -6,6 +6,7 @@ namespace FnMappingTool.Controller.ViewModels;
 public sealed class MappingDefinitionViewModel : ObservableObject
 {
     private readonly ActionDefinitionViewModel _action;
+    private readonly MappingOsdViewModel _osd;
     private string _keyId;
     private string _keyDisplayName = LocalizedText.Pick("Select key", "选择按键");
 
@@ -15,6 +16,8 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         _keyId = model.KeyId ?? string.Empty;
         _action = new ActionDefinitionViewModel(model.Action);
         _action.PropertyChanged += OnActionChanged;
+        _osd = new MappingOsdViewModel(model.Osd);
+        _osd.PropertyChanged += OnOsdChanged;
     }
 
     public string Id { get; }
@@ -34,6 +37,8 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     public ActionDefinitionViewModel Action => _action;
 
+    public MappingOsdViewModel Osd => _osd;
+
     public string KeyDisplayName
     {
         get => _keyDisplayName;
@@ -46,11 +51,11 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         }
     }
 
-    public string ListTitle => $"{KeyDisplayName} -> {Action.ActionLabel}";
+    public string ListTitle => $"{KeyDisplayName} -> {MappingDisplayCatalog.BuildListActionLabel(Action.Type, Osd.Enabled)}";
 
-    public string Summary => Action.ActionDescription;
+    public string Summary => BuildSummary();
 
-    public string ActionIconGlyph => Action.ActionIconGlyph;
+    public string ActionIconGlyph => MappingDisplayCatalog.GetIconGlyph(Action.Type, Osd.Enabled);
 
     public void UpdateDisplay(string keyDisplayName)
     {
@@ -65,11 +70,42 @@ public sealed class MappingDefinitionViewModel : ObservableObject
             Name = ListTitle,
             Enabled = true,
             KeyId = KeyId,
-            Action = Action.ToConfiguration()
+            Action = Action.ToConfiguration(),
+            Osd = Osd.ToConfiguration()
         };
     }
 
+    private string BuildSummary()
+    {
+        if (Osd.Enabled && Action.HasAssignedAction)
+        {
+            return string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                LocalizedText.Pick("{0} Also shows an OSD.", "{0} 还会显示 OSD。"),
+                Action.ActionDescription);
+        }
+
+        if (Osd.Enabled)
+        {
+            return string.IsNullOrWhiteSpace(Osd.Title)
+                ? LocalizedText.Pick("Shows an OSD.", "显示 OSD。")
+                : string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    LocalizedText.Pick("Shows OSD: {0}", "显示 OSD：{0}"),
+                    Osd.Title);
+        }
+
+        return Action.ActionDescription;
+    }
+
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(ListTitle));
+        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(ActionIconGlyph));
+    }
+
+    private void OnOsdChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(nameof(ListTitle));
         OnPropertyChanged(nameof(Summary));

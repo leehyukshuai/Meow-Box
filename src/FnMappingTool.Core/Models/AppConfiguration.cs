@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using FnMappingTool.Core.Services;
 
@@ -79,6 +80,16 @@ public sealed class ActionDefinitionConfiguration
     public IconConfiguration OsdIcon { get; set; } = new();
 }
 
+public sealed class MappingOsdConfiguration
+{
+    public bool Enabled { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Title { get; set; }
+
+    public IconConfiguration Icon { get; set; } = new();
+}
+
 public sealed class KeyActionMappingConfiguration
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -90,6 +101,8 @@ public sealed class KeyActionMappingConfiguration
     public string KeyId { get; set; } = string.Empty;
 
     public ActionDefinitionConfiguration Action { get; set; } = new();
+
+    public MappingOsdConfiguration Osd { get; set; } = new();
 }
 
 public sealed class EventMatcherConfiguration
@@ -279,9 +292,13 @@ public static class BuiltInOsdAsset
 {
     public const string FnLock = "fn-lock";
     public const string FnUnlock = "fn-unlock";
+    public const string CapsLock = "caps-lock";
+    public const string CapsUnlock = "caps-unlock";
+    public const string MicrophoneMute = "microphone-mute";
+    public const string MicrophoneOn = "microphone-on";
     public const string BacklightOff = "backlight-off";
-    public const string BacklightLevel1 = "backlight-level1";
-    public const string BacklightLevel2 = "backlight-level2";
+    public const string BacklightLow = "backlight-low";
+    public const string BacklightHigh = "backlight-high";
     public const string BacklightAuto = "backlight-auto";
 }
 
@@ -376,7 +393,6 @@ public static class ActionCatalog
         new ActionOption(HotkeyActionType.LockWindows, LocalizedText.Pick("Lock Windows", "锁定 Windows"), LocalizedText.Pick("Locks the current Windows session.", "锁定当前 Windows 会话。"), "", ActionTag.System),
         new ActionOption(HotkeyActionType.Screenshot, LocalizedText.Pick("Take screenshot", "截图"), LocalizedText.Pick("Opens the native snipping overlay.", "打开系统截图浮层。"), "", ActionTag.System, ActionTag.Display),
         new ActionOption(HotkeyActionType.OpenCalculator, LocalizedText.Pick("Open Calculator", "打开计算器"), LocalizedText.Pick("Launches Calculator.", "启动计算器。"), "", ActionTag.System, ActionTag.Application),
-        new ActionOption(HotkeyActionType.ShowOsd, LocalizedText.Pick("Show OSD", "显示 OSD"), LocalizedText.Pick("Displays a centered lower translucent OSD card.", "显示一个位于底部中央的半透明 OSD 卡片。"), "", ActionTag.Display),
         new ActionOption(HotkeyActionType.OpenApplication, LocalizedText.Pick("Open application", "打开应用"), LocalizedText.Pick("Launches an installed app, shortcut, or executable.", "启动已安装应用、快捷方式或可执行文件。"), "", ActionTag.Application)
     };
 
@@ -402,7 +418,7 @@ public static class ActionCatalog
 
     public static string GetTagsText(string key)
     {
-        return string.Join(" ? ", GetTags(key).Select(GetTagLabel));
+        return string.Join(" · ", GetTags(key).Select(GetTagLabel));
     }
 
     public static ActionOption? GetOption(string key)
@@ -423,6 +439,39 @@ public static class ActionCatalog
     }
 }
 
+public static class MappingDisplayCatalog
+{
+    private const string OsdIconGlyph = "";
+
+    public static string ShowOsdLabel => LocalizedText.Pick("Show OSD", "显示 OSD");
+
+    public static string BuildListActionLabel(string actionType, bool osdEnabled)
+    {
+        var hasAction = !string.IsNullOrWhiteSpace(actionType);
+        if (hasAction && osdEnabled)
+        {
+            return string.Format(CultureInfo.CurrentCulture, "{0} + {1}", ActionCatalog.GetLabel(actionType), ShowOsdLabel);
+        }
+
+        if (hasAction)
+        {
+            return ActionCatalog.GetLabel(actionType);
+        }
+
+        return osdEnabled ? ShowOsdLabel : ActionCatalog.NoActionLabel;
+    }
+
+    public static string GetIconGlyph(string actionType, bool osdEnabled)
+    {
+        if (!string.IsNullOrWhiteSpace(actionType))
+        {
+            return ActionCatalog.GetIconGlyph(actionType);
+        }
+
+        return osdEnabled ? OsdIconGlyph : ActionCatalog.NoActionIconGlyph;
+    }
+}
+
 public static class IconAssetCatalog
 {
     public static IReadOnlyList<ChoiceOption> OsdDisplayModes { get; } =
@@ -437,6 +486,8 @@ public static class DefaultKeyIds
 {
     public const string FnLockOn = "key-fn-lock-on";
     public const string FnLockOff = "key-fn-lock-off";
+    public const string CapsLockOn = "key-caps-lock-on";
+    public const string CapsLockOff = "key-caps-lock-off";
     public const string MicrophoneMuteOn = "key-mic-mute-on";
     public const string MicrophoneMuteOff = "key-mic-mute-off";
     public const string XiaoAiPress = "key-xiaoai-press";

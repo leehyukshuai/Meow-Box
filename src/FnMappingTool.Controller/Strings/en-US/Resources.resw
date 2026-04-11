@@ -88,6 +88,8 @@
   <data name="StandardKeyGroupComboBox.Header" xml:space="preserve"><value>Group</value></data>
   <data name="StandardKeyComboBox.Header" xml:space="preserve"><value>Key</value></data>
   <data name="OsdTitleBlock.Text" xml:space="preserve"><value>OSD</value></data>
+  <data name="OsdDescriptionText.Text" xml:space="preserve"><value>Optionally show an OSD when this mapping runs.</value></data>
+  <data name="OsdEnabledToggleSwitch.Header" xml:space="preserve"><value>Show OSD</value></data>
   <data name="OsdTitleTextBox.Header" xml:space="preserve"><value>Title</value></data>
   <data name="OsdTitleHintText.Text" xml:space="preserve"><value>Up to 32 characters.</value></data>
   <data name="OsdIconComboBox.Header" xml:space="preserve"><value>Icon</value></data>

@@ -88,6 +88,8 @@
   <data name="StandardKeyGroupComboBox.Header" xml:space="preserve"><value>分组</value></data>
   <data name="StandardKeyComboBox.Header" xml:space="preserve"><value>按键</value></data>
   <data name="OsdTitleBlock.Text" xml:space="preserve"><value>OSD</value></data>
+  <data name="OsdDescriptionText.Text" xml:space="preserve"><value>可选：在此映射运行时显示 OSD。</value></data>
+  <data name="OsdEnabledToggleSwitch.Header" xml:space="preserve"><value>显示 OSD</value></data>
   <data name="OsdTitleTextBox.Header" xml:space="preserve"><value>标题</value></data>
   <data name="OsdTitleHintText.Text" xml:space="preserve"><value>最多 32 个字符。</value></data>
   <data name="OsdIconComboBox.Header" xml:space="preserve"><value>图标</value></data>

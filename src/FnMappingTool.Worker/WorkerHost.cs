@@ -269,99 +269,126 @@ internal sealed class WorkerHost : IDisposable
 
     private void ExecuteMapping(KeyActionMappingConfiguration mapping)
     {
-        var action = mapping.Action;
-
         try
         {
-            switch (action.Type)
-            {
-                case HotkeyActionType.None:
-                    return;
-                case HotkeyActionType.SendStandardKey:
-                    _nativeActionService.SendConfiguredStandardKey(action.StandardKey);
-                    break;
-                case HotkeyActionType.OpenSettings:
-                    _nativeActionService.OpenSettings();
-                    break;
-                case HotkeyActionType.OpenProjection:
-                    _nativeActionService.OpenProjection();
-                    break;
-                case HotkeyActionType.MicrophoneMuteOn:
-                    AudioEndpointController.SetCaptureMute(true);
-                    break;
-                case HotkeyActionType.MicrophoneMuteOff:
-                    AudioEndpointController.SetCaptureMute(false);
-                    break;
-                case HotkeyActionType.VolumeUp:
-                    _nativeActionService.VolumeUp();
-                    break;
-                case HotkeyActionType.VolumeDown:
-                    _nativeActionService.VolumeDown();
-                    break;
-                case HotkeyActionType.VolumeMute:
-                    _nativeActionService.VolumeMute();
-                    break;
-                case HotkeyActionType.MediaPrevious:
-                    _nativeActionService.MediaPrevious();
-                    break;
-                case HotkeyActionType.MediaNext:
-                    _nativeActionService.MediaNext();
-                    break;
-                case HotkeyActionType.MediaPlayPause:
-                    _nativeActionService.MediaPlayPause();
-                    break;
-                case HotkeyActionType.BrightnessUp:
-                    _nativeActionService.BrightnessUp();
-                    break;
-                case HotkeyActionType.BrightnessDown:
-                    _nativeActionService.BrightnessDown();
-                    break;
-                case HotkeyActionType.ToggleAirplaneMode:
-                    _ = _nativeActionService.ToggleAirplaneModeAsync();
-                    break;
-                case HotkeyActionType.LockWindows:
-                    _nativeActionService.LockWindows();
-                    break;
-                case HotkeyActionType.Screenshot:
-                    _nativeActionService.Screenshot();
-                    break;
-                case HotkeyActionType.OpenCalculator:
-                    _nativeActionService.OpenCalculator();
-                    break;
-                case HotkeyActionType.ShowOsd:
-                    _syncContext.Post(_ =>
-                    {
-                        try
-                        {
-                            if (!EnsureInteractiveShellReadyForUi(4000))
-                            {
-                                _stateMessage = "Windows shell is still starting. Try again in a moment.";
-                                return;
-                            }
-
-                            GetOsdService().Show(
-                                action.OsdTitle ?? ActionCatalog.GetLabel(action.Type),
-                                action.OsdIcon,
-                                _configuration.Preferences.Osd,
-                                _configuration.Theme);
-                        }
-                        catch (Exception exception)
-                        {
-                            _stateMessage = exception.Message;
-                        }
-                    }, null);
-                    break;
-                case HotkeyActionType.OpenApplication:
-                    _nativeActionService.LaunchConfiguredTarget(action.Target ?? string.Empty, action.Arguments);
-                    break;
-                default:
-                    return;
-            }
+            ExecuteAction(mapping.Action);
+            ShowMappingOsd(mapping);
         }
         catch (Exception exception)
         {
             _stateMessage = exception.Message;
         }
+    }
+
+    private void ExecuteAction(ActionDefinitionConfiguration action)
+    {
+        switch (action.Type)
+        {
+            case HotkeyActionType.None:
+            case HotkeyActionType.ShowOsd:
+                return;
+            case HotkeyActionType.SendStandardKey:
+                _nativeActionService.SendConfiguredStandardKey(action.StandardKey);
+                break;
+            case HotkeyActionType.OpenSettings:
+                _nativeActionService.OpenSettings();
+                break;
+            case HotkeyActionType.OpenProjection:
+                _nativeActionService.OpenProjection();
+                break;
+            case HotkeyActionType.MicrophoneMuteOn:
+                AudioEndpointController.SetCaptureMute(true);
+                break;
+            case HotkeyActionType.MicrophoneMuteOff:
+                AudioEndpointController.SetCaptureMute(false);
+                break;
+            case HotkeyActionType.VolumeUp:
+                _nativeActionService.VolumeUp();
+                break;
+            case HotkeyActionType.VolumeDown:
+                _nativeActionService.VolumeDown();
+                break;
+            case HotkeyActionType.VolumeMute:
+                _nativeActionService.VolumeMute();
+                break;
+            case HotkeyActionType.MediaPrevious:
+                _nativeActionService.MediaPrevious();
+                break;
+            case HotkeyActionType.MediaNext:
+                _nativeActionService.MediaNext();
+                break;
+            case HotkeyActionType.MediaPlayPause:
+                _nativeActionService.MediaPlayPause();
+                break;
+            case HotkeyActionType.BrightnessUp:
+                _nativeActionService.BrightnessUp();
+                break;
+            case HotkeyActionType.BrightnessDown:
+                _nativeActionService.BrightnessDown();
+                break;
+            case HotkeyActionType.ToggleAirplaneMode:
+                _ = _nativeActionService.ToggleAirplaneModeAsync();
+                break;
+            case HotkeyActionType.LockWindows:
+                _nativeActionService.LockWindows();
+                break;
+            case HotkeyActionType.Screenshot:
+                _nativeActionService.Screenshot();
+                break;
+            case HotkeyActionType.OpenCalculator:
+                _nativeActionService.OpenCalculator();
+                break;
+            case HotkeyActionType.OpenApplication:
+                _nativeActionService.LaunchConfiguredTarget(action.Target ?? string.Empty, action.Arguments);
+                break;
+            default:
+                return;
+        }
+    }
+
+    private void ShowMappingOsd(KeyActionMappingConfiguration mapping)
+    {
+        if (!mapping.Osd.Enabled)
+        {
+            return;
+        }
+
+        var title = ResolveMappingOsdTitle(mapping);
+        var icon = mapping.Osd.Icon ?? new IconConfiguration();
+
+        _syncContext.Post(_ =>
+        {
+            try
+            {
+                if (!EnsureInteractiveShellReadyForUi(4000))
+                {
+                    _stateMessage = "Windows shell is still starting. Try again in a moment.";
+                    return;
+                }
+
+                GetOsdService().Show(
+                    title,
+                    icon,
+                    _configuration.Preferences.Osd,
+                    _configuration.Theme);
+            }
+            catch (Exception exception)
+            {
+                _stateMessage = exception.Message;
+            }
+        }, null);
+    }
+
+    private static string ResolveMappingOsdTitle(KeyActionMappingConfiguration mapping)
+    {
+        if (!string.IsNullOrWhiteSpace(mapping.Osd.Title))
+        {
+            return mapping.Osd.Title;
+        }
+
+        return !string.IsNullOrWhiteSpace(mapping.Action.Type)
+            ? ActionCatalog.GetLabel(mapping.Action.Type)
+            : MappingDisplayCatalog.ShowOsdLabel;
     }
 
     private WorkerStatus BuildStatus()

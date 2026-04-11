@@ -748,13 +748,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     private void ApplyActionDefaults(ActionDefinitionViewModel action)
     {
-        if (action.Type == HotkeyActionType.ShowOsd)
-        {
-            if (string.IsNullOrWhiteSpace(action.OsdTitle))
-            {
-                action.OsdTitle = action.ActionLabel;
-            }
-        }
     }
 
     private void SyncSelectedActionTag()

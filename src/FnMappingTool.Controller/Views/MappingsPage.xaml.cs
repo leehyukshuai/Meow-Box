@@ -49,7 +49,7 @@ public sealed partial class MappingsPage : Page
     private void RefreshOsdIcons()
     {
         Controller.RefreshOsdIconCatalog();
-        var selectedPath = Controller.SelectedMapping?.Action.OsdIconPath;
+        var selectedPath = Controller.SelectedMapping?.Osd.IconPath;
 
         OsdIconFiles.Clear();
         OsdIconFiles.Add(new OsdIconFileEntry
@@ -226,6 +226,25 @@ public sealed partial class MappingsPage : Page
         TrySaveMappingAsync();
     }
 
+    private void OnOsdEnabledChanged(object sender, RoutedEventArgs e)
+    {
+        if (Controller.SelectedMapping is null)
+        {
+            return;
+        }
+
+        if (Controller.SelectedMapping.Osd.Enabled)
+        {
+            var fallbackTitle = Controller.SelectedMapping.Action.HasAssignedAction
+                ? Controller.SelectedMapping.Action.ActionLabel
+                : MappingDisplayCatalog.ShowOsdLabel;
+            Controller.SelectedMapping.Osd.EnsureDefaultTitle(fallbackTitle);
+        }
+
+        RefreshOsdIcons();
+        TrySaveMappingAsync();
+    }
+
     private async void TrySaveMappingAsync()
     {
         if (Controller.SelectedMapping is null)
@@ -250,6 +269,7 @@ public sealed partial class MappingsPage : Page
             DispatcherQueue.TryEnqueue(() =>
             {
                 RefreshStandardKeyChoices();
+                RefreshOsdIcons();
                 UpdateEmptyStates();
                 XamlStringLocalizer.Apply(this);
             });

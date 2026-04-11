@@ -149,7 +149,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <Border Width="32" Height="32" Background="{StaticResource ShellInfoSoftBrush}" CornerRadius="8">
-                                        <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="14" Glyph="{Binding SelectedMapping.Action.ActionIconGlyph, Mode=OneWay}" />
+                                        <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="14" Glyph="{Binding SelectedMapping.ActionIconGlyph, Mode=OneWay}" />
                                     </Border>
 
                                     <StackPanel Grid.Column="1" Spacing="2">
@@ -186,13 +186,28 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Visibility="{Binding SelectedMapping.Action.OsdEditorVisibility}" Style="{StaticResource SubtlePanelCardStyle}">
+                                <Border Style="{StaticResource SubtlePanelCardStyle}">
                                     <StackPanel Spacing="12">
-                                        <TextBlock x:Uid="OsdTitleBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
-                                        <TextBox x:Uid="OsdTitleTextBox" Header="Title" LostFocus="OnMappingEditorLostFocus" MaxLength="32" Text="{Binding SelectedMapping.Action.OsdTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                        <TextBlock x:Uid="OsdTitleHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Up to 32 characters." TextWrapping="WrapWholeWords" />
-                                        <ComboBox x:Uid="OsdIconComboBox" x:Name="OsdIconComboBox" DisplayMemberPath="DisplayName" Header="Icon" SelectionChanged="OnMappingEditorSelectionChanged" SelectedValue="{Binding SelectedMapping.Action.OsdIconPath, Mode=TwoWay}" SelectedValuePath="RelativePath" />
-                                        <TextBlock x:Uid="OsdIconHintText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Manage OSD icon files from Settings." TextWrapping="WrapWholeWords" />
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Spacing="4">
+                                                <TextBlock x:Uid="OsdTitleBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
+                                                <TextBlock x:Uid="OsdDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Optionally show an OSD when this mapping runs." TextWrapping="WrapWholeWords" />
+                                            </StackPanel>
+
+                                            <ToggleSwitch x:Uid="OsdEnabledToggleSwitch" x:Name="OsdEnabledToggleSwitch" Grid.Column="1" Header="Show OSD" IsOn="{Binding SelectedMapping.Osd.Enabled, Mode=TwoWay}" Toggled="OnOsdEnabledChanged" />
+                                        </Grid>
+
+                                        <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
+                                            <TextBox x:Uid="OsdTitleTextBox" Header="Title" LostFocus="OnMappingEditorLostFocus" MaxLength="32" Text="{Binding SelectedMapping.Osd.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock x:Uid="OsdTitleHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Up to 32 characters." TextWrapping="WrapWholeWords" />
+                                            <ComboBox x:Uid="OsdIconComboBox" x:Name="OsdIconComboBox" DisplayMemberPath="DisplayName" Header="Icon" SelectionChanged="OnMappingEditorSelectionChanged" SelectedValue="{Binding SelectedMapping.Osd.IconPath, Mode=TwoWay}" SelectedValuePath="RelativePath" />
+                                            <TextBlock x:Uid="OsdIconHintText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Manage OSD icon files from Settings." TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

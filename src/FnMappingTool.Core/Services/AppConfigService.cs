@@ -157,9 +157,14 @@ public sealed class AppConfigService
             mapping.KeyId = fallbackKeyId;
         }
 
-        mapping.Action = NormalizeAction(mapping.Action, baseDirectory);
+        var legacyAction = mapping.Action ?? new ActionDefinitionConfiguration();
+        var legacyShowOsd = string.Equals(legacyAction.Type, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase);
+
+        mapping.Action = NormalizeAction(legacyAction, baseDirectory);
+        mapping.Osd = NormalizeMappingOsd(mapping.Osd, legacyAction, legacyShowOsd, baseDirectory);
+
         var keyName = keys.FirstOrDefault(item => string.Equals(item.Id, mapping.KeyId, StringComparison.OrdinalIgnoreCase))?.Name;
-        mapping.Name = NormalizeName(mapping.Name, DescribeMapping(keyName, mapping.Action.Type));
+        mapping.Name = NormalizeName(mapping.Name, DescribeMapping(keyName, mapping.Action.Type, mapping.Osd));
         return mapping;
     }
 
@@ -170,24 +175,49 @@ public sealed class AppConfigService
 
         var target = NormalizeOptional(action.Target);
         var arguments = NormalizeOptional(action.Arguments);
-        var osdTitle = NormalizeOptional(action.OsdTitle);
-        if (!string.IsNullOrWhiteSpace(osdTitle) && osdTitle.Length > RuntimeDefaults.MaxOsdTitleLength)
-        {
-            osdTitle = osdTitle[..RuntimeDefaults.MaxOsdTitleLength];
-        }
-
-        var osdIcon = NormalizeIcon(action.OsdIcon, baseDirectory);
 
         action.Target = action.Type == HotkeyActionType.OpenApplication ? target : null;
         action.Arguments = action.Type == HotkeyActionType.OpenApplication ? arguments : null;
-        action.OsdTitle = action.Type == HotkeyActionType.ShowOsd ? osdTitle : null;
-        action.OsdIcon = action.Type == HotkeyActionType.ShowOsd ? osdIcon : new IconConfiguration();
         return action;
+    }
+
+    private static MappingOsdConfiguration NormalizeMappingOsd(
+        MappingOsdConfiguration? osd,
+        ActionDefinitionConfiguration legacyAction,
+        bool legacyShowOsd,
+        string? baseDirectory)
+    {
+        osd ??= new MappingOsdConfiguration();
+
+        var title = NormalizeOptional(osd.Title);
+        if (string.IsNullOrWhiteSpace(title) && legacyShowOsd)
+        {
+            title = NormalizeOptional(legacyAction.OsdTitle);
+        }
+
+        if (!string.IsNullOrWhiteSpace(title) && title.Length > RuntimeDefaults.MaxOsdTitleLength)
+        {
+            title = title[..RuntimeDefaults.MaxOsdTitleLength];
+        }
+
+        var icon = NormalizeIcon(osd.Icon, baseDirectory);
+        if (string.IsNullOrWhiteSpace(icon.Path) && legacyShowOsd)
+        {
+            icon = NormalizeIcon(legacyAction.OsdIcon, baseDirectory);
+        }
+
+        return new MappingOsdConfiguration
+        {
+            Enabled = osd.Enabled || legacyShowOsd,
+            Title = title,
+            Icon = icon
+        };
     }
 
     private static IconConfiguration NormalizeIcon(IconConfiguration? icon, string? baseDirectory)
     {
-        var path = OsdIconPathResolver.NormalizeConfigPath(icon?.Path, baseDirectory);
+        var path = NormalizeBuiltInOsdIconPath(icon?.Path);
+        path = OsdIconPathResolver.NormalizeConfigPath(path, baseDirectory);
         var isPng = !string.IsNullOrWhiteSpace(path);
 
         return new IconConfiguration
@@ -197,10 +227,10 @@ public sealed class AppConfigService
         };
     }
 
-    private static string DescribeMapping(string? keyName, string actionType)
+    private static string DescribeMapping(string? keyName, string actionType, MappingOsdConfiguration osd)
     {
         var keyLabel = string.IsNullOrWhiteSpace(keyName) ? LocalizedText.Pick("Select key", "选择按键") : keyName.Trim();
-        return keyLabel + " -> " + ActionCatalog.GetLabel(actionType);
+        return keyLabel + " -> " + MappingDisplayCatalog.BuildListActionLabel(actionType, osd.Enabled);
     }
 
     private static string NormalizeId(string? value)
@@ -220,12 +250,35 @@ public sealed class AppConfigService
 
     private static string NormalizeActionType(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrWhiteSpace(value) || string.Equals(value, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase))
         {
             return HotkeyActionType.None;
         }
 
         return ActionCatalog.All.FirstOrDefault(item => string.Equals(item.Key, value, StringComparison.OrdinalIgnoreCase))?.Key
             ?? HotkeyActionType.None;
+    }
+
+    private static string? NormalizeBuiltInOsdIconPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return path;
+        }
+
+        return Path.GetFileName(path).ToLowerInvariant() switch
+        {
+            "backlight-level1.png" => ReplaceIconFileName(path, "backlight-low.png"),
+            "backlight-level2.png" => ReplaceIconFileName(path, "backlight-high.png"),
+            _ => path
+        };
+    }
+
+    private static string ReplaceIconFileName(string originalPath, string newFileName)
+    {
+        var directory = Path.GetDirectoryName(originalPath);
+        return string.IsNullOrWhiteSpace(directory)
+            ? newFileName
+            : Path.Combine(directory, newFileName);
     }
 }
