@@ -18,6 +18,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private readonly WorkerPipeClient _workerPipeClient = new();
     private readonly WorkerProcessService _workerProcessService = new();
 
+    private DispatcherQueue? _dispatcherQueue;
     private DispatcherQueueTimer? _statusTimer;
     private AppConfiguration _configuration = AppConfiguration.CreateDefault();
     private KeyDefinitionViewModel? _selectedKey;
@@ -168,13 +169,14 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public void Initialize(Window window)
     {
+        _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
         SyncBundledOsdIconsToConfigDirectory();
         SyncBundledPresetsToConfigDirectory();
         _configuration = _configService.Load();
         ReloadCollectionsFromConfiguration();
 
         App.ThemeService.Initialize(window, _configuration.Theme);
-        RefreshAutostartState();
+        _ = RefreshAutostartStateAsync();
         StartStatusPolling();
         _ = RefreshWorkerStatusAsync();
     }
@@ -297,8 +299,8 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             return;
         }
 
-        SaveConfiguration();
         RefreshMappingReferences();
+        SaveConfiguration();
         _ = ReloadWorkerAsync();
     }
 
@@ -675,6 +677,24 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private void RefreshAutostartState()
     {
         var startupMode = _autostartService.GetStartupMode();
+        ApplyAutostartState(startupMode);
+    }
+
+    private async Task RefreshAutostartStateAsync()
+    {
+        var startupMode = await Task.Run(_autostartService.GetStartupMode);
+
+        if (_dispatcherQueue is null)
+        {
+            ApplyAutostartState(startupMode);
+            return;
+        }
+
+        _dispatcherQueue.TryEnqueue(() => ApplyAutostartState(startupMode));
+    }
+
+    private void ApplyAutostartState(StartupRegistrationMode startupMode)
+    {
         AutostartEnabled = startupMode != StartupRegistrationMode.Disabled;
         PriorityStartupEnabled = startupMode != StartupRegistrationMode.Disabled
             ? startupMode == StartupRegistrationMode.ScheduledTask

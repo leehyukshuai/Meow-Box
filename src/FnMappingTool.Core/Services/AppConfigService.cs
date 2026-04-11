@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FnMappingTool.Core.Models;
@@ -6,6 +7,9 @@ namespace FnMappingTool.Core.Services;
 
 public sealed class AppConfigService
 {
+    private const int IoRetryCount = 8;
+    private const int IoRetryDelayMs = 40;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -16,6 +20,41 @@ public sealed class AppConfigService
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FnMappingTool");
 
     public string ConfigPath => Path.Combine(ConfigDirectory, "config.json");
+
+    public string? GetStoredLanguagePreference()
+    {
+        if (!File.Exists(ConfigPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var json = ExecuteWithRetries(() =>
+            {
+                using var stream = new FileStream(ConfigPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                return reader.ReadToEnd();
+            });
+
+            using var document = JsonDocument.Parse(json);
+            if (!document.RootElement.TryGetProperty("Preferences", out var preferencesElement))
+            {
+                return null;
+            }
+
+            if (!preferencesElement.TryGetProperty("Language", out var languageElement))
+            {
+                return null;
+            }
+
+            return languageElement.GetString();
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     public AppConfiguration Load()
     {
@@ -32,11 +71,15 @@ public sealed class AppConfigService
         {
             return NormalizeConfiguration(ReadConfiguration(ConfigPath), ConfigDirectory);
         }
-        catch
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
             var fallback = CreateDefaultConfiguration();
             Save(fallback);
             return fallback;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return CreateDefaultConfiguration();
         }
     }
 
@@ -57,7 +100,7 @@ public sealed class AppConfigService
         Directory.CreateDirectory(ConfigDirectory);
         var normalized = NormalizeConfiguration(configuration, ConfigDirectory);
         var json = JsonSerializer.Serialize(normalized, JsonOptions);
-        File.WriteAllText(ConfigPath, json + Environment.NewLine);
+        WriteConfiguration(ConfigPath, json + Environment.NewLine);
     }
 
     public void ImportFromFile(string path)
@@ -67,9 +110,90 @@ public sealed class AppConfigService
 
     private static AppConfiguration ReadConfiguration(string path)
     {
-        var json = File.ReadAllText(path);
+        var json = ExecuteWithRetries(() =>
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            return reader.ReadToEnd();
+        });
+
         return JsonSerializer.Deserialize<AppConfiguration>(json, JsonOptions)
             ?? throw new InvalidOperationException("The configuration file is empty.");
+    }
+
+    private static void WriteConfiguration(string path, string contents)
+    {
+        ExecuteWithRetries(() =>
+        {
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                using (var stream = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read, 4096, FileOptions.WriteThrough))
+                using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+                {
+                    writer.Write(contents);
+                    writer.Flush();
+                    stream.Flush(flushToDisk: true);
+                }
+
+                if (File.Exists(path))
+                {
+                    File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                }
+                else
+                {
+                    File.Move(tempPath, path);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(tempPath))
+                    {
+                        File.Delete(tempPath);
+                    }
+                }
+                catch
+                {
+                }
+            }
+        });
+    }
+
+    private static T ExecuteWithRetries<T>(Func<T> action)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return action();
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                if (attempt >= IoRetryCount - 1)
+                {
+                    throw;
+                }
+
+                Thread.Sleep(IoRetryDelayMs * (attempt + 1));
+            }
+        }
+    }
+
+    private static void ExecuteWithRetries(Action action)
+    {
+        ExecuteWithRetries(() =>
+        {
+            action();
+            return true;
+        });
     }
 
     private static AppConfiguration CreateDefaultConfiguration()
@@ -164,7 +288,7 @@ public sealed class AppConfigService
         mapping.Osd = NormalizeMappingOsd(mapping.Osd, legacyAction, legacyShowOsd, baseDirectory);
 
         var keyName = keys.FirstOrDefault(item => string.Equals(item.Id, mapping.KeyId, StringComparison.OrdinalIgnoreCase))?.Name;
-        mapping.Name = NormalizeName(mapping.Name, DescribeMapping(keyName, mapping.Action.Type, mapping.Osd));
+        mapping.Name = DescribeMapping(keyName, mapping.Action.Type, mapping.Osd);
         return mapping;
     }
 
@@ -230,7 +354,7 @@ public sealed class AppConfigService
     private static string DescribeMapping(string? keyName, string actionType, MappingOsdConfiguration osd)
     {
         var keyLabel = string.IsNullOrWhiteSpace(keyName) ? LocalizedText.Pick("Select key", "选择按键") : keyName.Trim();
-        return keyLabel + " -> " + MappingDisplayCatalog.BuildListActionLabel(actionType, osd.Enabled);
+        return keyLabel;
     }
 
     private static string NormalizeId(string? value)

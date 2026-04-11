@@ -42,8 +42,8 @@ public partial class App : Application
     {
         try
         {
-            var configuration = new AppConfigService().Load();
-            AppLanguageService.Apply(configuration.Preferences.Language);
+            var storedPreference = new AppConfigService().GetStoredLanguagePreference();
+            AppLanguageService.Apply(storedPreference);
         }
         catch
         {
@@ -54,11 +54,16 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new MainWindow();
-        Controller.Initialize(MainWindow);
         MainWindow.PresentToFront();
         MainWindow.DispatcherQueue.TryEnqueue(static () =>
         {
-            App.MainWindow?.PresentToFront();
+            if (App.MainWindow is null)
+            {
+                return;
+            }
+
+            App.Controller.Initialize(App.MainWindow);
+            App.MainWindow.PresentToFront();
         });
     }
 }
