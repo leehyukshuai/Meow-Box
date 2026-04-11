@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Core.Models;
 using FnMappingTool.Core.Services;
 using FnMappingTool.Controller.Services;
@@ -13,6 +13,7 @@ public sealed partial class AddKeyDialog : ContentDialog
     {
         _controller = controller;
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
         PrimaryButtonClick += OnPrimaryButtonClick;
         Opened += OnOpened;
         Closed += OnClosed;
@@ -24,7 +25,7 @@ public sealed partial class AddKeyDialog : ContentDialog
 
     private async void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
     {
-        CaptureInfoBar.Message = "Waiting for the next OEM event...";
+        CaptureInfoBar.Message = Localizer.GetString("AddKey.CaptureWaiting");
         CaptureInfoBar.Severity = InfoBarSeverity.Informational;
         CaptureProgressRing.IsActive = true;
         IsPrimaryButtonEnabled = false;
@@ -33,14 +34,15 @@ public sealed partial class AddKeyDialog : ContentDialog
         if (captured is null)
         {
             CaptureInfoBar.Severity = InfoBarSeverity.Warning;
-            CaptureInfoBar.Message = "Capture was cancelled or timed out.";
+            CaptureInfoBar.Message = Localizer.GetString("AddKey.CaptureCancelled");
+            CaptureProgressRing.IsActive = false;
             return;
         }
 
         CapturedEvent = captured;
         TriggerTextBox.Text = EventMatcherConfiguration.FromInputEvent(captured).ToDisplayText();
         CaptureInfoBar.Severity = InfoBarSeverity.Success;
-        CaptureInfoBar.Message = "OEM event captured. Enter a unique key name and add it.";
+        CaptureInfoBar.Message = Localizer.GetString("AddKey.CaptureSuccess");
         CaptureProgressRing.IsActive = false;
         Validate();
     }
@@ -59,12 +61,12 @@ public sealed partial class AddKeyDialog : ContentDialog
         if (duplicate)
         {
             CaptureInfoBar.Severity = InfoBarSeverity.Error;
-            CaptureInfoBar.Message = "This key name already exists.";
+            CaptureInfoBar.Message = Localizer.GetString("AddKey.NameExists");
         }
         else if (captured)
         {
             CaptureInfoBar.Severity = InfoBarSeverity.Success;
-            CaptureInfoBar.Message = "OEM event captured. Enter a unique key name and add it.";
+            CaptureInfoBar.Message = Localizer.GetString("AddKey.CaptureSuccess");
         }
 
         IsPrimaryButtonEnabled = hasName && captured && !duplicate;

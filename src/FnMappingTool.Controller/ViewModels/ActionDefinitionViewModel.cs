@@ -176,8 +176,11 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         if (Type == HotkeyActionType.SendStandardKey)
         {
             return string.IsNullOrWhiteSpace(StandardKey)
-                ? "Sends a standard keyboard or media key that you choose below."
-                : $"Sends the standard key {StandardKeyLabel}.";
+                ? LocalizedText.Pick("Sends a standard keyboard or media key that you choose below.", "发送你在下方选择的标准键盘按键或媒体按键。")
+                : string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    LocalizedText.Pick("Sends the standard key {0}.", "发送标准按键 {0}。"),
+                    StandardKeyLabel);
         }
 
         return ActionCatalog.GetDescription(Type);

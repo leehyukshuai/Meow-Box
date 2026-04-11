@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="App.Title" xml:space="preserve"><value>Fn 映射工具</value></data>
+  <data name="Navigation.Keys" xml:space="preserve"><value>按键</value></data>
+  <data name="Navigation.Mappings" xml:space="preserve"><value>映射</value></data>
+  <data name="Navigation.Settings" xml:space="preserve"><value>设置</value></data>
+  <data name="PageTitle.Keys" xml:space="preserve"><value>按键</value></data>
+  <data name="PageTitle.Mappings" xml:space="preserve"><value>映射</value></data>
+  <data name="PageTitle.Settings" xml:space="preserve"><value>设置</value></data>
+  <data name="ServiceStatus.Running" xml:space="preserve"><value>服务运行中</value></data>
+  <data name="ServiceStatus.Stopped" xml:space="preserve"><value>服务未运行</value></data>
+  <data name="QuickService.Start" xml:space="preserve"><value>启动服务</value></data>
+  <data name="QuickService.Stop" xml:space="preserve"><value>停止服务</value></data>
+  <data name="Dialog.Close" xml:space="preserve"><value>关闭</value></data>
+  <data name="Dialog.Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Dialog.Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="Dialog.Later" xml:space="preserve"><value>稍后</value></data>
+  <data name="Dialog.RestartNow" xml:space="preserve"><value>立即重启</value></data>
+  <data name="Dialog.RestartService" xml:space="preserve"><value>重启服务</value></data>
+  <data name="Settings.Messages.StartServiceFailed.Title" xml:space="preserve"><value>无法启动服务</value></data>
+  <data name="Settings.Messages.StartServiceFailed.Body" xml:space="preserve"><value>后台 Worker 无法启动，或启动后没有响应。</value></data>
+  <data name="Settings.Messages.AutostartFailed.Title" xml:space="preserve"><value>无法修改开机启动设置</value></data>
+  <data name="Settings.Messages.PriorityFailed.Title" xml:space="preserve"><value>无法修改优先启动设置</value></data>
+  <data name="Settings.Messages.ImportFailed.Title" xml:space="preserve"><value>无法导入配置</value></data>
+  <data name="Settings.Messages.ImportApplied.Title" xml:space="preserve"><value>配置已导入</value></data>
+  <data name="Settings.Messages.ImportApplied.BodyServiceRunning" xml:space="preserve"><value>文件已导入。请重启服务以应用该配置。</value></data>
+  <data name="Settings.Messages.ImportApplied.BodyServiceStopped" xml:space="preserve"><value>文件已导入。准备好后启动服务即可应用该配置。</value></data>
+  <data name="Settings.Messages.RestartServiceFailed.Title" xml:space="preserve"><value>无法重启服务</value></data>
+  <data name="Settings.Messages.RestartServiceFailed.Body" xml:space="preserve"><value>后台 Worker 无法重启。</value></data>
+  <data name="Settings.Messages.LanguageRestart.Title" xml:space="preserve"><value>需要重启</value></data>
+  <data name="Settings.Messages.LanguageRestart.Body" xml:space="preserve"><value>重启 Fn 映射工具后，语言更改才会生效。</value></data>
+  <data name="Keys.Messages.ServiceStopped.Title" xml:space="preserve"><value>后台服务未运行</value></data>
+  <data name="Keys.Messages.ServiceStopped.Body" xml:space="preserve"><value>请先在“设置”中启动后台服务，再捕获新的按键。</value></data>
+  <data name="Keys.Messages.AddFailed.Title" xml:space="preserve"><value>无法添加按键</value></data>
+  <data name="Keys.Messages.SaveFailed.Title" xml:space="preserve"><value>无法保存按键</value></data>
+  <data name="Keys.Messages.Delete.Title" xml:space="preserve"><value>删除按键</value></data>
+  <data name="Keys.Messages.Delete.Body" xml:space="preserve"><value>这也会删除所有使用该按键的映射。</value></data>
+  <data name="Mappings.Messages.AddFailed.Title" xml:space="preserve"><value>无法添加映射</value></data>
+  <data name="Mappings.Messages.Delete.Title" xml:space="preserve"><value>删除映射</value></data>
+  <data name="Mappings.Messages.Delete.Body" xml:space="preserve"><value>要删除当前选中的映射吗？</value></data>
+  <data name="Mappings.Messages.SaveFailed.Title" xml:space="preserve"><value>无法保存映射</value></data>
+  <data name="Mappings.NoIcon" xml:space="preserve"><value>无图标</value></data>
+  <data name="AddKey.CaptureWaiting" xml:space="preserve"><value>正在等待下一个 OEM 事件……</value></data>
+  <data name="AddKey.CaptureCancelled" xml:space="preserve"><value>捕获已取消或超时。</value></data>
+  <data name="AddKey.CaptureSuccess" xml:space="preserve"><value>已捕获 OEM 事件。请输入唯一的按键名称并添加。</value></data>
+  <data name="AddKey.NameExists" xml:space="preserve"><value>这个按键名称已存在。</value></data>
+  <data name="AppPicker.NoInstalledApps" xml:space="preserve"><value>Get-StartApps 没有返回任何已安装应用。</value></data>
+  <data name="AppPicker.FoundInstalledApps" xml:space="preserve"><value>找到 {0} 个已安装应用。</value></data>
+  <data name="AppTitleTextBlock.Text" xml:space="preserve"><value>Fn 映射工具</value></data>
+  <data name="KeysItem.Content" xml:space="preserve"><value>按键</value></data>
+  <data name="MappingsItem.Content" xml:space="preserve"><value>映射</value></data>
+  <data name="KeysPageSavedKeysText.Text" xml:space="preserve"><value>已保存的按键</value></data>
+  <data name="KeysPageCaptureButtonText.Text" xml:space="preserve"><value>捕获按键</value></data>
+  <data name="KeysPageCapturedVendorEventText.Text" xml:space="preserve"><value>已捕获的厂商事件</value></data>
+  <data name="KeysPageEmptyTitleText.Text" xml:space="preserve"><value>还没有按键</value></data>
+  <data name="KeysPageEmptyBodyText.Text" xml:space="preserve"><value>先捕获一个按键开始使用。</value></data>
+  <data name="KeyDetailsTitleText.Text" xml:space="preserve"><value>按键详情</value></data>
+  <data name="KeyDeleteButtonText.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="KeyNameTextBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="KeyNameTextBox.PlaceholderText" xml:space="preserve"><value>按键名称</value></data>
+  <data name="KeyTriggerTextBox.Header" xml:space="preserve"><value>捕获到的事件</value></data>
+  <data name="KeyDetailsEmptyTitleText.Text" xml:space="preserve"><value>未选择按键</value></data>
+  <data name="KeyDetailsEmptyBodyText.Text" xml:space="preserve"><value>从列表中选择一个按键，或捕获一个新的按键。</value></data>
+  <data name="MappingsPageListTitleText.Text" xml:space="preserve"><value>映射</value></data>
+  <data name="MappingsPageAddMappingButtonText.Text" xml:space="preserve"><value>添加映射</value></data>
+  <data name="MappingsPageEmptyTitleText.Text" xml:space="preserve"><value>还没有映射</value></data>
+  <data name="MappingsPageEmptyBodyText.Text" xml:space="preserve"><value>添加一个映射，把按键连接到动作。</value></data>
+  <data name="MappingDetailsTitleText.Text" xml:space="preserve"><value>映射详情</value></data>
+  <data name="MappingDeleteButtonText.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="ChooseKeyEyebrowText.Text" xml:space="preserve"><value>选择按键</value></data>
+  <data name="ChooseKeyDescriptionText.Text" xml:space="preserve"><value>选择这个映射要响应的 OEM 按键事件。</value></data>
+  <data name="KeySelectorCombo.Header" xml:space="preserve"><value>选择按键</value></data>
+  <data name="ChooseActionEyebrowText.Text" xml:space="preserve"><value>选择动作</value></data>
+  <data name="ChooseActionDescriptionText.Text" xml:space="preserve"><value>选择按下该按键后要执行的动作。</value></data>
+  <data name="ChooseActionButtonText.Text" xml:space="preserve"><value>选择动作</value></data>
+  <data name="TargetTextBox.Header" xml:space="preserve"><value>目标</value></data>
+  <data name="TargetTextBox.PlaceholderText" xml:space="preserve"><value>已安装应用目标或可执行文件路径</value></data>
+  <data name="ChooseAppButton.Content" xml:space="preserve"><value>选择应用</value></data>
+  <data name="BrowseFileButton.Content" xml:space="preserve"><value>浏览文件</value></data>
+  <data name="ArgumentsTextBox.Header" xml:space="preserve"><value>参数</value></data>
+  <data name="ArgumentsTextBox.PlaceholderText" xml:space="preserve"><value>可选的启动参数</value></data>
+  <data name="StandardKeyTitleText.Text" xml:space="preserve"><value>标准按键</value></data>
+  <data name="StandardKeyDescriptionText.Text" xml:space="preserve"><value>选择这个 OEM 按键要发送的标准键盘按键。</value></data>
+  <data name="StandardKeyGroupComboBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="StandardKeyComboBox.Header" xml:space="preserve"><value>按键</value></data>
+  <data name="OsdTitleBlock.Text" xml:space="preserve"><value>OSD</value></data>
+  <data name="OsdTitleTextBox.Header" xml:space="preserve"><value>标题</value></data>
+  <data name="OsdTitleHintText.Text" xml:space="preserve"><value>最多 32 个字符。</value></data>
+  <data name="OsdIconComboBox.Header" xml:space="preserve"><value>图标</value></data>
+  <data name="OsdIconHintText.Text" xml:space="preserve"><value>可在“设置”中管理 OSD 图标文件。</value></data>
+  <data name="MappingDetailsEmptyTitleText.Text" xml:space="preserve"><value>未选择映射</value></data>
+  <data name="MappingDetailsEmptyBodyText.Text" xml:space="preserve"><value>从列表中选择一个映射，或添加一个新的映射。</value></data>
+  <data name="ActionPickerDialog.PrimaryButtonText" xml:space="preserve"><value>选择动作</value></data>
+  <data name="ActionPickerDialog.CloseButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="ActionPickerTitleText.Text" xml:space="preserve"><value>选择动作</value></data>
+  <data name="ActionPickerDescriptionText.Text" xml:space="preserve"><value>选择这个映射要执行的动作。</value></data>
+  <data name="ActionPickerCategoryComboBox.Header" xml:space="preserve"><value>分类</value></data>
+  <data name="ActionPickerSearchTextBox.Header" xml:space="preserve"><value>搜索</value></data>
+  <data name="ActionPickerSearchTextBox.PlaceholderText" xml:space="preserve"><value>输入动作名称中的部分文字</value></data>
+  <data name="AddKeyDialog.PrimaryButtonText" xml:space="preserve"><value>添加按键</value></data>
+  <data name="AddKeyDialog.CloseButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="AddKeyCaptureEyebrowText.Text" xml:space="preserve"><value>捕获</value></data>
+  <data name="AddKeyTitleText.Text" xml:space="preserve"><value>现在按下硬件按键</value></data>
+  <data name="AddKeyDescriptionText.Text" xml:space="preserve"><value>Worker 捕获到的下一个 OEM 事件会成为一个新的按键定义。给它一个清晰的名字，便于在映射中识别。</value></data>
+  <data name="CaptureInfoBar.Title" xml:space="preserve"><value>捕获状态</value></data>
+  <data name="AddKeyNameTextBox.Header" xml:space="preserve"><value>按键名称</value></data>
+  <data name="AddKeyNameTextBox.PlaceholderText" xml:space="preserve"><value>例如：Fn Lock On</value></data>
+  <data name="AddKeyTriggerTextBox.Header" xml:space="preserve"><value>捕获到的事件</value></data>
+  <data name="AppPickerDialog.PrimaryButtonText" xml:space="preserve"><value>选择应用</value></data>
+  <data name="AppPickerDialog.CloseButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="AppPickerEyebrowText.Text" xml:space="preserve"><value>应用选择器</value></data>
+  <data name="AppPickerTitleText.Text" xml:space="preserve"><value>选择这个映射要启动的内容</value></data>
+  <data name="AppPickerDescriptionText.Text" xml:space="preserve"><value>按名称搜索已安装应用，然后选择最符合该硬件按键用途的目标。</value></data>
+  <data name="AppPickerSearchTextBox.Header" xml:space="preserve"><value>搜索已安装应用</value></data>
+  <data name="AppPickerSearchTextBox.PlaceholderText" xml:space="preserve"><value>输入应用名称中的部分文字</value></data>
+  <data name="LoadingInfoBar.Title" xml:space="preserve"><value>已安装应用</value></data>
+  <data name="SettingsPageTitleText.Text" xml:space="preserve"><value>设置</value></data>
+  <data name="ServiceCardTitleText.Text" xml:space="preserve"><value>服务</value></data>
+  <data name="ServiceRunningText.Text" xml:space="preserve"><value>运行</value></data>
+  <data name="AutostartText.Text" xml:space="preserve"><value>随 Windows 启动</value></data>
+  <data name="PriorityStartupTitleText.Text" xml:space="preserve"><value>优先启动</value></data>
+  <data name="PriorityStartupDescriptionText.Text" xml:space="preserve"><value>使用 Windows 计划任务替代启动文件夹，让 Worker 在登录后更早启动。</value></data>
+  <data name="PriorityStartupBusyText.Text" xml:space="preserve"><value>正在应用……</value></data>
+  <data name="TrayIconText.Text" xml:space="preserve"><value>托盘图标</value></data>
+  <data name="AppearanceCardTitleText.Text" xml:space="preserve"><value>外观</value></data>
+  <data name="ThemeComboBox.Header" xml:space="preserve"><value>主题</value></data>
+  <data name="ThemeSystemItem.Content" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="ThemeLightItem.Content" xml:space="preserve"><value>浅色</value></data>
+  <data name="ThemeDarkItem.Content" xml:space="preserve"><value>深色</value></data>
+  <data name="LanguageComboBox.Header" xml:space="preserve"><value>语言</value></data>
+  <data name="LanguageSystemItem.Content" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="LanguageEnglishItem.Content" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageChineseItem.Content" xml:space="preserve"><value>简体中文</value></data>
+  <data name="LanguageRestartHintText.Text" xml:space="preserve"><value>语言更改需要在重启应用后生效。</value></data>
+  <data name="ConfigsCardTitleText.Text" xml:space="preserve"><value>配置</value></data>
+  <data name="OsdDisplayModeComboBox.Header" xml:space="preserve"><value>OSD 内容</value></data>
+  <data name="OsdDisplayIconAndTitleItem.Content" xml:space="preserve"><value>图标 + 标题</value></data>
+  <data name="OsdDisplayIconOnlyItem.Content" xml:space="preserve"><value>仅图标</value></data>
+  <data name="OsdDisplayTitleOnlyItem.Content" xml:space="preserve"><value>仅标题</value></data>
+  <data name="OsdDurationNumberBox.Header" xml:space="preserve"><value>OSD 持续时间（毫秒）</value></data>
+  <data name="OsdBackgroundOpacityNumberBox.Header" xml:space="preserve"><value>背景不透明度（%）</value></data>
+  <data name="OsdScaleNumberBox.Header" xml:space="preserve"><value>OSD 大小（%）</value></data>
+  <data name="OsdIconFolderTextBox.Header" xml:space="preserve"><value>OSD 图标文件夹</value></data>
+  <data name="OpenOsdIconFolderButton.Content" xml:space="preserve"><value>打开图标文件夹</value></data>
+  <data name="RefreshOsdIconFolderButton.Content" xml:space="preserve"><value>刷新图标</value></data>
+  <data name="OsdIconSpecText.Text" xml:space="preserve"><value>图标规范：透明 PNG、方形画布，建议 256×256，单色 glyph，并在边缘保留一定留白。</value></data>
+  <data name="FilesCardTitleText.Text" xml:space="preserve"><value>文件</value></data>
+  <data name="PresetDescriptionText.Text" xml:space="preserve"><value>预设文件存放在独立文件夹中。把 JSON 预设复制进去，刷新列表后即可加载。</value></data>
+  <data name="PresetDirectoryTextBox.Header" xml:space="preserve"><value>预设文件夹</value></data>
+  <data name="OpenPresetFolderButton.Content" xml:space="preserve"><value>打开预设文件夹</value></data>
+  <data name="RefreshConfigFilesButton.Content" xml:space="preserve"><value>刷新列表</value></data>
+  <data name="ConfigFilesComboBox.Header" xml:space="preserve"><value>预设文件</value></data>
+  <data name="ConfigFilesComboBox.PlaceholderText" xml:space="preserve"><value>未找到预设 JSON 文件</value></data>
+  <data name="LoadPresetButton.Content" xml:space="preserve"><value>加载预设</value></data>
+</root>

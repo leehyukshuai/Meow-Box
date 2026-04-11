@@ -1,36 +1,25 @@
 <ContentDialog
     x:Class="FnMappingTool.Controller.Views.AppPickerDialog"
+    x:Uid="AppPickerDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    PrimaryButtonText="Choose App"
+    PrimaryButtonText="Choose app"
     CloseButtonText="Cancel"
     DefaultButton="Primary"
     mc:Ignorable="d">
 
     <StackPanel Width="600" Spacing="16">
         <StackPanel Spacing="6">
-            <TextBlock Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Application picker" />
-            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Choose what this mapping should launch" />
-            <TextBlock
-                Style="{StaticResource CardBodyTextBlockStyle}"
-                Text="Search installed apps by name, then pick the one that best matches the action you want from the hardware key."
-                TextWrapping="WrapWholeWords" />
+            <TextBlock x:Uid="AppPickerEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Application picker" />
+            <TextBlock x:Uid="AppPickerTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Choose what this mapping should launch" />
+            <TextBlock x:Uid="AppPickerDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Search installed apps by name, then pick the one that best matches the action you want from the hardware key." TextWrapping="WrapWholeWords" />
         </StackPanel>
 
-        <TextBox
-            x:Name="SearchTextBox"
-            Header="Search installed apps"
-            PlaceholderText="Type part of the app name"
-            TextChanged="OnSearchTextChanged" />
+        <TextBox x:Uid="AppPickerSearchTextBox" x:Name="SearchTextBox" Header="Search installed apps" PlaceholderText="Type part of the app name" TextChanged="OnSearchTextChanged" />
 
-        <InfoBar
-            x:Name="LoadingInfoBar"
-            IsClosable="False"
-            IsOpen="True"
-            Severity="Informational"
-            Title="Installed apps" />
+        <InfoBar x:Uid="LoadingInfoBar" x:Name="LoadingInfoBar" IsClosable="False" IsOpen="True" Severity="Informational" Title="Installed apps" />
 
         <ListView
             x:Name="AppsListView"
@@ -43,10 +32,7 @@
                 <DataTemplate>
                     <StackPanel Spacing="4">
                         <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Name}" />
-                        <TextBlock
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{Binding AppId}"
-                            TextWrapping="WrapWholeWords" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding AppId}" TextWrapping="WrapWholeWords" />
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

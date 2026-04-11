@@ -28,7 +28,7 @@ public sealed class KeyDefinitionViewModel : ObservableObject
         }
     }
 
-    public string ListTitle => string.IsNullOrWhiteSpace(Name) ? "Unnamed key" : Name.Trim();
+    public string ListTitle => string.IsNullOrWhiteSpace(Name) ? LocalizedText.Pick("Unnamed key", "未命名按键") : Name.Trim();
 
     public string TriggerDetails => _trigger.ToDisplayText();
 

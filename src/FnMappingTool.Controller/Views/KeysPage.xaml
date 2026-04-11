@@ -31,7 +31,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Saved keys" />
+                        <TextBlock
+                            x:Uid="KeysPageSavedKeysText"
+                            Style="{StaticResource SectionTitleTextBlockStyle}"
+                            Text="Saved keys" />
 
                         <Button
                             Grid.Column="1"
@@ -39,7 +42,9 @@
                             Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
-                                <TextBlock Text="Capture key" />
+                                <TextBlock
+                                    x:Uid="KeysPageCaptureButtonText"
+                                    Text="Capture key" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -70,7 +75,10 @@
 
                                     <StackPanel Spacing="2">
                                         <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding ListTitle}" />
-                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Captured vendor event" />
+                                        <TextBlock
+                                            x:Uid="KeysPageCapturedVendorEventText"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="Captured vendor event" />
                                     </StackPanel>
                                 </StackPanel>
                             </DataTemplate>
@@ -87,9 +95,11 @@
                             Style="{StaticResource EmptyStateIconStyle}"
                             Glyph="&#xE765;" />
                         <TextBlock
+                            x:Uid="KeysPageEmptyTitleText"
                             Style="{StaticResource EmptyStateTitleTextBlockStyle}"
                             Text="No keys yet" />
                         <TextBlock
+                            x:Uid="KeysPageEmptyBodyText"
                             Style="{StaticResource EmptyStateBodyTextBlockStyle}"
                             Text="Capture a key to get started." />
                     </StackPanel>
@@ -116,7 +126,10 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Key details" />
+                            <TextBlock
+                                x:Uid="KeyDetailsTitleText"
+                                Style="{StaticResource SectionTitleTextBlockStyle}"
+                                Text="Key details" />
 
                             <Button
                                 Grid.Column="1"
@@ -124,12 +137,15 @@
                                 Style="{StaticResource DangerButtonStyle}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
-                                    <TextBlock Text="Delete" />
+                                    <TextBlock
+                                        x:Uid="KeyDeleteButtonText"
+                                        Text="Delete" />
                                 </StackPanel>
                             </Button>
                         </Grid>
 
                         <TextBox
+                            x:Uid="KeyNameTextBox"
                             Grid.Row="1"
                             Header="Name"
                             LostFocus="OnKeyNameLostFocus"
@@ -137,6 +153,7 @@
                             Text="{Binding SelectedKey.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBox
+                            x:Uid="KeyTriggerTextBox"
                             Grid.Row="2"
                             AcceptsReturn="True"
                             FontFamily="Consolas"
@@ -156,9 +173,11 @@
                             Style="{StaticResource EmptyStateIconStyle}"
                             Glyph="&#xE8FD;" />
                         <TextBlock
+                            x:Uid="KeyDetailsEmptyTitleText"
                             Style="{StaticResource EmptyStateTitleTextBlockStyle}"
                             Text="No key selected" />
                         <TextBlock
+                            x:Uid="KeyDetailsEmptyBodyText"
                             Style="{StaticResource EmptyStateBodyTextBlockStyle}"
                             Text="Pick a key from the list or capture a new one." />
                     </StackPanel>

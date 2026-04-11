@@ -1,5 +1,6 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml.Controls;
+using FnMappingTool.Controller.Services;
 using FnMappingTool.Core.Services;
 
 namespace FnMappingTool.Controller.Views;
@@ -12,14 +13,15 @@ public sealed partial class AppPickerDialog : ContentDialog
     {
         _allApps = apps;
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
         PrimaryButtonClick += OnPrimaryButtonClick;
         IsPrimaryButtonEnabled = false;
 
         FilteredApps = new ObservableCollection<InstalledAppEntry>(_allApps);
         AppsListView.ItemsSource = FilteredApps;
         LoadingInfoBar.Message = _allApps.Count == 0
-            ? "No installed apps were returned by Get-StartApps."
-            : $"Found {_allApps.Count} installed apps.";
+            ? Localizer.GetString("AppPicker.NoInstalledApps")
+            : Localizer.Format("AppPicker.FoundInstalledApps", _allApps.Count);
         LoadingInfoBar.Severity = _allApps.Count == 0 ? InfoBarSeverity.Warning : InfoBarSeverity.Success;
     }
 

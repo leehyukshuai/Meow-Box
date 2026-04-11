@@ -1,22 +1,20 @@
 <ContentDialog
     x:Class="FnMappingTool.Controller.Views.AddKeyDialog"
+    x:Uid="AddKeyDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    PrimaryButtonText="Add Key"
+    PrimaryButtonText="Add key"
     CloseButtonText="Cancel"
     DefaultButton="Primary"
     mc:Ignorable="d">
 
     <StackPanel Width="560" Spacing="18">
         <StackPanel Spacing="6">
-            <TextBlock Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Capture" />
-            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Press the hardware key now" />
-            <TextBlock
-                Style="{StaticResource CardBodyTextBlockStyle}"
-                Text="The next OEM event captured by the worker becomes a new key definition. Give it a clear name so it stays readable in mappings."
-                TextWrapping="WrapWholeWords" />
+            <TextBlock x:Uid="AddKeyCaptureEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Capture" />
+            <TextBlock x:Uid="AddKeyTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Press the hardware key now" />
+            <TextBlock x:Uid="AddKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="The next OEM event captured by the worker becomes a new key definition. Give it a clear name so it stays readable in mappings." TextWrapping="WrapWholeWords" />
         </StackPanel>
 
         <Border Style="{StaticResource SubtlePanelCardStyle}">
@@ -26,35 +24,13 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <ProgressRing
-                    x:Name="CaptureProgressRing"
-                    Width="34"
-                    Height="34"
-                    IsActive="True"
-                    VerticalAlignment="Top" />
+                <ProgressRing x:Name="CaptureProgressRing" Width="34" Height="34" IsActive="True" VerticalAlignment="Top" />
 
-                <InfoBar
-                    x:Name="CaptureInfoBar"
-                    Grid.Column="1"
-                    IsClosable="False"
-                    IsOpen="True"
-                    Severity="Informational"
-                    Title="Capture status" />
+                <InfoBar x:Uid="CaptureInfoBar" x:Name="CaptureInfoBar" Grid.Column="1" IsClosable="False" IsOpen="True" Severity="Informational" Title="Capture status" />
             </Grid>
         </Border>
 
-        <TextBox
-            x:Name="NameTextBox"
-            Header="Key name"
-            PlaceholderText="For example: Fn Lock On"
-            TextChanged="OnNameTextChanged" />
-
-        <TextBox
-            x:Name="TriggerTextBox"
-            Header="Captured event"
-            FontFamily="Consolas"
-            IsReadOnly="True"
-            MinHeight="180"
-            TextWrapping="Wrap" />
+        <TextBox x:Uid="AddKeyNameTextBox" x:Name="NameTextBox" Header="Key name" PlaceholderText="For example: Fn Lock On" TextChanged="OnNameTextChanged" />
+        <TextBox x:Uid="AddKeyTriggerTextBox" x:Name="TriggerTextBox" Header="Captured event" FontFamily="Consolas" IsReadOnly="True" MinHeight="180" TextWrapping="Wrap" />
     </StackPanel>
 </ContentDialog>

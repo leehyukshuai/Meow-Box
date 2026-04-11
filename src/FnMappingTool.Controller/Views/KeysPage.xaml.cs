@@ -13,6 +13,7 @@ public sealed partial class KeysPage : Page
     public KeysPage()
     {
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
         DataContext = Controller;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -23,6 +24,7 @@ public sealed partial class KeysPage : Page
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Controller.KeyItems.CollectionChanged += OnKeyItemsCollectionChanged;
         UpdateEmptyStates();
+        ScheduleLocalizationRefresh();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -35,7 +37,9 @@ public sealed partial class KeysPage : Page
     {
         if (!Controller.ServiceRunning)
         {
-            await ShowMessageAsync("Background service is stopped", "Start the background service in Settings before capturing a new key.");
+            await ShowMessageAsync(
+                Localizer.GetString("Keys.Messages.ServiceStopped.Title"),
+                Localizer.GetString("Keys.Messages.ServiceStopped.Body"));
             return;
         }
 
@@ -53,7 +57,7 @@ public sealed partial class KeysPage : Page
             }
             catch (Exception exception)
             {
-                await ShowMessageAsync("Could not add key", exception.Message);
+                await ShowMessageAsync(Localizer.GetString("Keys.Messages.AddFailed.Title"), exception.Message);
             }
         }
     }
@@ -71,7 +75,7 @@ public sealed partial class KeysPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync("Could not save key", exception.Message);
+            await ShowMessageAsync(Localizer.GetString("Keys.Messages.SaveFailed.Title"), exception.Message);
         }
     }
 
@@ -85,10 +89,10 @@ public sealed partial class KeysPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = "Delete key",
-            Content = "This will also delete mappings that use the selected key.",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
+            Title = Localizer.GetString("Keys.Messages.Delete.Title"),
+            Content = Localizer.GetString("Keys.Messages.Delete.Body"),
+            PrimaryButtonText = Localizer.GetString("Dialog.Delete"),
+            CloseButtonText = Localizer.GetString("Dialog.Cancel"),
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -104,13 +108,30 @@ public sealed partial class KeysPage : Page
     {
         if (e.PropertyName == nameof(FnMappingToolController.SelectedKey))
         {
-            DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+            DispatcherQueue.TryEnqueue(() =>
+        {
+            UpdateEmptyStates();
+            ScheduleLocalizationRefresh();
+        });
         }
     }
 
     private void OnKeyItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            UpdateEmptyStates();
+            ScheduleLocalizationRefresh();
+        });
+    }
+
+    private void ScheduleLocalizationRefresh()
+    {
+        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
+        _ = Task.Delay(200).ContinueWith(_ =>
+        {
+            DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
+        }, TaskScheduler.Default);
     }
 
     private void UpdateEmptyStates()
@@ -131,7 +152,7 @@ public sealed partial class KeysPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = "Close"
+            CloseButtonText = Localizer.GetString("Dialog.Close")
         };
 
         await dialog.ShowAsync();

@@ -24,6 +24,7 @@ public sealed partial class MappingsPage : Page
     public MappingsPage()
     {
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
         DataContext = Controller;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -36,6 +37,7 @@ public sealed partial class MappingsPage : Page
         RefreshOsdIcons();
         RefreshStandardKeyChoices();
         UpdateEmptyStates();
+        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -52,15 +54,13 @@ public sealed partial class MappingsPage : Page
         OsdIconFiles.Clear();
         OsdIconFiles.Add(new OsdIconFileEntry
         {
-            DisplayName = "No icon",
+            DisplayName = Localizer.GetString("Mappings.NoIcon"),
             RelativePath = string.Empty
         });
 
         Directory.CreateDirectory(Controller.OsdIconDirectory);
         foreach (var file in Directory.GetFiles(Controller.OsdIconDirectory, "*.png", SearchOption.AllDirectories)
-                     .OrderBy(
-                         static file => Path.GetRelativePath(App.Controller.OsdIconDirectory, file),
-                         StringComparer.OrdinalIgnoreCase))
+                     .OrderBy(static file => Path.GetRelativePath(App.Controller.OsdIconDirectory, file), StringComparer.OrdinalIgnoreCase))
         {
             var relativePath = Path.GetRelativePath(Controller.OsdIconDirectory, file);
             OsdIconFiles.Add(new OsdIconFileEntry
@@ -92,7 +92,7 @@ public sealed partial class MappingsPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync("Could not add mapping", exception.Message);
+            await ShowMessageAsync(Localizer.GetString("Mappings.Messages.AddFailed.Title"), exception.Message);
         }
     }
 
@@ -160,10 +160,10 @@ public sealed partial class MappingsPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = "Delete mapping",
-            Content = "Delete the selected mapping?",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
+            Title = Localizer.GetString("Mappings.Messages.Delete.Title"),
+            Content = Localizer.GetString("Mappings.Messages.Delete.Body"),
+            PrimaryButtonText = Localizer.GetString("Dialog.Delete"),
+            CloseButtonText = Localizer.GetString("Dialog.Cancel"),
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -204,7 +204,7 @@ public sealed partial class MappingsPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = "Close"
+            CloseButtonText = Localizer.GetString("Dialog.Close")
         };
 
         await dialog.ShowAsync();
@@ -239,7 +239,7 @@ public sealed partial class MappingsPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync("Could not save mapping", exception.Message);
+            await ShowMessageAsync(Localizer.GetString("Mappings.Messages.SaveFailed.Title"), exception.Message);
         }
     }
 
@@ -251,13 +251,18 @@ public sealed partial class MappingsPage : Page
             {
                 RefreshStandardKeyChoices();
                 UpdateEmptyStates();
+                XamlStringLocalizer.Apply(this);
             });
         }
     }
 
     private void OnMappingItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(UpdateEmptyStates);
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            UpdateEmptyStates();
+            XamlStringLocalizer.Apply(this);
+        });
     }
 
     private void UpdateEmptyStates()

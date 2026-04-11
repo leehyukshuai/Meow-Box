@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="App.Title" xml:space="preserve"><value>Fn Mapping Tool</value></data>
+  <data name="Navigation.Keys" xml:space="preserve"><value>Keys</value></data>
+  <data name="Navigation.Mappings" xml:space="preserve"><value>Mappings</value></data>
+  <data name="Navigation.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="PageTitle.Keys" xml:space="preserve"><value>Keys</value></data>
+  <data name="PageTitle.Mappings" xml:space="preserve"><value>Mappings</value></data>
+  <data name="PageTitle.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="ServiceStatus.Running" xml:space="preserve"><value>Service running</value></data>
+  <data name="ServiceStatus.Stopped" xml:space="preserve"><value>Service stopped</value></data>
+  <data name="QuickService.Start" xml:space="preserve"><value>Start service</value></data>
+  <data name="QuickService.Stop" xml:space="preserve"><value>Stop service</value></data>
+  <data name="Dialog.Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Dialog.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Dialog.Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Dialog.Later" xml:space="preserve"><value>Later</value></data>
+  <data name="Dialog.RestartNow" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Dialog.RestartService" xml:space="preserve"><value>Restart service</value></data>
+  <data name="Settings.Messages.StartServiceFailed.Title" xml:space="preserve"><value>Could not start service</value></data>
+  <data name="Settings.Messages.StartServiceFailed.Body" xml:space="preserve"><value>The background worker could not be started or did not respond.</value></data>
+  <data name="Settings.Messages.AutostartFailed.Title" xml:space="preserve"><value>Could not change startup behavior</value></data>
+  <data name="Settings.Messages.PriorityFailed.Title" xml:space="preserve"><value>Could not change startup priority</value></data>
+  <data name="Settings.Messages.ImportFailed.Title" xml:space="preserve"><value>Could not import configuration</value></data>
+  <data name="Settings.Messages.ImportApplied.Title" xml:space="preserve"><value>Configuration imported</value></data>
+  <data name="Settings.Messages.ImportApplied.BodyServiceRunning" xml:space="preserve"><value>The file has been imported. Restart the service to apply it.</value></data>
+  <data name="Settings.Messages.ImportApplied.BodyServiceStopped" xml:space="preserve"><value>The file has been imported. Start the service when you are ready to apply it.</value></data>
+  <data name="Settings.Messages.RestartServiceFailed.Title" xml:space="preserve"><value>Could not restart service</value></data>
+  <data name="Settings.Messages.RestartServiceFailed.Body" xml:space="preserve"><value>The background worker could not be restarted.</value></data>
+  <data name="Settings.Messages.LanguageRestart.Title" xml:space="preserve"><value>Restart required</value></data>
+  <data name="Settings.Messages.LanguageRestart.Body" xml:space="preserve"><value>Language changes will apply after restarting Fn Mapping Tool.</value></data>
+  <data name="Keys.Messages.ServiceStopped.Title" xml:space="preserve"><value>Background service is stopped</value></data>
+  <data name="Keys.Messages.ServiceStopped.Body" xml:space="preserve"><value>Start the background service in Settings before capturing a new key.</value></data>
+  <data name="Keys.Messages.AddFailed.Title" xml:space="preserve"><value>Could not add key</value></data>
+  <data name="Keys.Messages.SaveFailed.Title" xml:space="preserve"><value>Could not save key</value></data>
+  <data name="Keys.Messages.Delete.Title" xml:space="preserve"><value>Delete key</value></data>
+  <data name="Keys.Messages.Delete.Body" xml:space="preserve"><value>This will also delete mappings that use the selected key.</value></data>
+  <data name="Mappings.Messages.AddFailed.Title" xml:space="preserve"><value>Could not add mapping</value></data>
+  <data name="Mappings.Messages.Delete.Title" xml:space="preserve"><value>Delete mapping</value></data>
+  <data name="Mappings.Messages.Delete.Body" xml:space="preserve"><value>Delete the selected mapping?</value></data>
+  <data name="Mappings.Messages.SaveFailed.Title" xml:space="preserve"><value>Could not save mapping</value></data>
+  <data name="Mappings.NoIcon" xml:space="preserve"><value>No icon</value></data>
+  <data name="AddKey.CaptureWaiting" xml:space="preserve"><value>Waiting for the next OEM event...</value></data>
+  <data name="AddKey.CaptureCancelled" xml:space="preserve"><value>Capture was cancelled or timed out.</value></data>
+  <data name="AddKey.CaptureSuccess" xml:space="preserve"><value>OEM event captured. Enter a unique key name and add it.</value></data>
+  <data name="AddKey.NameExists" xml:space="preserve"><value>This key name already exists.</value></data>
+  <data name="AppPicker.NoInstalledApps" xml:space="preserve"><value>No installed apps were returned by Get-StartApps.</value></data>
+  <data name="AppPicker.FoundInstalledApps" xml:space="preserve"><value>Found {0} installed apps.</value></data>
+  <data name="AppTitleTextBlock.Text" xml:space="preserve"><value>Fn Mapping Tool</value></data>
+  <data name="KeysItem.Content" xml:space="preserve"><value>Keys</value></data>
+  <data name="MappingsItem.Content" xml:space="preserve"><value>Mappings</value></data>
+  <data name="KeysPageSavedKeysText.Text" xml:space="preserve"><value>Saved keys</value></data>
+  <data name="KeysPageCaptureButtonText.Text" xml:space="preserve"><value>Capture key</value></data>
+  <data name="KeysPageCapturedVendorEventText.Text" xml:space="preserve"><value>Captured vendor event</value></data>
+  <data name="KeysPageEmptyTitleText.Text" xml:space="preserve"><value>No keys yet</value></data>
+  <data name="KeysPageEmptyBodyText.Text" xml:space="preserve"><value>Capture a key to get started.</value></data>
+  <data name="KeyDetailsTitleText.Text" xml:space="preserve"><value>Key details</value></data>
+  <data name="KeyDeleteButtonText.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="KeyNameTextBox.Header" xml:space="preserve"><value>Name</value></data>
+  <data name="KeyNameTextBox.PlaceholderText" xml:space="preserve"><value>Key name</value></data>
+  <data name="KeyTriggerTextBox.Header" xml:space="preserve"><value>Captured event</value></data>
+  <data name="KeyDetailsEmptyTitleText.Text" xml:space="preserve"><value>No key selected</value></data>
+  <data name="KeyDetailsEmptyBodyText.Text" xml:space="preserve"><value>Pick a key from the list or capture a new one.</value></data>
+  <data name="MappingsPageListTitleText.Text" xml:space="preserve"><value>Mappings</value></data>
+  <data name="MappingsPageAddMappingButtonText.Text" xml:space="preserve"><value>Add mapping</value></data>
+  <data name="MappingsPageEmptyTitleText.Text" xml:space="preserve"><value>No mappings yet</value></data>
+  <data name="MappingsPageEmptyBodyText.Text" xml:space="preserve"><value>Add a mapping to connect a key to an action.</value></data>
+  <data name="MappingDetailsTitleText.Text" xml:space="preserve"><value>Mapping details</value></data>
+  <data name="MappingDeleteButtonText.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="ChooseKeyEyebrowText.Text" xml:space="preserve"><value>Choose key</value></data>
+  <data name="ChooseKeyDescriptionText.Text" xml:space="preserve"><value>Pick the OEM key event this mapping should respond to.</value></data>
+  <data name="KeySelectorCombo.Header" xml:space="preserve"><value>Choose key</value></data>
+  <data name="ChooseActionEyebrowText.Text" xml:space="preserve"><value>Choose action</value></data>
+  <data name="ChooseActionDescriptionText.Text" xml:space="preserve"><value>Choose what happens after that key is pressed.</value></data>
+  <data name="ChooseActionButtonText.Text" xml:space="preserve"><value>Choose action</value></data>
+  <data name="TargetTextBox.Header" xml:space="preserve"><value>Target</value></data>
+  <data name="TargetTextBox.PlaceholderText" xml:space="preserve"><value>Installed app target or executable path</value></data>
+  <data name="ChooseAppButton.Content" xml:space="preserve"><value>Choose app</value></data>
+  <data name="BrowseFileButton.Content" xml:space="preserve"><value>Browse file</value></data>
+  <data name="ArgumentsTextBox.Header" xml:space="preserve"><value>Arguments</value></data>
+  <data name="ArgumentsTextBox.PlaceholderText" xml:space="preserve"><value>Optional launch arguments</value></data>
+  <data name="StandardKeyTitleText.Text" xml:space="preserve"><value>Standard key</value></data>
+  <data name="StandardKeyDescriptionText.Text" xml:space="preserve"><value>Choose the standard keyboard key this OEM key should emit.</value></data>
+  <data name="StandardKeyGroupComboBox.Header" xml:space="preserve"><value>Group</value></data>
+  <data name="StandardKeyComboBox.Header" xml:space="preserve"><value>Key</value></data>
+  <data name="OsdTitleBlock.Text" xml:space="preserve"><value>OSD</value></data>
+  <data name="OsdTitleTextBox.Header" xml:space="preserve"><value>Title</value></data>
+  <data name="OsdTitleHintText.Text" xml:space="preserve"><value>Up to 32 characters.</value></data>
+  <data name="OsdIconComboBox.Header" xml:space="preserve"><value>Icon</value></data>
+  <data name="OsdIconHintText.Text" xml:space="preserve"><value>Manage OSD icon files from Settings.</value></data>
+  <data name="MappingDetailsEmptyTitleText.Text" xml:space="preserve"><value>No mapping selected</value></data>
+  <data name="MappingDetailsEmptyBodyText.Text" xml:space="preserve"><value>Pick a mapping from the list or add a new one.</value></data>
+  <data name="ActionPickerDialog.PrimaryButtonText" xml:space="preserve"><value>Choose action</value></data>
+  <data name="ActionPickerDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ActionPickerTitleText.Text" xml:space="preserve"><value>Choose action</value></data>
+  <data name="ActionPickerDescriptionText.Text" xml:space="preserve"><value>Pick the action this mapping should run.</value></data>
+  <data name="ActionPickerCategoryComboBox.Header" xml:space="preserve"><value>Category</value></data>
+  <data name="ActionPickerSearchTextBox.Header" xml:space="preserve"><value>Search</value></data>
+  <data name="ActionPickerSearchTextBox.PlaceholderText" xml:space="preserve"><value>Type part of the action name</value></data>
+  <data name="AddKeyDialog.PrimaryButtonText" xml:space="preserve"><value>Add key</value></data>
+  <data name="AddKeyDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AddKeyCaptureEyebrowText.Text" xml:space="preserve"><value>Capture</value></data>
+  <data name="AddKeyTitleText.Text" xml:space="preserve"><value>Press the hardware key now</value></data>
+  <data name="AddKeyDescriptionText.Text" xml:space="preserve"><value>The next OEM event captured by the worker becomes a new key definition. Give it a clear name so it stays readable in mappings.</value></data>
+  <data name="CaptureInfoBar.Title" xml:space="preserve"><value>Capture status</value></data>
+  <data name="AddKeyNameTextBox.Header" xml:space="preserve"><value>Key name</value></data>
+  <data name="AddKeyNameTextBox.PlaceholderText" xml:space="preserve"><value>For example: Fn Lock On</value></data>
+  <data name="AddKeyTriggerTextBox.Header" xml:space="preserve"><value>Captured event</value></data>
+  <data name="AppPickerDialog.PrimaryButtonText" xml:space="preserve"><value>Choose app</value></data>
+  <data name="AppPickerDialog.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AppPickerEyebrowText.Text" xml:space="preserve"><value>Application picker</value></data>
+  <data name="AppPickerTitleText.Text" xml:space="preserve"><value>Choose what this mapping should launch</value></data>
+  <data name="AppPickerDescriptionText.Text" xml:space="preserve"><value>Search installed apps by name, then pick the one that best matches the action you want from the hardware key.</value></data>
+  <data name="AppPickerSearchTextBox.Header" xml:space="preserve"><value>Search installed apps</value></data>
+  <data name="AppPickerSearchTextBox.PlaceholderText" xml:space="preserve"><value>Type part of the app name</value></data>
+  <data name="LoadingInfoBar.Title" xml:space="preserve"><value>Installed apps</value></data>
+  <data name="SettingsPageTitleText.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="ServiceCardTitleText.Text" xml:space="preserve"><value>Service</value></data>
+  <data name="ServiceRunningText.Text" xml:space="preserve"><value>Running</value></data>
+  <data name="AutostartText.Text" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="PriorityStartupTitleText.Text" xml:space="preserve"><value>Priority startup</value></data>
+  <data name="PriorityStartupDescriptionText.Text" xml:space="preserve"><value>Uses a Windows scheduled task instead of the Startup folder so Worker starts earlier after sign-in.</value></data>
+  <data name="PriorityStartupBusyText.Text" xml:space="preserve"><value>Applying...</value></data>
+  <data name="TrayIconText.Text" xml:space="preserve"><value>Tray icon</value></data>
+  <data name="AppearanceCardTitleText.Text" xml:space="preserve"><value>Appearance</value></data>
+  <data name="ThemeComboBox.Header" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeSystemItem.Content" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLightItem.Content" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDarkItem.Content" xml:space="preserve"><value>Dark</value></data>
+  <data name="LanguageComboBox.Header" xml:space="preserve"><value>Language</value></data>
+  <data name="LanguageSystemItem.Content" xml:space="preserve"><value>Use system language</value></data>
+  <data name="LanguageEnglishItem.Content" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageChineseItem.Content" xml:space="preserve"><value>简体中文</value></data>
+  <data name="LanguageRestartHintText.Text" xml:space="preserve"><value>Language changes apply after restarting the app.</value></data>
+  <data name="ConfigsCardTitleText.Text" xml:space="preserve"><value>Configs</value></data>
+  <data name="OsdDisplayModeComboBox.Header" xml:space="preserve"><value>OSD content</value></data>
+  <data name="OsdDisplayIconAndTitleItem.Content" xml:space="preserve"><value>Icon + title</value></data>
+  <data name="OsdDisplayIconOnlyItem.Content" xml:space="preserve"><value>Icon only</value></data>
+  <data name="OsdDisplayTitleOnlyItem.Content" xml:space="preserve"><value>Title only</value></data>
+  <data name="OsdDurationNumberBox.Header" xml:space="preserve"><value>OSD duration (ms)</value></data>
+  <data name="OsdBackgroundOpacityNumberBox.Header" xml:space="preserve"><value>Background opacity (%)</value></data>
+  <data name="OsdScaleNumberBox.Header" xml:space="preserve"><value>OSD size (%)</value></data>
+  <data name="OsdIconFolderTextBox.Header" xml:space="preserve"><value>OSD icon folder</value></data>
+  <data name="OpenOsdIconFolderButton.Content" xml:space="preserve"><value>Open icon folder</value></data>
+  <data name="RefreshOsdIconFolderButton.Content" xml:space="preserve"><value>Refresh icons</value></data>
+  <data name="OsdIconSpecText.Text" xml:space="preserve"><value>Icon spec: transparent PNG, square canvas, 256x256 recommended, single-color glyph, and leave some padding near the edge.</value></data>
+  <data name="FilesCardTitleText.Text" xml:space="preserve"><value>Files</value></data>
+  <data name="PresetDescriptionText.Text" xml:space="preserve"><value>Preset files live in their own folder. Copy JSON presets there, refresh the list, then load one.</value></data>
+  <data name="PresetDirectoryTextBox.Header" xml:space="preserve"><value>Preset folder</value></data>
+  <data name="OpenPresetFolderButton.Content" xml:space="preserve"><value>Open preset folder</value></data>
+  <data name="RefreshConfigFilesButton.Content" xml:space="preserve"><value>Refresh list</value></data>
+  <data name="ConfigFilesComboBox.Header" xml:space="preserve"><value>Preset files</value></data>
+  <data name="ConfigFilesComboBox.PlaceholderText" xml:space="preserve"><value>No preset JSON files found</value></data>
+  <data name="LoadPresetButton.Content" xml:space="preserve"><value>Load preset</value></data>
+</root>

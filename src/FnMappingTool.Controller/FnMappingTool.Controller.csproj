@@ -45,6 +45,28 @@
     </Content>
   </ItemGroup>
 
+  <Target Name="CopyLooseLocalizationFilesToBuild" AfterTargets="Build">
+    <ItemGroup>
+      <_LooseLocalizationFiles Include="$(MSBuildProjectDirectory)\Strings\**\*.resw" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_LooseLocalizationFiles)"
+      DestinationFiles="@(_LooseLocalizationFiles->'$(TargetDir)Strings\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyLooseLocalizationFilesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_PublishedLocalizationFiles Include="$(MSBuildProjectDirectory)\Strings\**\*.resw" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_PublishedLocalizationFiles)"
+      DestinationFiles="@(_PublishedLocalizationFiles->'$(PublishDir)Strings\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
   <Target Name="CopyLooseWinUiResourcesToPublish" AfterTargets="Publish">
     <ItemGroup>
       <_PublishedLooseWinUiFiles Include="$(TargetDir)**\*.xbf" />

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml.Controls;
+using FnMappingTool.Controller.Services;
 using FnMappingTool.Core.Models;
 
 namespace FnMappingTool.Controller.Views;
@@ -11,6 +12,7 @@ public sealed partial class ActionPickerDialog : ContentDialog
     public ActionPickerDialog(string? selectedActionType)
     {
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
         PrimaryButtonClick += OnPrimaryButtonClick;
         IsPrimaryButtonEnabled = false;
 

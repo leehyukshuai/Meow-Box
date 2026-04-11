@@ -5,6 +5,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using FnMappingTool.Controller.Services;
 using FnMappingTool.Controller.Views;
 using FnMappingTool.Core.Services;
 using WinRT.Interop;
@@ -34,11 +35,11 @@ public sealed partial class MainWindow : Window
         ["settings"] = typeof(SettingsPage)
     };
 
-    private readonly Dictionary<string, string> _pageTitles = new()
+    private readonly Dictionary<string, string> _pageTitleKeys = new()
     {
-        ["keys"] = "Keys",
-        ["mappings"] = "Mappings",
-        ["settings"] = "Settings"
+        ["keys"] = "PageTitle.Keys",
+        ["mappings"] = "PageTitle.Mappings",
+        ["settings"] = "PageTitle.Settings"
     };
 
     private AppWindow? _appWindow;
@@ -49,8 +50,11 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
+        ApplyLocalizedShellText();
         ConfigureWindowChrome();
         ConfigureNavigation();
+        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Closed += OnWindowClosed;
     }
@@ -73,6 +77,16 @@ public sealed partial class MainWindow : Window
         catch
         {
         }
+    }
+
+    private void ApplyLocalizedShellText()
+    {
+        var appTitle = Localizer.GetString("App.Title");
+        Title = appTitle;
+        AppTitleTextBlock.Text = appTitle;
+        KeysItem.Content = Localizer.GetString("Navigation.Keys");
+        MappingsItem.Content = Localizer.GetString("Navigation.Mappings");
+        SettingsItem.Content = Localizer.GetString("Navigation.Settings");
     }
 
     private void ConfigureWindowChrome()
@@ -126,6 +140,7 @@ public sealed partial class MainWindow : Window
         {
             ContentFrame.Navigate(pageType);
             UpdatePageChrome(key);
+            DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
         }
     }
 
@@ -174,7 +189,9 @@ public sealed partial class MainWindow : Window
 
     private void UpdateServiceIndicator()
     {
-        ServiceStatusTextBlock.Text = Controller.ServiceRunning ? "Service running" : "Service stopped";
+        ServiceStatusTextBlock.Text = Controller.ServiceRunning
+            ? Localizer.GetString("ServiceStatus.Running")
+            : Localizer.GetString("ServiceStatus.Stopped");
         ServiceStatusGlow.Fill = new SolidColorBrush(
             Controller.ServiceRunning
                 ? ColorHelper.FromArgb(96, 76, 196, 115)
@@ -191,14 +208,16 @@ public sealed partial class MainWindow : Window
 
     private void UpdateQuickServiceButton()
     {
-        QuickServiceButtonTextBlock.Text = Controller.ServiceRunning ? "Stop service" : "Start service";
+        QuickServiceButtonTextBlock.Text = Controller.ServiceRunning
+            ? Localizer.GetString("QuickService.Stop")
+            : Localizer.GetString("QuickService.Start");
     }
 
     private void UpdatePageChrome(string key)
     {
-        PageContextTextBlock.Text = _pageTitles.TryGetValue(key, out var title)
-            ? title
-            : "Fn Mapping Tool";
+        PageContextTextBlock.Text = _pageTitleKeys.TryGetValue(key, out var titleKey)
+            ? Localizer.GetString(titleKey)
+            : Localizer.GetString("App.Title");
     }
 
     private async void OnQuickServiceButtonClick(object sender, RoutedEventArgs e)
@@ -228,11 +247,6 @@ public sealed partial class MainWindow : Window
         Controller.PropertyChanged -= OnControllerPropertyChanged;
         RestoreWindowProc();
         App.Controller.Dispose();
-    }
-
-    private SizeInt32 GetMinimumWindowSizePixels()
-    {
-        return GetWindowSizePixels(MinimumWidth, MinimumHeight);
     }
 
     private SizeInt32 GetWindowSizePixels(int width, int height)

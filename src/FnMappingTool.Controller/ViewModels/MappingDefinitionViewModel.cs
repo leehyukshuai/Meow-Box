@@ -7,7 +7,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 {
     private readonly ActionDefinitionViewModel _action;
     private string _keyId;
-    private string _keyDisplayName = "Select key";
+    private string _keyDisplayName = LocalizedText.Pick("Select key", "选择按键");
 
     public MappingDefinitionViewModel(KeyActionMappingConfiguration model)
     {

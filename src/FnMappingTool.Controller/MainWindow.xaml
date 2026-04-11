@@ -41,7 +41,11 @@
                 </Border>
 
                 <StackPanel Spacing="0">
-                    <TextBlock Style="{StaticResource TitleBarTitleTextBlockStyle}" Text="Fn Mapping Tool" />
+                    <TextBlock
+                        x:Uid="AppTitleTextBlock"
+                        x:Name="AppTitleTextBlock"
+                        Style="{StaticResource TitleBarTitleTextBlockStyle}"
+                        Text="Fn Mapping Tool" />
                     <TextBlock
                         x:Name="PageContextTextBlock"
                         Style="{StaticResource TitleBarSubtitleTextBlockStyle}"
@@ -109,22 +113,29 @@
             IsBackButtonVisible="Collapsed"
             IsPaneVisible="True"
             IsPaneToggleButtonVisible="True"
-            IsSettingsVisible="True"
+            IsSettingsVisible="False"
             OpenPaneLength="200"
             PaneDisplayMode="Left"
             SelectionChanged="OnNavigationSelectionChanged">
 
             <NavigationView.MenuItems>
                 <NavigationViewItem
+                    x:Uid="KeysItem"
                     x:Name="KeysItem"
                     Content="Keys"
                     Icon="Keyboard"
                     Tag="keys" />
                 <NavigationViewItem
+                    x:Uid="MappingsItem"
                     x:Name="MappingsItem"
                     Content="Mappings"
                     Icon="Switch"
                     Tag="mappings" />
+                <NavigationViewItem
+                    x:Name="SettingsItem"
+                    Content="Settings"
+                    Icon="Setting"
+                    Tag="settings" />
             </NavigationView.MenuItems>
 
             <Frame x:Name="ContentFrame" />
