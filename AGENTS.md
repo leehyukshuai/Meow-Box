@@ -129,6 +129,16 @@ Single-instance mutex:
 
 ---
 
+## Chinese text safety
+
+- Never write Chinese text through PowerShell here-strings or any toolchain path with uncertain encoding.
+- Prefer UTF-8-safe tools when editing localized strings.
+- When scripting file writes, prefer Python with explicit `encoding="utf-8"`.
+- After changing localization or any user-visible Chinese copy, scan `.cs`, `.xaml`, `.resw`, `.json`, and docs for broken placeholders like `??`, `???`, or replacement characters.
+- If any Chinese text shows up as `?`, treat it as a real bug and fix it before finishing the task.
+
+---
+
 ## Build and packaging
 
 Primary command:
