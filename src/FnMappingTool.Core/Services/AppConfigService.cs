@@ -89,6 +89,12 @@ public sealed class AppConfigService
         };
 
         configuration.Preferences ??= new AppPreferences();
+        configuration.Preferences.Language = configuration.Preferences.Language switch
+        {
+            AppLanguagePreference.English => AppLanguagePreference.English,
+            AppLanguagePreference.Chinese => AppLanguagePreference.Chinese,
+            _ => AppLanguagePreference.System
+        };
         configuration.Preferences.Osd ??= new OsdPreferences();
         configuration.Preferences.Osd.DisplayMode = configuration.Preferences.Osd.DisplayMode switch
         {
@@ -130,7 +136,7 @@ public sealed class AppConfigService
     {
         key ??= new KeyDefinitionConfiguration();
         key.Id = NormalizeId(key.Id);
-        key.Name = NormalizeName(key.Name, "Unnamed key");
+        key.Name = NormalizeName(key.Name, LocalizedText.Pick("Unnamed key", "未命名按键"));
         key.Trigger ??= new EventMatcherConfiguration();
         return key;
     }
@@ -193,7 +199,7 @@ public sealed class AppConfigService
 
     private static string DescribeMapping(string? keyName, string actionType)
     {
-        var keyLabel = string.IsNullOrWhiteSpace(keyName) ? "Select key" : keyName.Trim();
+        var keyLabel = string.IsNullOrWhiteSpace(keyName) ? LocalizedText.Pick("Select key", "选择按键") : keyName.Trim();
         return keyLabel + " -> " + ActionCatalog.GetLabel(actionType);
     }
 

@@ -13,12 +13,9 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource PageTitleTextBlockStyle}" Text="Settings" />
+            <TextBlock x:Uid="SettingsPageTitleText" Style="{StaticResource PageTitleTextBlockStyle}" Text="Settings" />
 
-            <Grid
-                x:Name="SettingsSectionsGrid"
-                Grid.Row="1"
-                RowSpacing="16">
+            <Grid x:Name="SettingsSectionsGrid" Grid.Row="1" RowSpacing="16">
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroup>
                         <VisualState x:Name="WideLayout">
@@ -54,31 +51,25 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Border
-                    x:Name="ServiceCard"
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    Style="{StaticResource PanelCardStyle}">
+                <Border x:Name="ServiceCard" Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
                     <Grid RowSpacing="16">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Service" />
+                        <TextBlock x:Uid="ServiceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Service" />
 
                         <Grid Grid.Row="1" ColumnSpacing="16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Running" />
-                            <ToggleSwitch
-                                x:Name="ServiceToggleSwitch"
-                                Grid.Column="1"
-                                Toggled="OnServiceStateChanged" />
+                            <TextBlock x:Uid="ServiceRunningText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Running" />
+                            <ToggleSwitch x:Name="ServiceToggleSwitch" Grid.Column="1" Toggled="OnServiceStateChanged" />
                         </Grid>
 
                         <Grid Grid.Row="2" ColumnSpacing="16">
@@ -86,11 +77,8 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Start with Windows" />
-                            <ToggleSwitch
-                                x:Name="AutostartToggleSwitch"
-                                Grid.Column="1"
-                                Toggled="OnAutostartChanged" />
+                            <TextBlock x:Uid="AutostartText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Start with Windows" />
+                            <ToggleSwitch x:Name="AutostartToggleSwitch" Grid.Column="1" Toggled="OnAutostartChanged" />
                         </Grid>
 
                         <Grid Grid.Row="3" ColumnSpacing="16">
@@ -98,46 +86,57 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
-                            <ToggleSwitch
-                                x:Name="TrayIconToggleSwitch"
-                                Grid.Column="1"
-                                Toggled="OnTrayIconChanged" />
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Uid="PriorityStartupTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Priority startup" />
+                                <TextBlock x:Uid="PriorityStartupDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Uses a Windows scheduled task instead of the Startup folder so Worker starts earlier after sign-in." TextWrapping="WrapWholeWords" />
+                                <StackPanel x:Name="PriorityStartupBusyPanel" Orientation="Horizontal" Spacing="8" Visibility="Collapsed">
+                                    <ProgressRing x:Name="PriorityStartupProgressRing" Width="16" Height="16" IsActive="False" />
+                                    <TextBlock x:Uid="PriorityStartupBusyText" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Text="Applying..." />
+                                </StackPanel>
+                            </StackPanel>
+                            <ToggleSwitch x:Name="PriorityStartupToggleSwitch" Grid.Column="1" Toggled="OnPriorityStartupChanged" />
+                        </Grid>
+
+                        <Grid Grid.Row="4" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="TrayIconText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
+                            <ToggleSwitch x:Name="TrayIconToggleSwitch" Grid.Column="1" Toggled="OnTrayIconChanged" />
                         </Grid>
                     </Grid>
                 </Border>
 
-                <Border
-                    x:Name="AppearanceCard"
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Style="{StaticResource PanelCardStyle}">
+                <Border x:Name="AppearanceCard" Grid.Row="1" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
                     <StackPanel Spacing="16">
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
+                        <TextBlock x:Uid="AppearanceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
 
-                        <ComboBox
-                            x:Name="ThemeComboBox"
-                            Header="Theme"
-                            SelectionChanged="OnThemeSelectionChanged">
-                            <ComboBoxItem Content="System" Tag="System" />
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
+                        <ComboBox x:Uid="ThemeComboBox" x:Name="ThemeComboBox" Header="Theme" SelectionChanged="OnThemeSelectionChanged">
+                            <ComboBoxItem x:Uid="ThemeSystemItem" Content="System" Tag="System" />
+                            <ComboBoxItem x:Uid="ThemeLightItem" Content="Light" Tag="Light" />
+                            <ComboBoxItem x:Uid="ThemeDarkItem" Content="Dark" Tag="Dark" />
                         </ComboBox>
+
+                        <StackPanel Spacing="4">
+                            <ComboBox x:Uid="LanguageComboBox" x:Name="LanguageComboBox" Header="Language" SelectionChanged="OnLanguageSelectionChanged">
+                                <ComboBoxItem x:Uid="LanguageSystemItem" Content="Use system language" Tag="System" />
+                                <ComboBoxItem x:Uid="LanguageEnglishItem" Content="English" Tag="English" />
+                                <ComboBoxItem x:Uid="LanguageChineseItem" Content="简体中文" Tag="Chinese" />
+                            </ComboBox>
+                            <TextBlock x:Uid="LanguageRestartHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Language changes apply after restarting the app." TextWrapping="WrapWholeWords" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <Border
-                    x:Name="ConfigsCard"
-                    Grid.Row="2"
-                    Grid.Column="0"
-                    Style="{StaticResource PanelCardStyle}">
+                <Border x:Name="ConfigsCard" Grid.Row="2" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
                     <Grid RowSpacing="14">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configs" />
+                        <TextBlock x:Uid="ConfigsCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configs" />
 
                         <Grid Grid.Row="1" ColumnSpacing="16" RowSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -151,76 +150,29 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <ComboBox
-                                x:Name="OsdDisplayModeComboBox"
-                                Header="OSD content"
-                                SelectionChanged="OnOsdSettingChanged">
-                                <ComboBoxItem Content="Icon + title" Tag="IconAndText" />
-                                <ComboBoxItem Content="Icon only" Tag="IconOnly" />
-                                <ComboBoxItem Content="Title only" Tag="TextOnly" />
+                            <ComboBox x:Uid="OsdDisplayModeComboBox" x:Name="OsdDisplayModeComboBox" Header="OSD content" SelectionChanged="OnOsdSettingChanged">
+                                <ComboBoxItem x:Uid="OsdDisplayIconAndTitleItem" Content="Icon + title" Tag="IconAndText" />
+                                <ComboBoxItem x:Uid="OsdDisplayIconOnlyItem" Content="Icon only" Tag="IconOnly" />
+                                <ComboBoxItem x:Uid="OsdDisplayTitleOnlyItem" Content="Title only" Tag="TextOnly" />
                             </ComboBox>
 
-                            <NumberBox
-                                x:Name="OsdDurationNumberBox"
-                                Grid.Column="1"
-                                Header="OSD duration (ms)"
-                                Minimum="500"
-                                Maximum="10000"
-                                SmallChange="100"
-                                SpinButtonPlacementMode="Inline"
-                                ValueChanged="OnOsdNumberValueChanged" />
+                            <NumberBox x:Uid="OsdDurationNumberBox" x:Name="OsdDurationNumberBox" Grid.Column="1" Header="OSD duration (ms)" Minimum="500" Maximum="10000" SmallChange="100" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                            <NumberBox x:Uid="OsdBackgroundOpacityNumberBox" x:Name="OsdBackgroundOpacityNumberBox" Grid.Row="1" Header="Background opacity (%)" Minimum="0" Maximum="100" SmallChange="5" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                            <NumberBox x:Uid="OsdScaleNumberBox" x:Name="OsdScaleNumberBox" Grid.Row="1" Grid.Column="1" Header="OSD size (%)" Minimum="60" Maximum="200" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                            <TextBox x:Uid="OsdIconFolderTextBox" x:Name="OsdIconFolderTextBox" Grid.Row="2" Grid.ColumnSpan="2" Header="OSD icon folder" IsReadOnly="True" />
 
-                            <NumberBox
-                                x:Name="OsdBackgroundOpacityNumberBox"
-                                Grid.Row="1"
-                                Header="Background opacity (%)"
-                                Minimum="0"
-                                Maximum="100"
-                                SmallChange="5"
-                                SpinButtonPlacementMode="Inline"
-                                ValueChanged="OnOsdNumberValueChanged" />
-
-                            <NumberBox
-                                x:Name="OsdScaleNumberBox"
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                Header="OSD size (%)"
-                                Minimum="60"
-                                Maximum="200"
-                                SmallChange="10"
-                                SpinButtonPlacementMode="Inline"
-                                ValueChanged="OnOsdNumberValueChanged" />
-
-                            <TextBox
-                                x:Name="OsdIconFolderTextBox"
-                                Grid.Row="2"
-                                Grid.ColumnSpan="2"
-                                Header="OSD icon folder"
-                                IsReadOnly="True" />
-
-                            <StackPanel
-                                Grid.Row="3"
-                                Grid.ColumnSpan="2"
-                                Spacing="10">
+                            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <Button Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
-                                    <Button Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />
+                                    <Button x:Uid="OpenOsdIconFolderButton" Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
+                                    <Button x:Uid="RefreshOsdIconFolderButton" Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />
                                 </StackPanel>
-
-                                <TextBlock
-                                    Style="{StaticResource CardBodyTextBlockStyle}"
-                                    Text="Icon spec: transparent PNG, square canvas, 256×256 recommended, single-color glyph, and leave some padding near the edge."
-                                    TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Uid="OsdIconSpecText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Icon spec: transparent PNG, square canvas, 256×256 recommended, single-color glyph, and leave some padding near the edge." TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Grid>
                     </Grid>
                 </Border>
 
-                <Border
-                    x:Name="FilesCard"
-                    Grid.Row="3"
-                    Grid.Column="0"
-                    Style="{StaticResource PanelCardStyle}">
+                <Border x:Name="FilesCard" Grid.Row="3" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
                     <Grid RowSpacing="14">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -229,24 +181,16 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}" Text="Files" />
+                        <TextBlock x:Uid="FilesCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Files" />
 
                         <StackPanel Grid.Row="1" Spacing="12">
-                            <TextBlock
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="Preset files live in their own folder. Copy JSON presets there, refresh the list, then load one."
-                                TextWrapping="WrapWholeWords" />
-
-                            <TextBox
-                                x:Name="PresetDirectoryTextBox"
-                                Header="Preset folder"
-                                IsReadOnly="True"
-                                Text="{Binding PresetDirectory}" />
+                            <TextBlock x:Uid="PresetDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Preset files live in their own folder. Copy JSON presets there, refresh the list, then load one." TextWrapping="WrapWholeWords" />
+                            <TextBox x:Uid="PresetDirectoryTextBox" x:Name="PresetDirectoryTextBox" Header="Preset folder" IsReadOnly="True" Text="{Binding PresetDirectory}" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
-                            <Button Click="OnOpenPresetFolderClick" Content="Open preset folder" Style="{StaticResource AccentButtonStyle}" />
-                            <Button Click="OnRefreshConfigFilesClick" Content="Refresh list" Style="{StaticResource SubtleButtonStyle}" />
+                            <Button x:Uid="OpenPresetFolderButton" Click="OnOpenPresetFolderClick" Content="Open preset folder" Style="{StaticResource AccentButtonStyle}" />
+                            <Button x:Uid="RefreshConfigFilesButton" Click="OnRefreshConfigFilesClick" Content="Refresh list" Style="{StaticResource SubtleButtonStyle}" />
                         </StackPanel>
 
                         <Grid Grid.Row="3" ColumnSpacing="12">
@@ -255,20 +199,8 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <ComboBox
-                                x:Name="ConfigFilesComboBox"
-                                DisplayMemberPath="DisplayName"
-                                Header="Preset files"
-                                PlaceholderText="No preset JSON files found"
-                                SelectionChanged="OnConfigFileSelectionChanged"
-                                SelectedValuePath="Path" />
-
-                            <Button
-                                x:Name="LoadPresetButton"
-                                Grid.Column="1"
-                                Click="OnImportSelectedConfigClick"
-                                Content="Load preset"
-                                Style="{StaticResource AccentButtonStyle}" />
+                            <ComboBox x:Uid="ConfigFilesComboBox" x:Name="ConfigFilesComboBox" DisplayMemberPath="DisplayName" Header="Preset files" PlaceholderText="No preset JSON files found" SelectionChanged="OnConfigFileSelectionChanged" SelectedValuePath="Path" />
+                            <Button x:Uid="LoadPresetButton" x:Name="LoadPresetButton" Grid.Column="1" Click="OnImportSelectedConfigClick" Content="Load preset" Style="{StaticResource AccentButtonStyle}" />
                         </Grid>
                     </Grid>
                 </Border>

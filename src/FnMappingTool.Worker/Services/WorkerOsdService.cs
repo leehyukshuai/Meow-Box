@@ -71,6 +71,7 @@ internal sealed class OsdForm : Form
     private const int WcaAccentPolicy = 19;
     private const int AccentEnableAcrylicBlurBehind = 4;
     private const int WsExNoActivate = 0x08000000;
+    private const int WsExTopmost = 0x00000008;
     private const int SwShowNoActivate = 4;
     private const uint SwpNoActivate = 0x0010;
     private const uint SwpShowWindow = 0x0040;
@@ -154,7 +155,7 @@ internal sealed class OsdForm : Form
         get
         {
             var parameters = base.CreateParams;
-            parameters.ExStyle |= WsExNoActivate;
+            parameters.ExStyle |= WsExNoActivate | WsExTopmost;
             return parameters;
         }
     }

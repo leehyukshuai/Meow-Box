@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using FnMappingTool.Core.Contracts;
 using FnMappingTool.Core.Models;
@@ -9,11 +10,16 @@ namespace FnMappingTool.Worker;
 
 internal sealed class WorkerHost : IDisposable
 {
+    private const int StartupShellReadyTimeoutMs = 15000;
+    private const int StartupShellReadyPollMs = 250;
+    private const int StartupShellReadySettleMs = 1200;
+
     private readonly Action _exitCallback;
     private readonly SynchronizationContext _syncContext;
     private readonly AppConfigService _configService = new();
     private readonly NativeActionService _nativeActionService = new();
     private readonly WorkerPipeServer _pipeServer;
+    private readonly CancellationTokenSource _shellReadyCancellation = new();
 
     private FileSystemWatcher? _configWatcher;
     private WmiEventMonitor? _wmiMonitor;
@@ -24,24 +30,111 @@ internal sealed class WorkerHost : IDisposable
     private string _lastEventSummary = "No OEM event captured yet.";
     private string? _resolvedControllerPath;
     private string _stateMessage = "Starting worker";
+    private volatile bool _interactiveShellReady;
 
     public WorkerHost(Action exitCallback)
     {
         _exitCallback = exitCallback;
         _syncContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
+        _interactiveShellReady = IsInteractiveShellReady();
+        if (!_interactiveShellReady)
+        {
+            _ = MonitorInteractiveShellReadyAsync();
+        }
+
         _pipeServer = new WorkerPipeServer(HandleRequestAsync);
         LoadConfiguration();
         StartConfigWatcher();
         StartWmiWatcher();
     }
 
+    private async Task MonitorInteractiveShellReadyAsync()
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                if (!WaitForInteractiveShellReady(StartupShellReadyTimeoutMs, _shellReadyCancellation.Token))
+                {
+                    return;
+                }
+
+                MarkInteractiveShellReady();
+            }, _shellReadyCancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private static bool IsInteractiveShellReady()
+    {
+        return GetShellWindow() != IntPtr.Zero &&
+               FindWindow("Shell_TrayWnd", null) != IntPtr.Zero &&
+               GetForegroundWindow() != IntPtr.Zero;
+    }
+
+
+    private static bool WaitForInteractiveShellReady(int timeoutMs, CancellationToken cancellationToken)
+    {
+        if (IsInteractiveShellReady())
+        {
+            return true;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.ElapsedMilliseconds < timeoutMs)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Thread.Sleep(StartupShellReadyPollMs);
+            if (!IsInteractiveShellReady())
+            {
+                continue;
+            }
+
+            Thread.Sleep(StartupShellReadySettleMs);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void MarkInteractiveShellReady()
+    {
+        if (_interactiveShellReady)
+        {
+            return;
+        }
+
+        _interactiveShellReady = true;
+        _syncContext.Post(_ => ApplyTrayIconVisibility(), null);
+    }
+
+    private bool EnsureInteractiveShellReadyForUi(int timeoutMs)
+    {
+        if (_interactiveShellReady)
+        {
+            return true;
+        }
+
+        if (!WaitForInteractiveShellReady(timeoutMs, _shellReadyCancellation.Token))
+        {
+            return false;
+        }
+
+        MarkInteractiveShellReady();
+        return true;
+    }
+
     public void Dispose()
     {
+        _shellReadyCancellation.Cancel();
         _configWatcher?.Dispose();
         _wmiMonitor?.Dispose();
         _pipeServer.Dispose();
         _trayIconService?.Dispose();
         _osdService?.Dispose();
+        _shellReadyCancellation.Dispose();
     }
 
     private Task<WorkerResponse> HandleRequestAsync(WorkerRequest request)
@@ -240,6 +333,12 @@ internal sealed class WorkerHost : IDisposable
                     {
                         try
                         {
+                            if (!EnsureInteractiveShellReadyForUi(4000))
+                            {
+                                _stateMessage = "Windows shell is still starting. Try again in a moment.";
+                                return;
+                            }
+
                             GetOsdService().Show(
                                 action.OsdTitle ?? ActionCatalog.GetLabel(action.Type),
                                 action.OsdIcon,
@@ -296,6 +395,12 @@ internal sealed class WorkerHost : IDisposable
 
     private void ApplyTrayIconVisibility()
     {
+        if (!_interactiveShellReady)
+        {
+            _trayIconService?.SetVisible(false);
+            return;
+        }
+
         if (_configuration.Preferences.ShowTrayIcon)
         {
             GetTrayIconService().SetVisible(true);
@@ -396,6 +501,15 @@ internal sealed class WorkerHost : IDisposable
             yield return candidate;
         }
     }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetShellWindow();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
 
     private static string? FindRepositoryRoot(string startDirectory)
     {

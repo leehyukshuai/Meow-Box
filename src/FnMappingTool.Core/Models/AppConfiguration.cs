@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using FnMappingTool.Core.Services;
 
 namespace FnMappingTool.Core.Models;
@@ -19,7 +19,9 @@ public sealed class AppConfiguration
         {
             Preferences = new AppPreferences
             {
-                IsListening = true
+                IsListening = true,
+                PreferPriorityStartup = false,
+                Language = AppLanguagePreference.System
             }
         };
     }
@@ -28,6 +30,10 @@ public sealed class AppConfiguration
 public sealed class AppPreferences
 {
     public bool IsListening { get; set; } = true;
+
+    public bool PreferPriorityStartup { get; set; } = false;
+
+    public string Language { get; set; } = AppLanguagePreference.System;
 
     public bool ShowTrayIcon { get; set; } = true;
 
@@ -211,6 +217,13 @@ public static class ThemePreference
     public const string Dark = "Dark";
 }
 
+public static class AppLanguagePreference
+{
+    public const string System = "System";
+    public const string English = "English";
+    public const string Chinese = "Chinese";
+}
+
 public static class InputSourceKind
 {
     public const string Wmi = "Wmi";
@@ -329,42 +342,42 @@ public sealed class IconAssetOption
 
 public static class ActionCatalog
 {
-    public const string NoActionLabel = "Select action";
-    public const string NoActionDescription = "No action is assigned to this mapping.";
-    public const string NoActionIconGlyph = "\uE711";
+    public static string NoActionLabel => LocalizedText.Pick("Select action", "选择动作");
+    public static string NoActionDescription => LocalizedText.Pick("No action is assigned to this mapping.", "这个映射还没有分配动作。");
+    public const string NoActionIconGlyph = "";
 
     public static IReadOnlyList<ActionTagOption> TagOptions { get; } =
     [
-        new(ActionTag.All, "All"),
-        new(ActionTag.System, "System"),
-        new(ActionTag.Keyboard, "Keyboard"),
-        new(ActionTag.Display, "Display"),
-        new(ActionTag.Audio, "Audio"),
-        new(ActionTag.Media, "Media"),
-        new(ActionTag.Application, "Application")
+        new(ActionTag.All, LocalizedText.Pick("All", "全部")),
+        new(ActionTag.System, LocalizedText.Pick("System", "系统")),
+        new(ActionTag.Keyboard, LocalizedText.Pick("Keyboard", "键盘")),
+        new(ActionTag.Display, LocalizedText.Pick("Display", "显示")),
+        new(ActionTag.Audio, LocalizedText.Pick("Audio", "音频")),
+        new(ActionTag.Media, LocalizedText.Pick("Media", "媒体")),
+        new(ActionTag.Application, LocalizedText.Pick("Application", "应用"))
     ];
 
     public static IReadOnlyList<ActionOption> All { get; } = new[]
     {
-        new ActionOption(HotkeyActionType.SendStandardKey, "Send standard key", "Sends a standard keyboard or media key that you choose.", "\uE765", ActionTag.Keyboard, ActionTag.System),
-        new ActionOption(HotkeyActionType.OpenSettings, "Open Windows Settings", "Launches the native Settings app.", "\uE713", ActionTag.System),
-        new ActionOption(HotkeyActionType.OpenProjection, "Open projection switcher", "Launches the native projection overlay.", "\uE7F4", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.MicrophoneMuteOn, "Mute microphone input", "Turns the default microphone capture device off.", "\uE720", ActionTag.System, ActionTag.Audio),
-        new ActionOption(HotkeyActionType.MicrophoneMuteOff, "Unmute microphone input", "Turns the default microphone capture device back on.", "\uE720", ActionTag.System, ActionTag.Audio),
-        new ActionOption(HotkeyActionType.VolumeUp, "Volume up", "Raises the master output volume.", "\uE767", ActionTag.Audio, ActionTag.Media),
-        new ActionOption(HotkeyActionType.VolumeDown, "Volume down", "Lowers the master output volume.", "\uE768", ActionTag.Audio, ActionTag.Media),
-        new ActionOption(HotkeyActionType.VolumeMute, "Toggle volume mute", "Toggles the system speaker mute state.", "\uE74F", ActionTag.Audio, ActionTag.Media),
-        new ActionOption(HotkeyActionType.MediaPrevious, "Previous track", "Sends the previous-track media key.", "\uE892", ActionTag.Media),
-        new ActionOption(HotkeyActionType.MediaNext, "Next track", "Sends the next-track media key.", "\uE893", ActionTag.Media),
-        new ActionOption(HotkeyActionType.MediaPlayPause, "Play or pause", "Sends the media play-pause key.", "\uE768", ActionTag.Media),
-        new ActionOption(HotkeyActionType.BrightnessUp, "Brightness up", "Raises the internal display brightness.", "\uE706", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.BrightnessDown, "Brightness down", "Lowers the internal display brightness.", "\uE706", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.ToggleAirplaneMode, "Toggle airplane mode", "Turns supported radios off or back on.", "\uE709", ActionTag.System),
-        new ActionOption(HotkeyActionType.LockWindows, "Lock Windows", "Locks the current Windows session.", "\uE72E", ActionTag.System),
-        new ActionOption(HotkeyActionType.Screenshot, "Take screenshot", "Opens the native snipping overlay.", "\uE722", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.OpenCalculator, "Open Calculator", "Launches Calculator.", "\uE8EF", ActionTag.System, ActionTag.Application),
-        new ActionOption(HotkeyActionType.ShowOsd, "Show OSD", "Displays a centered lower translucent OSD card.", "\uE7F4", ActionTag.Display),
-        new ActionOption(HotkeyActionType.OpenApplication, "Open application", "Launches an installed app, shortcut, or executable.", "\uE71D", ActionTag.Application)
+        new ActionOption(HotkeyActionType.SendStandardKey, LocalizedText.Pick("Send standard key", "发送标准按键"), LocalizedText.Pick("Sends a standard keyboard or media key that you choose.", "发送你选择的标准键盘按键或媒体按键。"), "", ActionTag.Keyboard, ActionTag.System),
+        new ActionOption(HotkeyActionType.OpenSettings, LocalizedText.Pick("Open Windows Settings", "打开 Windows 设置"), LocalizedText.Pick("Launches the native Settings app.", "启动系统设置应用。"), "", ActionTag.System),
+        new ActionOption(HotkeyActionType.OpenProjection, LocalizedText.Pick("Open projection switcher", "打开投影切换器"), LocalizedText.Pick("Launches the native projection overlay.", "打开系统投影切换界面。"), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.MicrophoneMuteOn, LocalizedText.Pick("Mute microphone input", "麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device off.", "关闭默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),
+        new ActionOption(HotkeyActionType.MicrophoneMuteOff, LocalizedText.Pick("Unmute microphone input", "取消麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device back on.", "重新打开默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),
+        new ActionOption(HotkeyActionType.VolumeUp, LocalizedText.Pick("Volume up", "音量增加"), LocalizedText.Pick("Raises the master output volume.", "提高系统主音量。"), "", ActionTag.Audio, ActionTag.Media),
+        new ActionOption(HotkeyActionType.VolumeDown, LocalizedText.Pick("Volume down", "音量减小"), LocalizedText.Pick("Lowers the master output volume.", "降低系统主音量。"), "", ActionTag.Audio, ActionTag.Media),
+        new ActionOption(HotkeyActionType.VolumeMute, LocalizedText.Pick("Toggle volume mute", "切换静音"), LocalizedText.Pick("Toggles the system speaker mute state.", "切换系统扬声器静音状态。"), "", ActionTag.Audio, ActionTag.Media),
+        new ActionOption(HotkeyActionType.MediaPrevious, LocalizedText.Pick("Previous track", "上一曲"), LocalizedText.Pick("Sends the previous-track media key.", "发送上一曲媒体按键。"), "", ActionTag.Media),
+        new ActionOption(HotkeyActionType.MediaNext, LocalizedText.Pick("Next track", "下一曲"), LocalizedText.Pick("Sends the next-track media key.", "发送下一曲媒体按键。"), "", ActionTag.Media),
+        new ActionOption(HotkeyActionType.MediaPlayPause, LocalizedText.Pick("Play or pause", "播放或暂停"), LocalizedText.Pick("Sends the media play-pause key.", "发送媒体播放/暂停按键。"), "", ActionTag.Media),
+        new ActionOption(HotkeyActionType.BrightnessUp, LocalizedText.Pick("Brightness up", "亮度增加"), LocalizedText.Pick("Raises the internal display brightness.", "提高内置显示器亮度。"), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.BrightnessDown, LocalizedText.Pick("Brightness down", "亮度减小"), LocalizedText.Pick("Lowers the internal display brightness.", "降低内置显示器亮度。"), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.ToggleAirplaneMode, LocalizedText.Pick("Toggle airplane mode", "切换飞行模式"), LocalizedText.Pick("Turns supported radios off or back on.", "关闭或重新开启支持的无线设备。"), "", ActionTag.System),
+        new ActionOption(HotkeyActionType.LockWindows, LocalizedText.Pick("Lock Windows", "锁定 Windows"), LocalizedText.Pick("Locks the current Windows session.", "锁定当前 Windows 会话。"), "", ActionTag.System),
+        new ActionOption(HotkeyActionType.Screenshot, LocalizedText.Pick("Take screenshot", "截图"), LocalizedText.Pick("Opens the native snipping overlay.", "打开系统截图浮层。"), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.OpenCalculator, LocalizedText.Pick("Open Calculator", "打开计算器"), LocalizedText.Pick("Launches Calculator.", "启动计算器。"), "", ActionTag.System, ActionTag.Application),
+        new ActionOption(HotkeyActionType.ShowOsd, LocalizedText.Pick("Show OSD", "显示 OSD"), LocalizedText.Pick("Displays a centered lower translucent OSD card.", "显示一个位于底部中央的半透明 OSD 卡片。"), "", ActionTag.Display),
+        new ActionOption(HotkeyActionType.OpenApplication, LocalizedText.Pick("Open application", "打开应用"), LocalizedText.Pick("Launches an installed app, shortcut, or executable.", "启动已安装应用、快捷方式或可执行文件。"), "", ActionTag.Application)
     };
 
     public static string GetLabel(string key)
@@ -389,7 +402,7 @@ public static class ActionCatalog
 
     public static string GetTagsText(string key)
     {
-        return string.Join(" · ", GetTags(key).Select(GetTagLabel));
+        return string.Join(" ? ", GetTags(key).Select(GetTagLabel));
     }
 
     public static ActionOption? GetOption(string key)
@@ -406,7 +419,7 @@ public static class ActionCatalog
 
     public static string GetTagLabel(string key)
     {
-        return TagOptions.FirstOrDefault(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase))?.Label ?? "Other";
+        return TagOptions.FirstOrDefault(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase))?.Label ?? LocalizedText.Pick("Other", "其他");
     }
 }
 
@@ -414,9 +427,9 @@ public static class IconAssetCatalog
 {
     public static IReadOnlyList<ChoiceOption> OsdDisplayModes { get; } =
     [
-        new(OsdDisplayMode.IconAndText, "Icon + title"),
-        new(OsdDisplayMode.IconOnly, "Icon only"),
-        new(OsdDisplayMode.TextOnly, "Title only")
+        new(OsdDisplayMode.IconAndText, LocalizedText.Pick("Icon + title", "图标 + 标题")),
+        new(OsdDisplayMode.IconOnly, LocalizedText.Pick("Icon only", "仅图标")),
+        new(OsdDisplayMode.TextOnly, LocalizedText.Pick("Title only", "仅标题"))
     ];
 }
 

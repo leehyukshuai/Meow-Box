@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -25,6 +25,9 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private ActionTagOption? _selectedActionTag;
     private bool _serviceRunning;
     private bool _autostartEnabled;
+    private bool _priorityStartupEnabled;
+    private bool _priorityStartupBusy;
+    private string _languagePreference = AppLanguagePreference.System;
     private bool _trayIconEnabled;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
@@ -103,13 +106,31 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         private set => SetProperty(ref _autostartEnabled, value);
     }
 
+    public bool PriorityStartupEnabled
+    {
+        get => _priorityStartupEnabled;
+        private set => SetProperty(ref _priorityStartupEnabled, value);
+    }
+
+    public bool PriorityStartupBusy
+    {
+        get => _priorityStartupBusy;
+        private set => SetProperty(ref _priorityStartupBusy, value);
+    }
+
+    public string LanguagePreference
+    {
+        get => _languagePreference;
+        private set => SetProperty(ref _languagePreference, value);
+    }
+
     public bool TrayIconEnabled
     {
         get => _trayIconEnabled;
         private set => SetProperty(ref _trayIconEnabled, value);
     }
 
-    public string ServiceStatusLabel => ServiceRunning ? "Running" : "Stopped";
+    public string ServiceStatusLabel => ServiceRunning ? LocalizedText.Pick("Running", "运行中") : LocalizedText.Pick("Stopped", "已停止");
 
     public string ThemePreference => App.ThemeService.CurrentPreference;
 
@@ -187,8 +208,8 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public KeyDefinitionViewModel AddKey(string name, InputEvent inputEvent)
     {
-        var normalizedName = NormalizeName(name, "New key");
-        EnsureUniqueName(KeyItems.Select(item => item.ListTitle), normalizedName, "Key names must be unique.");
+        var normalizedName = NormalizeName(name, LocalizedText.Pick("New key", "新按键"));
+        EnsureUniqueName(KeyItems.Select(item => item.ListTitle), normalizedName, LocalizedText.Pick("Key names must be unique.", "按键名称必须唯一。"));
 
         var viewModel = new KeyDefinitionViewModel(new KeyDefinitionConfiguration
         {
@@ -233,10 +254,10 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
         EnsureUniqueName(
             KeyItems.Where(item => item != SelectedKey).Select(item => item.ListTitle),
-            NormalizeName(SelectedKey.Name, "Unnamed key"),
+            NormalizeName(SelectedKey.Name, LocalizedText.Pick("Unnamed key", "未命名按键")),
             "Key names must be unique.");
 
-        SelectedKey.Name = NormalizeName(SelectedKey.Name, "Unnamed key");
+        SelectedKey.Name = NormalizeName(SelectedKey.Name, LocalizedText.Pick("Unnamed key", "未命名按键"));
         SaveConfiguration();
         RefreshMappingReferences();
         _ = ReloadWorkerAsync();
@@ -401,8 +422,45 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             ? _workerProcessService.ResolveWorkerExecutablePath()
             : _workerProcessService.WorkerExecutablePath;
 
-        _autostartService.SetEnabled(enabled, workerExecutablePath ?? string.Empty);
+        _autostartService.SetEnabled(enabled, workerExecutablePath ?? string.Empty, _configuration.Preferences.PreferPriorityStartup);
         RefreshAutostartState();
+    }
+
+    public async Task SetPriorityStartupEnabledAsync(bool enabled)
+    {
+        if (PriorityStartupBusy)
+        {
+            return;
+        }
+
+        var previousPreference = _configuration.Preferences.PreferPriorityStartup;
+        PriorityStartupBusy = true;
+        _configuration.Preferences.PreferPriorityStartup = enabled;
+        PriorityStartupEnabled = enabled;
+        SaveConfiguration();
+
+        try
+        {
+            if (AutostartEnabled)
+            {
+                var workerExecutablePath = _workerProcessService.ResolveWorkerExecutablePath() ?? _workerProcessService.WorkerExecutablePath;
+                await Task.Run(() => _autostartService.SetEnabled(true, workerExecutablePath, enabled));
+            }
+
+            RefreshAutostartState();
+        }
+        catch
+        {
+            _configuration.Preferences.PreferPriorityStartup = previousPreference;
+            PriorityStartupEnabled = previousPreference;
+            SaveConfiguration();
+            RefreshAutostartState();
+            throw;
+        }
+        finally
+        {
+            PriorityStartupBusy = false;
+        }
     }
 
     public void SetTrayIconEnabled(bool enabled)
@@ -411,6 +469,15 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         TrayIconEnabled = enabled;
         SaveConfiguration();
         _ = ReloadWorkerAsync();
+    }
+
+
+    public void SetLanguagePreference(string languagePreference)
+    {
+        var normalizedPreference = AppLanguageService.ResolveStoredPreference(languagePreference);
+        _configuration.Preferences.Language = normalizedPreference;
+        LanguagePreference = normalizedPreference;
+        SaveConfiguration();
     }
 
     public void ApplyOsdPreferences(int durationMs, string? displayMode, int backgroundOpacityPercent, int scalePercent)
@@ -475,7 +542,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
                       keyLookup.TryGetValue(mapping.KeyId, out var keyVm)
                 ? keyVm
                 : null;
-            mapping.UpdateDisplay(key?.ListTitle ?? "Select key");
+            mapping.UpdateDisplay(key?.ListTitle ?? LocalizedText.Pick("Select key", "选择按键"));
         }
 
         UpdateActionSelectionState();
@@ -530,6 +597,8 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         }
 
         SelectedActionTag = ActionTags.FirstOrDefault();
+        PriorityStartupEnabled = _configuration.Preferences.PreferPriorityStartup;
+        LanguagePreference = _configuration.Preferences.Language;
         TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
         SyncOsdPreferenceState();
         RefreshMappingReferences();
@@ -605,7 +674,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     private void RefreshAutostartState()
     {
-        AutostartEnabled = _autostartService.IsEnabled();
+        var startupMode = _autostartService.GetStartupMode();
+        AutostartEnabled = startupMode != StartupRegistrationMode.Disabled;
+        PriorityStartupEnabled = startupMode != StartupRegistrationMode.Disabled
+            ? startupMode == StartupRegistrationMode.ScheduledTask
+            : _configuration.Preferences.PreferPriorityStartup;
     }
 
     private void StartStatusPolling()
@@ -620,8 +693,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     private async Task RefreshWorkerStatusAsync()
     {
-        RefreshAutostartState();
-
         var response = await _workerPipeClient.SendAsync(new WorkerRequest
         {
             Command = WorkerCommandType.GetStatus
@@ -641,7 +712,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
             if (response?.Success == true && response.Status is not null)
             {
-                RefreshAutostartState();
                 ServiceRunning = true;
                 return;
             }

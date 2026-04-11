@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Services;
 using FnMappingTool.Core.Models;
+
 namespace FnMappingTool.Controller.Views;
 
 public sealed partial class SettingsPage : Page
@@ -17,6 +18,7 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
+        XamlStringLocalizer.Apply(this);
         DataContext = Controller;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -27,6 +29,7 @@ public sealed partial class SettingsPage : Page
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SyncState();
         RefreshConfigFiles();
+        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -38,6 +41,9 @@ public sealed partial class SettingsPage : Page
     {
         if (e.PropertyName is nameof(FnMappingToolController.ServiceRunning) or
             nameof(FnMappingToolController.AutostartEnabled) or
+            nameof(FnMappingToolController.PriorityStartupEnabled) or
+            nameof(FnMappingToolController.PriorityStartupBusy) or
+            nameof(FnMappingToolController.LanguagePreference) or
             nameof(FnMappingToolController.TrayIconEnabled) or
             nameof(FnMappingToolController.OsdDurationMs) or
             nameof(FnMappingToolController.OsdDisplayMode) or
@@ -52,9 +58,15 @@ public sealed partial class SettingsPage : Page
     {
         _isLoading = true;
         SelectComboItem(ThemeComboBox, Controller.ThemePreference);
+        SelectComboItem(LanguageComboBox, Controller.LanguagePreference);
         SelectComboItem(OsdDisplayModeComboBox, Controller.OsdDisplayMode);
         ServiceToggleSwitch.IsOn = Controller.ServiceRunning;
         AutostartToggleSwitch.IsOn = Controller.AutostartEnabled;
+        AutostartToggleSwitch.IsEnabled = !Controller.PriorityStartupBusy;
+        PriorityStartupToggleSwitch.IsOn = Controller.PriorityStartupEnabled;
+        PriorityStartupToggleSwitch.IsEnabled = Controller.AutostartEnabled && !Controller.PriorityStartupBusy;
+        PriorityStartupProgressRing.IsActive = Controller.PriorityStartupBusy;
+        PriorityStartupBusyPanel.Visibility = Controller.PriorityStartupBusy ? Visibility.Visible : Visibility.Collapsed;
         TrayIconToggleSwitch.IsOn = Controller.TrayIconEnabled;
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
@@ -122,6 +134,27 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    private async void OnLanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        if (LanguageComboBox.SelectedItem is not ComboBoxItem item || item.Tag is not string languagePreference)
+        {
+            return;
+        }
+
+        if (string.Equals(languagePreference, Controller.LanguagePreference, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Controller.SetLanguagePreference(languagePreference);
+        await ShowLanguageRestartAsync();
+    }
+
     private void OnOsdSettingChanged(object sender, SelectionChangedEventArgs e)
     {
         ApplyOsdSettingsFromControls();
@@ -143,7 +176,9 @@ public sealed partial class SettingsPage : Page
         {
             if (!await Controller.StartWorkerServiceAsync())
             {
-                await ShowMessageAsync("Could not start service", "The background worker could not be started or did not respond.");
+                await ShowMessageAsync(
+                    Localizer.GetString("Settings.Messages.StartServiceFailed.Title"),
+                    Localizer.GetString("Settings.Messages.StartServiceFailed.Body"));
                 SyncState();
             }
         }
@@ -167,7 +202,25 @@ public sealed partial class SettingsPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync("Could not change startup behavior", exception.Message);
+            await ShowMessageAsync(Localizer.GetString("Settings.Messages.AutostartFailed.Title"), exception.Message);
+            SyncState();
+        }
+    }
+
+    private async void OnPriorityStartupChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        try
+        {
+            await Controller.SetPriorityStartupEnabledAsync(PriorityStartupToggleSwitch.IsOn);
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync(Localizer.GetString("Settings.Messages.PriorityFailed.Title"), exception.Message);
             SyncState();
         }
     }
@@ -196,7 +249,7 @@ public sealed partial class SettingsPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync("Could not import configuration", exception.Message);
+            await ShowMessageAsync(Localizer.GetString("Settings.Messages.ImportFailed.Title"), exception.Message);
             return;
         }
 
@@ -262,10 +315,28 @@ public sealed partial class SettingsPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = "Close"
+            CloseButtonText = Localizer.GetString("Dialog.Close")
         };
 
         await dialog.ShowAsync();
+    }
+
+    private async Task ShowLanguageRestartAsync()
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = Localizer.GetString("Settings.Messages.LanguageRestart.Title"),
+            Content = Localizer.GetString("Settings.Messages.LanguageRestart.Body"),
+            PrimaryButtonText = Localizer.GetString("Dialog.RestartNow"),
+            CloseButtonText = Localizer.GetString("Dialog.Later"),
+            DefaultButton = ContentDialogButton.Primary
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            App.Restart();
+        }
     }
 
     private async Task ShowImportAppliedAsync()
@@ -274,16 +345,16 @@ public sealed partial class SettingsPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = "Configuration imported",
-            Content = serviceRunning
-                ? "The file has been imported. Restart the service to apply it."
-                : "The file has been imported. Start the service when you're ready to apply it.",
-            CloseButtonText = "Later"
+            Title = Localizer.GetString("Settings.Messages.ImportApplied.Title"),
+            Content = Localizer.GetString(serviceRunning
+                ? "Settings.Messages.ImportApplied.BodyServiceRunning"
+                : "Settings.Messages.ImportApplied.BodyServiceStopped"),
+            CloseButtonText = Localizer.GetString("Dialog.Later")
         };
 
         if (serviceRunning)
         {
-            dialog.PrimaryButtonText = "Restart service";
+            dialog.PrimaryButtonText = Localizer.GetString("Dialog.RestartService");
             dialog.DefaultButton = ContentDialogButton.Primary;
         }
 
@@ -294,7 +365,9 @@ public sealed partial class SettingsPage : Page
 
         if (!await Controller.RestartWorkerServiceAsync())
         {
-            await ShowMessageAsync("Could not restart service", "The background worker could not be restarted.");
+            await ShowMessageAsync(
+                Localizer.GetString("Settings.Messages.RestartServiceFailed.Title"),
+                Localizer.GetString("Settings.Messages.RestartServiceFailed.Body"));
             SyncState();
             return;
         }
