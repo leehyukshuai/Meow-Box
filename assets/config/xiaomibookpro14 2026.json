@@ -32,6 +32,26 @@
             }
         },
         {
+            "Id": "key-caps-lock-on",
+            "Name": "Caps Lock On",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-09-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
+            "Id": "key-caps-lock-off",
+            "Name": "Caps Lock Off",
+            "Trigger": {
+                "Source": "Wmi",
+                "WmiClassName": "HID_EVENT20",
+                "WmiActive": true,
+                "ReportHex": "01-09-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"
+            }
+        },
+        {
             "Id": "key-mic-mute-on",
             "Name": "Microphone Mute On",
             "Trigger": {
@@ -139,12 +159,15 @@
             "Enabled": true,
             "KeyId": "key-fn-lock-on",
             "Action": {
-                "Type": "ShowOsd",
-                "OsdIcon": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Fn lock on",
+                "Icon": {
                     "Mode": "CustomFile",
                     "Path": "fn-lock.png"
-                },
-                "OsdTitle": "Fn lock on"
+                }
             }
         },
         {
@@ -153,12 +176,49 @@
             "Enabled": true,
             "KeyId": "key-fn-lock-off",
             "Action": {
-                "Type": "ShowOsd",
-                "OsdIcon": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Fn lock off",
+                "Icon": {
                     "Mode": "CustomFile",
                     "Path": "fn-unlock.png"
-                },
-                "OsdTitle": "Fn lock off"
+                }
+            }
+        },
+        {
+            "Id": "mapping-caps-lock-on",
+            "Name": "Caps Lock On -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-caps-lock-on",
+            "Action": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Caps lock on",
+                "Icon": {
+                    "Mode": "CustomFile",
+                    "Path": "caps-lock.png"
+                }
+            }
+        },
+        {
+            "Id": "mapping-caps-lock-off",
+            "Name": "Caps Lock Off -> Show OSD",
+            "Enabled": true,
+            "KeyId": "key-caps-lock-off",
+            "Action": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Caps lock off",
+                "Icon": {
+                    "Mode": "CustomFile",
+                    "Path": "caps-unlock.png"
+                }
             }
         },
         {
@@ -167,9 +227,14 @@
             "Enabled": true,
             "KeyId": "key-mic-mute-on",
             "Action": {
-                "Type": "MicrophoneMuteOn",
-                "OsdIcon": {
-                    "Mode": "None"
+                "Type": "MicrophoneMuteOn"
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Microphone off",
+                "Icon": {
+                    "Mode": "CustomFile",
+                    "Path": "microphone-mute.png"
                 }
             }
         },
@@ -179,9 +244,14 @@
             "Enabled": true,
             "KeyId": "key-mic-mute-off",
             "Action": {
-                "Type": "MicrophoneMuteOff",
-                "OsdIcon": {
-                    "Mode": "None"
+                "Type": "MicrophoneMuteOff"
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Microphone on",
+                "Icon": {
+                    "Mode": "CustomFile",
+                    "Path": "microphone-on.png"
                 }
             }
         },
@@ -191,10 +261,7 @@
             "Enabled": true,
             "KeyId": "key-xiaoai-press",
             "Action": {
-                "Type": "",
-                "OsdIcon": {
-                    "Mode": "None"
-                }
+                "Type": ""
             }
         },
         {
@@ -203,10 +270,7 @@
             "Enabled": true,
             "KeyId": "key-settings-press",
             "Action": {
-                "Type": "OpenSettings",
-                "OsdIcon": {
-                    "Mode": "None"
-                }
+                "Type": "OpenSettings"
             }
         },
         {
@@ -215,10 +279,7 @@
             "Enabled": true,
             "KeyId": "key-manager-press",
             "Action": {
-                "Type": "MediaPlayPause",
-                "OsdIcon": {
-                    "Mode": "None"
-                }
+                "Type": "MediaPlayPause"
             }
         },
         {
@@ -227,9 +288,12 @@
             "Enabled": true,
             "KeyId": "key-backlight-off",
             "Action": {
-                "Type": "ShowOsd",
-                "OsdTitle": "Backlight off",
-                "OsdIcon": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Backlight off",
+                "Icon": {
                     "Mode": "CustomFile",
                     "Path": "backlight-off.png"
                 }
@@ -241,11 +305,14 @@
             "Enabled": true,
             "KeyId": "key-backlight-level1",
             "Action": {
-                "Type": "ShowOsd",
-                "OsdTitle": "Backlight level 1",
-                "OsdIcon": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Backlight low",
+                "Icon": {
                     "Mode": "CustomFile",
-                    "Path": "backlight-level1.png"
+                    "Path": "backlight-low.png"
                 }
             }
         },
@@ -255,11 +322,14 @@
             "Enabled": true,
             "KeyId": "key-backlight-level2",
             "Action": {
-                "Type": "ShowOsd",
-                "OsdTitle": "Backlight level 2",
-                "OsdIcon": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Backlight high",
+                "Icon": {
                     "Mode": "CustomFile",
-                    "Path": "backlight-level2.png"
+                    "Path": "backlight-high.png"
                 }
             }
         },
@@ -269,9 +339,12 @@
             "Enabled": true,
             "KeyId": "key-backlight-auto",
             "Action": {
-                "Type": "ShowOsd",
-                "OsdTitle": "Backlight auto",
-                "OsdIcon": {
+                "Type": ""
+            },
+            "Osd": {
+                "Enabled": true,
+                "Title": "Backlight auto",
+                "Icon": {
                     "Mode": "CustomFile",
                     "Path": "backlight-auto.png"
                 }
@@ -283,10 +356,7 @@
             "Enabled": true,
             "KeyId": "key-projection",
             "Action": {
-                "Type": "OpenProjection",
-                "OsdIcon": {
-                    "Mode": "None"
-                }
+                "Type": "OpenProjection"
             }
         }
     ]
