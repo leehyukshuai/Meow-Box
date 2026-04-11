@@ -7,7 +7,7 @@
             "DisplayMode": "IconOnly",
             "DurationMs": 800,
             "BackgroundOpacityPercent": 20,
-            "ScalePercent": 80
+            "ScalePercent": 75
         }
     },
     "Keys": [
@@ -155,7 +155,7 @@
     "Mappings": [
         {
             "Id": "mapping-fn-lock-on",
-            "Name": "Fn Lock On -> Show OSD",
+            "Name": "Fn Lock On",
             "Enabled": true,
             "KeyId": "key-fn-lock-on",
             "Action": {
@@ -172,7 +172,7 @@
         },
         {
             "Id": "mapping-fn-lock-off",
-            "Name": "Fn Lock Off -> Show OSD",
+            "Name": "Fn Lock Off",
             "Enabled": true,
             "KeyId": "key-fn-lock-off",
             "Action": {
@@ -189,7 +189,7 @@
         },
         {
             "Id": "mapping-caps-lock-on",
-            "Name": "Caps Lock On -> Show OSD",
+            "Name": "Caps Lock On",
             "Enabled": true,
             "KeyId": "key-caps-lock-on",
             "Action": {
@@ -206,7 +206,7 @@
         },
         {
             "Id": "mapping-caps-lock-off",
-            "Name": "Caps Lock Off -> Show OSD",
+            "Name": "Caps Lock Off",
             "Enabled": true,
             "KeyId": "key-caps-lock-off",
             "Action": {
@@ -223,7 +223,7 @@
         },
         {
             "Id": "mapping-mic-on",
-            "Name": "Microphone Mute On -> Mute microphone input",
+            "Name": "Microphone Mute On",
             "Enabled": true,
             "KeyId": "key-mic-mute-on",
             "Action": {
@@ -240,7 +240,7 @@
         },
         {
             "Id": "mapping-mic-off",
-            "Name": "Microphone Mute Off -> Unmute microphone input",
+            "Name": "Microphone Mute Off",
             "Enabled": true,
             "KeyId": "key-mic-mute-off",
             "Action": {
@@ -257,7 +257,7 @@
         },
         {
             "Id": "mapping-xiaoai-press",
-            "Name": "XiaoAi Press -> Select action",
+            "Name": "XiaoAi Press",
             "Enabled": true,
             "KeyId": "key-xiaoai-press",
             "Action": {
@@ -266,7 +266,7 @@
         },
         {
             "Id": "mapping-settings",
-            "Name": "Settings Press -> Open Windows Settings",
+            "Name": "Settings Press",
             "Enabled": true,
             "KeyId": "key-settings-press",
             "Action": {
@@ -275,7 +275,7 @@
         },
         {
             "Id": "mapping-manager-press",
-            "Name": "Manager Press -> Play or pause",
+            "Name": "Manager Press",
             "Enabled": true,
             "KeyId": "key-manager-press",
             "Action": {
@@ -284,7 +284,7 @@
         },
         {
             "Id": "mapping-backlight-off",
-            "Name": "Backlight Off -> Show OSD",
+            "Name": "Backlight Off",
             "Enabled": true,
             "KeyId": "key-backlight-off",
             "Action": {
@@ -301,7 +301,7 @@
         },
         {
             "Id": "mapping-backlight-level1",
-            "Name": "Backlight Level 1 -> Show OSD",
+            "Name": "Backlight Level 1",
             "Enabled": true,
             "KeyId": "key-backlight-level1",
             "Action": {
@@ -318,7 +318,7 @@
         },
         {
             "Id": "mapping-backlight-level2",
-            "Name": "Backlight Level 2 -> Show OSD",
+            "Name": "Backlight Level 2",
             "Enabled": true,
             "KeyId": "key-backlight-level2",
             "Action": {
@@ -335,7 +335,7 @@
         },
         {
             "Id": "mapping-backlight-auto",
-            "Name": "Backlight Auto -> Show OSD",
+            "Name": "Backlight Auto",
             "Enabled": true,
             "KeyId": "key-backlight-auto",
             "Action": {
@@ -352,7 +352,7 @@
         },
         {
             "Id": "mapping-projection",
-            "Name": "Projection UI -> Open projection switcher",
+            "Name": "Projection UI",
             "Enabled": true,
             "KeyId": "key-projection",
             "Action": {

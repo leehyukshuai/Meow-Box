@@ -271,7 +271,7 @@ public static class RuntimeDefaults
 {
     public const int DefaultOsdDurationMs = 800;
     public const int DefaultOsdBackgroundOpacityPercent = 20;
-    public const int DefaultOsdScalePercent = 80;
+    public const int DefaultOsdScalePercent = 75;
     public const int MaxOsdTitleLength = 32;
 }
 
