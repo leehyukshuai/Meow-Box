@@ -2,27 +2,44 @@
 
 [中文说明](#中文说明) | [English](#english)
 
-![banner](screenshots/banner.jpeg)
+![screenshot 1](screenshots/image1.png)
 
-![choose action](screenshots/choose%20action.png)
-
-![keys panel](screenshots/keys%20panel.png)
+![screenshot 2](screenshots/image2.png)
 
 ## 中文说明
 
-### ✨ 这是什么
+### ✨ 功能介绍
 
-Fn Mapping Tool 是一个给 Windows 笔记本用的 OEM / 厂商特殊按键映射工具。
+Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映射工具，重点是把原本只能由厂商管家控制的特殊按键，重新变成可自定义、可观察、可移植的功能。
 
-我做这个项目，主要是因为小米电脑自带的电脑管家不太好用：可定制性不高，而且卸载以后，一些特殊按键会直接失效。对我这台机器来说，最明显的就是：
+它目前支持：
 
-- 🎤 麦克风静音键
-- 🖥️ 电脑管家键
-- 🤖 小爱键
+- 捕获 OEM / WMI 抛出的特殊按键事件
+- 把厂商自定义按键映射为标准键盘按键
+- 执行设置、投屏、媒体控制、音量、亮度、启动应用等动作
+- 为 Caps Lock、麦克风静音、Fn Lock 等状态显示 OSD
+- 通过 preset 快速适配特定机型
+- 使用 Controller + Worker 的方式长期稳定运行
 
-所以我干脆自己写了这个工具，把这些键重新接回来，也顺手把它做成了一个更通用的方案，方便别的机器做适配。
+它的实现方式也比较直接：后台 Worker 监听 OEM 通过 WMI 抛出的事件，再把这些事件转成应用里可配置的 Key 和 Mapping。并不是所有机型都会通过 WMI 暴露这些事件，所以兼容性仍然取决于厂商自身的实现。
 
-它的实现方式也比较直接：后台监听 OEM 通过 WMI 抛出的事件，再把这些事件转换成应用里可配置的 Key，最后按你的映射去执行动作。并不是所有机器都会通过 WMI 暴露这些事件，所以兼容性取决于厂商自己的实现。
+### 📦 最新版本
+
+- 当前版本：**v0.2.0**
+- Release：https://github.com/leehyukshuai/Fn-Mapping-Tool/releases/tag/v0.2.0
+- 下载：
+  - Portable：`FnMappingTool-portable-v0.2.0.zip`
+  - MSI：`FnMappingTool-setup-v0.2.0.msi`
+
+### 🆕 v0.2.0 更新
+
+- 新增中英文界面支持，默认跟随系统语言
+- 优化 Controller 界面与交互体验
+- 支持 Caps Lock / 麦克风静音状态的 OSD 显示
+- 修复 OSD 偶发被其他窗口遮挡的问题
+- 重绘并更新 OSD 图标
+- 新增计划任务优先启动
+- 支持将厂商自定义按键映射为标准按键
 
 ### 🚀 现在能做什么
 
@@ -90,7 +107,7 @@ Fn Mapping Tool 是一个给 Windows 笔记本用的 OEM / 厂商特殊按键映
 可选参数：
 
 ```powershell
-.\build.ps1 -Version 0.1.0
+.\build.ps1 -Version 0.2.0
 .\build.ps1 -SkipZip
 .\build.ps1 -SkipMsi
 .\build.ps1 -SelfContained
@@ -127,20 +144,38 @@ Fn Mapping Tool 是一个给 Windows 笔记本用的 OEM / 厂商特殊按键映
 
 ## English
 
-### ✨ What this is
+### ✨ Feature overview
 
-Fn Mapping Tool is a Windows utility for remapping OEM / vendor-specific keys.
+Fn Mapping Tool is a Windows utility for turning OEM / vendor-specific keys into configurable features instead of one-off buttons locked behind vendor software.
 
-I originally made it because Xiaomi PC Manager was not a great fit for this. It is not very customizable, and once uninstalled, some special keys stop working entirely. On my machine, the most obvious ones were:
+It currently supports:
 
-- 🎤 microphone mute
-- 🖥️ the PC Manager key
-- 🤖 the XiaoAi key
+- capturing OEM / WMI special-key events
+- mapping vendor-specific keys to standard keyboard keys
+- running actions such as Settings, projection, media controls, volume, brightness, and app launch
+- showing OSD for states like Caps Lock, microphone mute, and Fn Lock
+- applying presets for specific laptop models
+- keeping a Controller + Worker workflow running reliably in the background
 
-So I built this tool to bring those keys back, then turned it into something more general so other laptops can be adapted too.
+The implementation is fairly direct: the Worker listens for OEM events exposed through WMI, turns them into configurable Keys and Mappings, and then executes the mapped behavior. Not every machine exposes these events through WMI, so compatibility still depends on the vendor's implementation.
 
-The implementation is fairly simple: the background worker listens for OEM events exposed through WMI, turns those events into configurable Keys in the app, and then runs whatever action you mapped to them. Not every machine exposes these events through WMI, so compatibility depends on the vendor's implementation.
+### 📦 Latest release
 
+- Current version: **v0.2.0**
+- Release: https://github.com/leehyukshuai/Fn-Mapping-Tool/releases/tag/v0.2.0
+- Downloads:
+  - Portable: `FnMappingTool-portable-v0.2.0.zip`
+  - MSI: `FnMappingTool-setup-v0.2.0.msi`
+
+### 🆕 What's new in v0.2.0
+
+- added Chinese and English UI support with system-language default
+- improved the Controller UI and editing flow
+- added Caps Lock / microphone mute OSD support
+- fixed the OSD occasionally being covered by other windows
+- refreshed the OSD icons with more vivid artwork
+- added priority startup through Task Scheduler
+- added support for mapping vendor-specific keys to standard keys
 
 ### 🚀 What it does
 
@@ -208,7 +243,7 @@ Default build:
 Optional arguments:
 
 ```powershell
-.\build.ps1 -Version 0.1.0
+.\build.ps1 -Version 0.2.0
 .\build.ps1 -SkipZip
 .\build.ps1 -SkipMsi
 .\build.ps1 -SelfContained
