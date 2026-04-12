@@ -205,7 +205,7 @@
                                         <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
                                             <TextBox x:Uid="OsdTitleTextBox" Header="Title" LostFocus="OnMappingEditorLostFocus" MaxLength="32" Text="{Binding SelectedMapping.Osd.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBlock x:Uid="OsdTitleHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Up to 32 characters." TextWrapping="WrapWholeWords" />
-                                            <ComboBox x:Uid="OsdIconComboBox" x:Name="OsdIconComboBox" DisplayMemberPath="DisplayName" Header="Icon" SelectionChanged="OnMappingEditorSelectionChanged" SelectedValue="{Binding SelectedMapping.Osd.IconPath, Mode=TwoWay}" SelectedValuePath="RelativePath" />
+                                            <ComboBox x:Uid="OsdIconComboBox" x:Name="OsdIconComboBox" DisplayMemberPath="DisplayName" Header="Icon" SelectionChanged="OnMappingEditorSelectionChanged" SelectedValuePath="RelativePath" />
                                             <TextBlock x:Uid="OsdIconHintText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Manage OSD icon files from Settings." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
                                     </StackPanel>

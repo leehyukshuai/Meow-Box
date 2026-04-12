@@ -208,11 +208,7 @@ $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoi
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description {descriptionLiteral} -Force | Out-Null
 """;
 
-        var result = RunPowerShell(script, requireElevation: true);
-        if (result.ExitCode != 0)
-        {
-            throw new InvalidOperationException(BuildToolErrorMessage("create the startup scheduled task", result));
-        }
+        RunScheduledTaskCommand(script, "create the startup scheduled task");
     }
 
     private static void DeleteStartupShortcut()
@@ -237,11 +233,47 @@ Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Pr
             "}"
         ]);
 
-        var result = RunPowerShell(script, requireElevation: true);
+        RunScheduledTaskCommand(script, "remove the startup scheduled task");
+    }
+
+    private static void RunScheduledTaskCommand(string script, string action)
+    {
+        var result = RunPowerShellHidden(script);
+        if (result.ExitCode == 0)
+        {
+            return;
+        }
+
+        if (!RequiresElevation(result))
+        {
+            throw new InvalidOperationException(BuildToolErrorMessage(action, result));
+        }
+
+        result = RunPowerShellElevated(script);
         if (result.ExitCode != 0)
         {
-            throw new InvalidOperationException(BuildToolErrorMessage("remove the startup scheduled task", result));
+            throw new InvalidOperationException(BuildToolErrorMessage(action, result));
         }
+    }
+
+    private static bool RequiresElevation(ProcessResult result)
+    {
+        if (result.ExitCode == 0)
+        {
+            return false;
+        }
+
+        var details = string.Join("\n", new[] { result.StandardError, result.StandardOutput }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+        if (string.IsNullOrWhiteSpace(details))
+        {
+            return false;
+        }
+
+        return details.Contains("Access is denied", StringComparison.OrdinalIgnoreCase) ||
+               details.Contains("拒绝访问", StringComparison.OrdinalIgnoreCase) ||
+               details.Contains("0x80070005", StringComparison.OrdinalIgnoreCase) ||
+               details.Contains("需要提升", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryResolveShortcutTarget(string shortcutPath, out string? targetPath)

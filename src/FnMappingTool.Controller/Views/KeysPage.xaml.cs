@@ -64,7 +64,7 @@ public sealed partial class KeysPage : Page
 
     private async void OnKeyNameLostFocus(object sender, RoutedEventArgs e)
     {
-        if (Controller.SelectedKey is null)
+        if (Controller.IsReloadingConfiguration || Controller.SelectedKey is null)
         {
             return;
         }

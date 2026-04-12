@@ -28,6 +28,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private bool _autostartEnabled;
     private bool _priorityStartupEnabled;
     private bool _priorityStartupBusy;
+    private bool _isReloadingConfiguration;
     private string _languagePreference = AppLanguagePreference.System;
     private bool _trayIconEnabled;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
@@ -117,6 +118,12 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     {
         get => _priorityStartupBusy;
         private set => SetProperty(ref _priorityStartupBusy, value);
+    }
+
+    public bool IsReloadingConfiguration
+    {
+        get => _isReloadingConfiguration;
+        private set => SetProperty(ref _isReloadingConfiguration, value);
     }
 
     public string LanguagePreference
@@ -249,7 +256,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public void SaveSelectedKey()
     {
-        if (SelectedKey is null)
+        if (IsReloadingConfiguration || SelectedKey is null)
         {
             return;
         }
@@ -294,7 +301,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public void SaveSelectedMapping()
     {
-        if (SelectedMapping is null)
+        if (IsReloadingConfiguration || SelectedMapping is null)
         {
             return;
         }
@@ -563,6 +570,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     private void SaveConfiguration()
     {
+        if (IsReloadingConfiguration)
+        {
+            return;
+        }
+
         _configuration.Theme = App.ThemeService.CurrentPreference;
         _configuration.Keys = KeyItems.Select(item => item.ToConfiguration()).ToList();
         _configuration.Mappings = MappingItems.Select(item => item.ToConfiguration()).ToList();
@@ -586,26 +598,37 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     private void ReloadCollectionsFromConfiguration()
     {
-        KeyItems.Clear();
-        foreach (var key in _configuration.Keys)
+        IsReloadingConfiguration = true;
+        try
         {
-            KeyItems.Add(new KeyDefinitionViewModel(key));
-        }
+            SelectedKey = null;
+            SelectedMapping = null;
 
-        MappingItems.Clear();
-        foreach (var mapping in _configuration.Mappings)
+            KeyItems.Clear();
+            foreach (var key in _configuration.Keys)
+            {
+                KeyItems.Add(new KeyDefinitionViewModel(key));
+            }
+
+            MappingItems.Clear();
+            foreach (var mapping in _configuration.Mappings)
+            {
+                MappingItems.Add(new MappingDefinitionViewModel(mapping));
+            }
+
+            SelectedActionTag = ActionTags.FirstOrDefault();
+            PriorityStartupEnabled = _configuration.Preferences.PreferPriorityStartup;
+            LanguagePreference = _configuration.Preferences.Language;
+            TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
+            SyncOsdPreferenceState();
+            RefreshMappingReferences();
+            SelectedKey = KeyItems.FirstOrDefault();
+            SelectedMapping = MappingItems.FirstOrDefault();
+        }
+        finally
         {
-            MappingItems.Add(new MappingDefinitionViewModel(mapping));
+            IsReloadingConfiguration = false;
         }
-
-        SelectedActionTag = ActionTags.FirstOrDefault();
-        PriorityStartupEnabled = _configuration.Preferences.PreferPriorityStartup;
-        LanguagePreference = _configuration.Preferences.Language;
-        TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
-        SyncOsdPreferenceState();
-        RefreshMappingReferences();
-        SelectedKey = KeyItems.FirstOrDefault();
-        SelectedMapping = MappingItems.FirstOrDefault();
     }
 
     private void SyncBundledOsdIconsToConfigDirectory()

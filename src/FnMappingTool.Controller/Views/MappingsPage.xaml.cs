@@ -13,6 +13,8 @@ namespace FnMappingTool.Controller.Views;
 
 public sealed partial class MappingsPage : Page
 {
+    private bool _isRefreshingOsdIcons;
+
     public FnMappingToolController Controller => App.Controller;
 
     public IReadOnlyList<StandardKeyGroupOption> StandardKeyGroups { get; } = StandardKeyCatalog.GroupOptions;
@@ -48,32 +50,43 @@ public sealed partial class MappingsPage : Page
 
     private void RefreshOsdIcons()
     {
-        Controller.RefreshOsdIconCatalog();
-        var selectedPath = Controller.SelectedMapping?.Osd.IconPath;
-
-        OsdIconFiles.Clear();
-        OsdIconFiles.Add(new OsdIconFileEntry
+        _isRefreshingOsdIcons = true;
+        try
         {
-            DisplayName = Localizer.GetString("Mappings.NoIcon"),
-            RelativePath = string.Empty
-        });
+            Controller.RefreshOsdIconCatalog();
+            var selectedPath = Controller.SelectedMapping?.Osd.IconPath;
 
-        Directory.CreateDirectory(Controller.OsdIconDirectory);
-        foreach (var file in Directory.GetFiles(Controller.OsdIconDirectory, "*.png", SearchOption.AllDirectories)
-                     .OrderBy(static file => Path.GetRelativePath(App.Controller.OsdIconDirectory, file), StringComparer.OrdinalIgnoreCase))
-        {
-            var relativePath = Path.GetRelativePath(Controller.OsdIconDirectory, file);
+            OsdIconFiles.Clear();
             OsdIconFiles.Add(new OsdIconFileEntry
             {
-                DisplayName = Path.ChangeExtension(relativePath, null) ?? relativePath,
-                RelativePath = relativePath
+                DisplayName = Localizer.GetString("Mappings.NoIcon"),
+                RelativePath = string.Empty
             });
-        }
 
-        OsdIconComboBox.ItemsSource = OsdIconFiles;
-        OsdIconComboBox.SelectedItem = OsdIconFiles.FirstOrDefault(item =>
-            string.Equals(item.RelativePath, selectedPath, StringComparison.OrdinalIgnoreCase))
-            ?? OsdIconFiles.FirstOrDefault();
+            Directory.CreateDirectory(Controller.OsdIconDirectory);
+            foreach (var file in Directory.GetFiles(Controller.OsdIconDirectory, "*.png", SearchOption.AllDirectories)
+                         .OrderBy(static file => Path.GetRelativePath(App.Controller.OsdIconDirectory, file), StringComparer.OrdinalIgnoreCase))
+            {
+                var relativePath = Path.GetRelativePath(Controller.OsdIconDirectory, file);
+                OsdIconFiles.Add(new OsdIconFileEntry
+                {
+                    DisplayName = Path.ChangeExtension(relativePath, null) ?? relativePath,
+                    RelativePath = relativePath
+                });
+            }
+
+            OsdIconComboBox.ItemsSource = OsdIconFiles;
+
+            var matchedItem = OsdIconFiles.FirstOrDefault(item =>
+                string.Equals(item.RelativePath, selectedPath, StringComparison.OrdinalIgnoreCase));
+            OsdIconComboBox.SelectedItem = matchedItem
+                ?? OsdIconFiles.FirstOrDefault(item => string.IsNullOrWhiteSpace(item.RelativePath))
+                ?? OsdIconFiles.FirstOrDefault();
+        }
+        finally
+        {
+            _isRefreshingOsdIcons = false;
+        }
     }
 
     private async void OnAddMappingClick(object sender, RoutedEventArgs e)
@@ -98,6 +111,11 @@ public sealed partial class MappingsPage : Page
 
     private void OnMappingReferenceChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
         Controller.RefreshMappingReferences();
         TrySaveMappingAsync();
     }
@@ -212,23 +230,51 @@ public sealed partial class MappingsPage : Page
 
     private void OnMappingEditorLostFocus(object sender, RoutedEventArgs e)
     {
+        if (Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
         TrySaveMappingAsync();
     }
 
     private void OnMappingEditorSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        if (ReferenceEquals(sender, OsdIconComboBox))
+        {
+            if (_isRefreshingOsdIcons)
+            {
+                return;
+            }
+
+            if (Controller.SelectedMapping is not null)
+            {
+                Controller.SelectedMapping.Osd.IconPath = (OsdIconComboBox.SelectedItem as OsdIconFileEntry)?.RelativePath ?? string.Empty;
+            }
+        }
+
         TrySaveMappingAsync();
     }
 
     private void OnStandardKeyGroupSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
         RefreshStandardKeyChoices();
         TrySaveMappingAsync();
     }
 
     private void OnOsdEnabledChanged(object sender, RoutedEventArgs e)
     {
-        if (Controller.SelectedMapping is null)
+        if (Controller.IsReloadingConfiguration || Controller.SelectedMapping is null)
         {
             return;
         }
@@ -247,7 +293,7 @@ public sealed partial class MappingsPage : Page
 
     private async void TrySaveMappingAsync()
     {
-        if (Controller.SelectedMapping is null)
+        if (Controller.IsReloadingConfiguration || Controller.SelectedMapping is null)
         {
             return;
         }
