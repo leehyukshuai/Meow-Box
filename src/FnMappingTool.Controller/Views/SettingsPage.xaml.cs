@@ -41,6 +41,7 @@ public sealed partial class SettingsPage : Page
             nameof(FnMappingToolController.PriorityStartupBusy) or
             nameof(FnMappingToolController.LanguagePreference) or
             nameof(FnMappingToolController.TrayIconEnabled) or
+            nameof(FnMappingToolController.TouchpadLongPressDurationMs) or
             nameof(FnMappingToolController.OsdDurationMs) or
             nameof(FnMappingToolController.OsdDisplayMode) or
             nameof(FnMappingToolController.OsdBackgroundOpacityPercent) or
@@ -67,6 +68,7 @@ public sealed partial class SettingsPage : Page
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
+        TouchpadLongPressDurationNumberBox.Value = Controller.TouchpadLongPressDurationMs;
         OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
         ConfigPathTextBox.Text = Controller.ConfigPath;
         SupportedDeviceNameTextBlock.Text = Controller.SupportedDeviceName;
@@ -130,6 +132,16 @@ public sealed partial class SettingsPage : Page
     private void OnOsdNumberValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
         ApplyOsdSettingsFromControls();
+    }
+
+    private void OnTouchpadNumberValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        Controller.ApplyTouchpadPreferences((int)Math.Round(Math.Clamp(sender.Value, 200, 3000)));
     }
 
     private async void OnServiceStateChanged(object sender, RoutedEventArgs e)

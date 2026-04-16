@@ -66,20 +66,20 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
-            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.None, CreateOsd("PC Manager")),
-            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None, CreateOsd("XiaoAi")),
-            CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.None, CreateOsd("Settings")),
-            CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.None, CreateOsd("Projection")),
-            CreateMapping("mapping-fn-lock-on", DefaultKeyIds.FnLockOn, "Fn Lock On", HotkeyActionType.None, CreateOsd("Fn lock on", "fn-lock.png")),
-            CreateMapping("mapping-fn-lock-off", DefaultKeyIds.FnLockOff, "Fn Lock Off", HotkeyActionType.None, CreateOsd("Fn lock off", "fn-unlock.png")),
-            CreateMapping("mapping-caps-lock-on", DefaultKeyIds.CapsLockOn, "Caps Lock On", HotkeyActionType.None, CreateOsd("Caps lock on", "caps-lock.png")),
-            CreateMapping("mapping-caps-lock-off", DefaultKeyIds.CapsLockOff, "Caps Lock Off", HotkeyActionType.None, CreateOsd("Caps lock off", "caps-unlock.png")),
+            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.MediaPlayPause),
+            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None, enabled: false),
+            CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
+            CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection),
+            CreateMapping("mapping-fn-lock-on", DefaultKeyIds.FnLockOn, "Fn Lock On", HotkeyActionType.None, CreateOsd("Fn lock on", "fn-lock.png"), enabled: false),
+            CreateMapping("mapping-fn-lock-off", DefaultKeyIds.FnLockOff, "Fn Lock Off", HotkeyActionType.None, CreateOsd("Fn lock off", "fn-unlock.png"), enabled: false),
+            CreateMapping("mapping-caps-lock-on", DefaultKeyIds.CapsLockOn, "Caps Lock On", HotkeyActionType.None, CreateOsd("Caps lock on", "caps-lock.png"), enabled: false),
+            CreateMapping("mapping-caps-lock-off", DefaultKeyIds.CapsLockOff, "Caps Lock Off", HotkeyActionType.None, CreateOsd("Caps lock off", "caps-unlock.png"), enabled: false),
             CreateMapping("mapping-mic-on", DefaultKeyIds.MicrophoneMuteOn, "Microphone Mute On", HotkeyActionType.MicrophoneMuteOn, CreateOsd("Microphone off", "microphone-mute.png")),
             CreateMapping("mapping-mic-off", DefaultKeyIds.MicrophoneMuteOff, "Microphone Mute Off", HotkeyActionType.MicrophoneMuteOff, CreateOsd("Microphone on", "microphone-on.png")),
-            CreateMapping("mapping-backlight-off", DefaultKeyIds.BacklightOff, "Backlight Off", HotkeyActionType.None, CreateOsd("Backlight off", "backlight-off.png")),
-            CreateMapping("mapping-backlight-level1", DefaultKeyIds.BacklightLevel1, "Backlight Level 1", HotkeyActionType.None, CreateOsd("Backlight low", "backlight-low.png")),
-            CreateMapping("mapping-backlight-level2", DefaultKeyIds.BacklightLevel2, "Backlight Level 2", HotkeyActionType.None, CreateOsd("Backlight high", "backlight-high.png")),
-            CreateMapping("mapping-backlight-auto", DefaultKeyIds.BacklightAuto, "Backlight Auto", HotkeyActionType.None, CreateOsd("Backlight auto", "backlight-auto.png"))
+            CreateMapping("mapping-backlight-off", DefaultKeyIds.BacklightOff, "Backlight Off", HotkeyActionType.None, CreateOsd("Backlight off", "backlight-off.png"), enabled: false),
+            CreateMapping("mapping-backlight-level1", DefaultKeyIds.BacklightLevel1, "Backlight Level 1", HotkeyActionType.None, CreateOsd("Backlight low", "backlight-low.png"), enabled: false),
+            CreateMapping("mapping-backlight-level2", DefaultKeyIds.BacklightLevel2, "Backlight Level 2", HotkeyActionType.None, CreateOsd("Backlight high", "backlight-high.png"), enabled: false),
+            CreateMapping("mapping-backlight-auto", DefaultKeyIds.BacklightAuto, "Backlight Auto", HotkeyActionType.None, CreateOsd("Backlight auto", "backlight-auto.png"), enabled: false)
         ];
     }
 
@@ -123,8 +123,36 @@ public static class SupportedDeviceConfiguration
 
     public static bool ShouldUseOsdOnlyDefault(string keyId)
     {
-        return !string.Equals(keyId, DefaultKeyIds.MicrophoneMuteOn, StringComparison.OrdinalIgnoreCase) &&
-               !string.Equals(keyId, DefaultKeyIds.MicrophoneMuteOff, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(keyId, DefaultKeyIds.FnLockOn, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.FnLockOff, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.CapsLockOn, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.CapsLockOff, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.BacklightOff, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.BacklightLevel1, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.BacklightLevel2, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keyId, DefaultKeyIds.BacklightAuto, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool ShouldRestoreLegacyOsdOnlyDefault(string keyId, string? osdTitle, string? iconPath)
+    {
+        if (!string.IsNullOrWhiteSpace(iconPath))
+        {
+            return false;
+        }
+
+        var normalizedTitle = osdTitle?.Trim();
+        return keyId switch
+        {
+            var value when string.Equals(value, DefaultKeyIds.ManagerPress, StringComparison.OrdinalIgnoreCase)
+                => string.Equals(normalizedTitle, "PC Manager", StringComparison.OrdinalIgnoreCase),
+            var value when string.Equals(value, DefaultKeyIds.XiaoAiPress, StringComparison.OrdinalIgnoreCase)
+                => string.Equals(normalizedTitle, "XiaoAi", StringComparison.OrdinalIgnoreCase),
+            var value when string.Equals(value, DefaultKeyIds.SettingsPress, StringComparison.OrdinalIgnoreCase)
+                => string.Equals(normalizedTitle, "Settings", StringComparison.OrdinalIgnoreCase),
+            var value when string.Equals(value, DefaultKeyIds.Projection, StringComparison.OrdinalIgnoreCase)
+                => string.Equals(normalizedTitle, "Projection", StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
     }
 
     private static MappingOsdConfiguration CreateOsd(string title, string? iconPath = null)

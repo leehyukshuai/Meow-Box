@@ -444,6 +444,9 @@
   <data name="OsdScaleNumberBox.Header" xml:space="preserve">
     <value>OSD 大小（%）</value>
   </data>
+  <data name="TouchpadLongPressDurationNumberBox.Header" xml:space="preserve">
+    <value>触控板长按时长（毫秒）</value>
+  </data>
   <data name="OsdIconFolderTextBox.Header" xml:space="preserve">
     <value>OSD 图标文件夹</value>
   </data>

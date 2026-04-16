@@ -152,8 +152,8 @@
                                                         <ColumnDefinition Width="220" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{x:Bind StandardKeyGroups, Mode=OneTime}" SelectedValue="{Binding SelectedMapping.Action.StandardKeyGroup, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnStandardKeyGroupSelectionChanged" />
-                                                    <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{x:Bind FilteredStandardKeys, Mode=OneTime}" SelectedValue="{Binding SelectedMapping.Action.StandardKey, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnMappingEditorSelectionChanged" />
+                                                    <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{x:Bind StandardKeyGroups, Mode=OneTime}" Loaded="OnStandardKeyGroupComboBoxLoaded" Unloaded="OnStandardKeyComboBoxUnloaded" SelectedValue="{Binding SelectedMapping.Action.StandardKeyGroup, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnStandardKeyGroupSelectionChanged" />
+                                                    <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{x:Bind FilteredStandardKeys, Mode=OneTime}" Loaded="OnStandardKeyComboBoxLoaded" Unloaded="OnStandardKeyComboBoxUnloaded" SelectedValue="{Binding SelectedMapping.Action.StandardKey, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnMappingEditorSelectionChanged" />
                                                 </Grid>
                                             </StackPanel>
                                         </StackPanel>

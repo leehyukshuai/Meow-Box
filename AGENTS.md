@@ -28,7 +28,7 @@ The Worker performs runtime behavior.
 - `build/`
   all intermediate outputs and package staging
 - `artifacts/`
-  final distributables (`.zip`, `.msi`)
+  final distributables (`FnMappingTool/`, optional `.zip`, `.msi`)
 
 Do not introduce new top-level output folders unless truly necessary.
 
@@ -155,13 +155,15 @@ Keep project files simple.
 Do not reintroduce `Directory.Build.props` just to relocate transient `obj/` folders; the packaging script already cleans those after a build.
 
 Current packaging targets:
-- portable zip
-- MSI installer
+- portable folder
+- optional portable zip
+- optional MSI installer
 
 Packaging rules:
 - user-visible entry point is `FnMappingTool.Controller.exe`
 - `Worker` is internal runtime payload and may be staged under a subdirectory
 - package from MSBuild `Publish` outputs
+- default `.\build.ps1` should emit `artifacts/FnMappingTool/` for fast local debugging
 - default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
 - use self-contained publish only when explicitly needed for a copy-and-run distribution
 - the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup

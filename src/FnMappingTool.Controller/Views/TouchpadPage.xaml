@@ -8,9 +8,11 @@
 
     <Page.Resources>
         <DataTemplate x:Key="TouchpadActionEditorTemplate">
-            <Border Style="{StaticResource SubtlePanelCardStyle}">
+            <Border
+                HorizontalAlignment="Stretch"
+                Style="{StaticResource SubtlePanelCardStyle}">
                 <StackPanel Spacing="14">
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="8">
                         <TextBlock
                             Style="{StaticResource CardTitleTextBlockStyle}"
                             Text="{Binding Title}" />
@@ -18,6 +20,19 @@
                             Style="{StaticResource CardBodyTextBlockStyle}"
                             Text="{Binding Description}"
                             TextWrapping="WrapWholeWords" />
+                        <ItemsControl
+                            ItemsSource="{Binding GuidanceLines}"
+                            Visibility="{Binding GuidanceVisibility}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,0,0,2"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{Binding}"
+                                        TextWrapping="WrapWholeWords" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="12">
@@ -113,6 +128,8 @@
                                     <ComboBox
                                         DisplayMemberPath="Label"
                                         Header="Group"
+                                        Loaded="OnTouchpadStandardKeyGroupComboBoxLoaded"
+                                        Unloaded="OnTouchpadStandardKeyComboBoxUnloaded"
                                         ItemsSource="{Binding StandardKeyGroups}"
                                         SelectedValue="{Binding Action.StandardKeyGroup, Mode=TwoWay}"
                                         SelectedValuePath="Key"
@@ -121,6 +138,8 @@
                                         Grid.Column="1"
                                         DisplayMemberPath="Label"
                                         Header="Key"
+                                        Loaded="OnTouchpadStandardKeyComboBoxLoaded"
+                                        Unloaded="OnTouchpadStandardKeyComboBoxUnloaded"
                                         ItemsSource="{Binding FilteredStandardKeys}"
                                         SelectedValue="{Binding Action.StandardKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         SelectedValuePath="Key"
@@ -139,158 +158,37 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Border
                 Grid.Row="0"
                 Style="{StaticResource PanelCardStyle}">
-                <Grid RowSpacing="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Grid ColumnSpacing="12">
+                <Border
+                    Background="{ThemeResource LayerFillColorAltBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="16">
+                    <Grid
+                        x:Name="TouchpadVisualizerLayoutGrid"
+                        ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock
-                            Style="{StaticResource SectionTitleTextBlockStyle}"
-                            Text="Touchpad surface" />
-
-                        <Border
-                            Grid.Column="1"
-                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="999"
-                            Padding="10,5">
-                            <TextBlock
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{Binding Touchpad.SurfaceSizeLabel}" />
-                        </Border>
-
-                        <Button
-                            Grid.Column="2"
-                            Click="OnTouchpadSurfaceToggleClick"
-                            Style="{StaticResource SubtleButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{x:Bind SurfaceToggleLabel, Mode=OneWay}" />
-                                <FontIcon
-                                    FontFamily="Segoe Fluent Icons"
-                                    Glyph="{x:Bind SurfaceToggleGlyph, Mode=OneWay}" />
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-
-                    <Border
-                        Grid.Row="1"
-                        Background="{ThemeResource LayerFillColorAltBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="18"
-                        Padding="16"
-                        Visibility="{x:Bind SurfaceContentVisibility, Mode=OneWay}">
                         <Grid
-                            x:Name="TouchpadVisualizerLayoutGrid"
-                            ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Grid>
-                                <Canvas
-                                    x:Name="TouchpadCanvas"
-                                    MinHeight="320"
-                                    SizeChanged="OnTouchpadCanvasSizeChanged" />
-                            </Grid>
-
-                            <Border
-                                Grid.Column="1"
-                                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Padding="10"
-                                MinWidth="280">
-                                <StackPanel Spacing="8">
-                                    <TextBlock
-                                        Style="{StaticResource CardTitleTextBlockStyle}"
-                                        Text="Contacts" />
-                                    <ItemsControl ItemsSource="{x:Bind VisibleContacts, Mode=OneWay}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border
-                                                    Background="{ThemeResource LayerFillColorAltBrush}"
-                                                    CornerRadius="10"
-                                                    Padding="8">
-                                                    <Grid ColumnSpacing="6">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <Border
-                                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                                            CornerRadius="8"
-                                                            Padding="8,6">
-                                                            <TextBlock
-                                                                FontSize="12"
-                                                                FontWeight="SemiBold"
-                                                                Text="{Binding Label}" />
-                                                        </Border>
-
-                                                        <Border
-                                                            Grid.Column="1"
-                                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                                            CornerRadius="8"
-                                                            Padding="8,6">
-                                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <TextBlock FontSize="11" Opacity="0.72" Text="X" />
-                                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="{Binding X}" />
-                                                            </StackPanel>
-                                                        </Border>
-
-                                                        <Border
-                                                            Grid.Column="2"
-                                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                                            CornerRadius="8"
-                                                            Padding="8,6">
-                                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <TextBlock FontSize="11" Opacity="0.72" Text="Y" />
-                                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="{Binding Y}" />
-                                                            </StackPanel>
-                                                        </Border>
-
-                                                        <Border
-                                                            Grid.Column="3"
-                                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                                            CornerRadius="8"
-                                                            Padding="8,6">
-                                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                                <TextBlock FontSize="11" Opacity="0.72" Text="P" />
-                                                                <TextBlock FontSize="12" FontWeight="SemiBold" Text="{Binding Pressure}" />
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
+                            x:Name="TouchpadPreviewHost"
+                            Width="500"
+                            Height="324"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top">
+                            <Canvas
+                                x:Name="TouchpadCanvas"
+                                SizeChanged="OnTouchpadCanvasSizeChanged" />
 
                             <StackPanel
                                 x:Name="TouchpadCanvasEmptyStatePanel"
-                                Grid.ColumnSpan="2"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Spacing="8">
@@ -309,121 +207,86 @@
                                     TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Grid>
-                    </Border>
-                </Grid>
+
+                        <StackPanel
+                            x:Name="TouchpadGuidancePanel"
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="• 你可以为触控板的重按设置一个自定义动作。"
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="• LT 和 RT 区域也可以分别设置重按和长按两种动作。"
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="• LT 和 RT 区域的重按会覆盖全局的重按触发动作。"
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="• 长按需要的触发时间可以在设置页面当中设置。"
+                                TextWrapping="WrapWholeWords" />
+                        </StackPanel>
+
+                    </Grid>
+                </Border>
             </Border>
 
-            <Border
+            <Grid
                 Grid.Row="1"
-                Style="{StaticResource SubtlePanelCardStyle}">
-                <StackPanel Spacing="14">
-                    <StackPanel Spacing="4">
-                        <TextBlock
-                            Style="{StaticResource SectionTitleTextBlockStyle}"
-                            Text="Global action" />
-                        <TextBlock
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="Use the built-in touchpad pressure states to trigger a global action."
-                            TextWrapping="WrapWholeWords" />
-                    </StackPanel>
+                ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                    <ContentControl
-                        Content="{Binding Touchpad.GlobalDeepPress}"
-                        ContentTemplate="{StaticResource TouchpadActionEditorTemplate}" />
-                </StackPanel>
-            </Border>
+                <Border
+                    Grid.Column="0"
+                    Style="{StaticResource PanelCardStyle}">
+                    <ListView
+                        Style="{StaticResource ListHostStyle}"
+                        ItemContainerStyle="{StaticResource ListHostItemStyle}"
+                        ItemsSource="{Binding Touchpad.AllActionEditors}"
+                        SelectedItem="{Binding Touchpad.SelectedActionEditor, Mode=TwoWay}"
+                        SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
 
-            <Border
-                Grid.Row="2"
-                Style="{StaticResource SubtlePanelCardStyle}">
-                <StackPanel Spacing="14">
-                    <StackPanel Spacing="6">
-                        <TextBlock
-                            Style="{StaticResource SectionTitleTextBlockStyle}"
-                            Text="{Binding Touchpad.LeftTopCorner.Title}" />
-                        <TextBlock
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="{Binding Touchpad.LeftTopCorner.Description}"
-                            TextWrapping="WrapWholeWords" />
-                    </StackPanel>
+                                    <Border Width="28" Height="28" Background="{StaticResource ShellInfoSoftBrush}" CornerRadius="6">
+                                        <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="12" Glyph="{Binding ActionIconGlyph}" />
+                                    </Border>
 
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Title}" />
+                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding ActionSummary}" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Border>
 
-                        <Border
-                            Background="{ThemeResource LayerFillColorAltBrush}"
-                            CornerRadius="10"
-                            Padding="10,8">
-                            <TextBlock
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{Binding Touchpad.LeftTopCorner.BoundsSummary}" />
-                        </Border>
-
-                        <TextBlock
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="{Binding Touchpad.LeftTopCorner.PriorityHint}"
-                            TextWrapping="WrapWholeWords" />
-                    </Grid>
-
-                    <ContentControl
-                        Content="{Binding Touchpad.LeftTopCorner.DeepPress}"
-                        ContentTemplate="{StaticResource TouchpadActionEditorTemplate}" />
-                    <ContentControl
-                        Content="{Binding Touchpad.LeftTopCorner.LongPress}"
-                        ContentTemplate="{StaticResource TouchpadActionEditorTemplate}" />
-                </StackPanel>
-            </Border>
-
-            <Border
-                Grid.Row="3"
-                Style="{StaticResource SubtlePanelCardStyle}">
-                <StackPanel Spacing="14">
-                    <StackPanel Spacing="6">
-                        <TextBlock
-                            Style="{StaticResource SectionTitleTextBlockStyle}"
-                            Text="{Binding Touchpad.RightTopCorner.Title}" />
-                        <TextBlock
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="{Binding Touchpad.RightTopCorner.Description}"
-                            TextWrapping="WrapWholeWords" />
-                    </StackPanel>
-
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border
-                            Background="{ThemeResource LayerFillColorAltBrush}"
-                            CornerRadius="10"
-                            Padding="10,8">
-                            <TextBlock
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{Binding Touchpad.RightTopCorner.BoundsSummary}" />
-                        </Border>
-
-                        <TextBlock
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CardBodyTextBlockStyle}"
-                            Text="{Binding Touchpad.RightTopCorner.PriorityHint}"
-                            TextWrapping="WrapWholeWords" />
-                    </Grid>
-
-                    <ContentControl
-                        Content="{Binding Touchpad.RightTopCorner.DeepPress}"
-                        ContentTemplate="{StaticResource TouchpadActionEditorTemplate}" />
-                    <ContentControl
-                        Content="{Binding Touchpad.RightTopCorner.LongPress}"
-                        ContentTemplate="{StaticResource TouchpadActionEditorTemplate}" />
-                </StackPanel>
-            </Border>
+                <Border
+                    Grid.Column="1"
+                    Style="{StaticResource PanelCardStyle}">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <ContentControl
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch"
+                            Content="{Binding Touchpad.SelectedActionEditor}"
+                            ContentTemplate="{StaticResource TouchpadActionEditorTemplate}" />
+                    </ScrollViewer>
+                </Border>
+            </Grid>
         </Grid>
     </ScrollViewer>
 </Page>

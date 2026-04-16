@@ -76,16 +76,7 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         set
         {
             var normalizedValue = StandardKeyCatalog.NormalizeGroupKey(value);
-            if (!SetProperty(ref _standardKeyGroup, normalizedValue))
-            {
-                return;
-            }
-
-            if (!string.IsNullOrWhiteSpace(StandardKey) &&
-                !StandardKeyCatalog.MatchesGroup(StandardKey, normalizedValue))
-            {
-                StandardKey = string.Empty;
-            }
+            SetProperty(ref _standardKeyGroup, normalizedValue);
         }
     }
 
@@ -142,6 +133,15 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         StandardKeyGroup = StandardKeyCatalog.GroupOptions[0].Key;
         Target = string.Empty;
         Arguments = string.Empty;
+    }
+
+    public void ClearStandardKeyIfGroupMismatch()
+    {
+        if (!string.IsNullOrWhiteSpace(StandardKey) &&
+            !StandardKeyCatalog.MatchesGroup(StandardKey, StandardKeyGroup))
+        {
+            StandardKey = string.Empty;
+        }
     }
 
     private string BuildActionDescription()

@@ -15,6 +15,8 @@ public sealed partial class MappingsPage : Page
 {
     private bool _isRefreshingOsdIcons;
     private bool _isRefreshingStandardKeyChoices;
+    private ComboBox? _standardKeyGroupComboBox;
+    private ComboBox? _standardKeyComboBox;
 
     public FnMappingToolController Controller => App.Controller;
 
@@ -230,9 +232,39 @@ public sealed partial class MappingsPage : Page
         TrySaveMappingAsync();
     }
 
+    private void OnStandardKeyGroupComboBoxLoaded(object sender, RoutedEventArgs e)
+    {
+        _standardKeyGroupComboBox = sender as ComboBox;
+        SyncVisibleStandardKeyChoices();
+    }
+
+    private void OnStandardKeyComboBoxLoaded(object sender, RoutedEventArgs e)
+    {
+        _standardKeyComboBox = sender as ComboBox;
+        SyncVisibleStandardKeyChoices();
+    }
+
+    private void OnStandardKeyComboBoxUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (ReferenceEquals(sender, _standardKeyGroupComboBox))
+        {
+            _standardKeyGroupComboBox = null;
+        }
+
+        if (ReferenceEquals(sender, _standardKeyComboBox))
+        {
+            _standardKeyComboBox = null;
+        }
+    }
+
     private void OnStandardKeyGroupSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        if (_isRefreshingStandardKeyChoices)
         {
             return;
         }
@@ -242,6 +274,7 @@ public sealed partial class MappingsPage : Page
             var selectedGroup = e.AddedItems.OfType<StandardKeyGroupOption>().FirstOrDefault()
                 ?? StandardKeyGroupComboBox.SelectedItem as StandardKeyGroupOption;
             Controller.SelectedMapping.Action.StandardKeyGroup = selectedGroup?.Key ?? StandardKeyCatalog.GroupOptions[0].Key;
+            Controller.SelectedMapping.Action.ClearStandardKeyIfGroupMismatch();
         }
 
         RefreshStandardKeyChoices();
@@ -267,15 +300,10 @@ public sealed partial class MappingsPage : Page
 
         if (Controller.SelectedMapping.Osd.Enabled)
         {
-            Controller.SelectedMapping.Enabled = true;
             var fallbackTitle = Controller.SelectedMapping.Action.HasAssignedAction
                 ? Controller.SelectedMapping.Action.ActionLabel
                 : MappingDisplayCatalog.ShowOsdLabel;
             Controller.SelectedMapping.Osd.EnsureDefaultTitle(fallbackTitle);
-        }
-        else if (!Controller.SelectedMapping.Action.HasAssignedAction)
-        {
-            Controller.SelectedMapping.Enabled = false;
         }
 
         RefreshOsdIcons();
@@ -338,7 +366,11 @@ public sealed partial class MappingsPage : Page
         _isRefreshingStandardKeyChoices = true;
         try
         {
-            var selectedGroup = Controller.SelectedMapping?.Action.StandardKeyGroup;
+            var action = Controller.SelectedMapping?.Action;
+            var selectedKey = action?.StandardKey;
+            var selectedGroup = !string.IsNullOrWhiteSpace(selectedKey)
+                ? StandardKeyCatalog.GetPreferredGroupKey(selectedKey)
+                : action?.StandardKeyGroup;
 
             FilteredStandardKeys.Clear();
             foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))
@@ -346,22 +378,38 @@ public sealed partial class MappingsPage : Page
                 FilteredStandardKeys.Add(option);
             }
 
-            if (StandardKeyGroupComboBox is not null)
+            if (action is not null && !string.Equals(action.StandardKeyGroup, selectedGroup, StringComparison.OrdinalIgnoreCase))
             {
-                StandardKeyGroupComboBox.SelectedValue = selectedGroup;
+                action.StandardKeyGroup = selectedGroup ?? StandardKeyCatalog.GroupOptions[0].Key;
             }
 
-            if (StandardKeyComboBox is not null)
-            {
-                var selectedKey = Controller.SelectedMapping?.Action.StandardKey;
-                StandardKeyComboBox.SelectedItem = FilteredStandardKeys.FirstOrDefault(item =>
-                    string.Equals(item.Key, selectedKey, StringComparison.OrdinalIgnoreCase));
-                StandardKeyComboBox.SelectedValue = selectedKey;
-            }
+            SyncVisibleStandardKeyChoices();
         }
         finally
         {
             _isRefreshingStandardKeyChoices = false;
+        }
+    }
+
+    private void SyncVisibleStandardKeyChoices()
+    {
+        var action = Controller.SelectedMapping?.Action;
+        if (action is null)
+        {
+            return;
+        }
+
+        if (_standardKeyGroupComboBox is not null)
+        {
+            _standardKeyGroupComboBox.SelectedValue = action.StandardKeyGroup;
+        }
+
+        if (_standardKeyComboBox is not null)
+        {
+            var selectedKey = action.StandardKey;
+            _standardKeyComboBox.SelectedItem = FilteredStandardKeys.FirstOrDefault(item =>
+                string.Equals(item.Key, selectedKey, StringComparison.OrdinalIgnoreCase));
+            _standardKeyComboBox.SelectedValue = selectedKey;
         }
     }
 }

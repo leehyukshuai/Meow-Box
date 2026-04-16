@@ -277,9 +277,9 @@ public static class RuntimeDefaults
     public const int DefaultTouchpadDeepPressThreshold = 500;
     public const int DefaultTouchpadSurfaceWidth = 3282;
     public const int DefaultTouchpadSurfaceHeight = 2124;
-    public const int DefaultTouchpadCornerWidth = 720;
-    public const int DefaultTouchpadCornerHeight = 560;
-    public const int DefaultTouchpadCornerLongPressDurationMs = 450;
+    public const int DefaultTouchpadCornerWidth = 400;
+    public const int DefaultTouchpadCornerHeight = 400;
+    public const int DefaultTouchpadCornerLongPressDurationMs = 1000;
     public const int MaxOsdTitleLength = 32;
 }
 

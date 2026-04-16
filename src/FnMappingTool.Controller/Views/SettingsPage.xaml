@@ -145,6 +145,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <ComboBox x:Uid="OsdDisplayModeComboBox" x:Name="OsdDisplayModeComboBox" Header="OSD content" SelectionChanged="OnOsdSettingChanged">
@@ -156,9 +157,10 @@
                             <NumberBox x:Uid="OsdDurationNumberBox" x:Name="OsdDurationNumberBox" Grid.Column="1" Header="OSD duration (ms)" Minimum="500" Maximum="10000" SmallChange="100" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
                             <NumberBox x:Uid="OsdBackgroundOpacityNumberBox" x:Name="OsdBackgroundOpacityNumberBox" Grid.Row="1" Header="Background opacity (%)" Minimum="0" Maximum="100" SmallChange="5" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
                             <NumberBox x:Uid="OsdScaleNumberBox" x:Name="OsdScaleNumberBox" Grid.Row="1" Grid.Column="1" Header="OSD size (%)" Minimum="60" Maximum="200" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
-                            <TextBox x:Uid="OsdIconFolderTextBox" x:Name="OsdIconFolderTextBox" Grid.Row="2" Grid.ColumnSpan="2" Header="OSD icon folder" IsReadOnly="True" />
+                            <NumberBox x:Uid="TouchpadLongPressDurationNumberBox" x:Name="TouchpadLongPressDurationNumberBox" Grid.Row="2" Grid.ColumnSpan="2" Header="Touchpad long press (ms)" Minimum="200" Maximum="3000" SmallChange="50" SpinButtonPlacementMode="Inline" ValueChanged="OnTouchpadNumberValueChanged" />
+                            <TextBox x:Uid="OsdIconFolderTextBox" x:Name="OsdIconFolderTextBox" Grid.Row="3" Grid.ColumnSpan="2" Header="OSD icon folder" IsReadOnly="True" />
 
-                            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Spacing="10">
+                            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Spacing="10">
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <Button x:Uid="OpenOsdIconFolderButton" Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
                                     <Button x:Uid="RefreshOsdIconFolderButton" Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />

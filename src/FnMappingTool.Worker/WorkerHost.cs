@@ -245,10 +245,9 @@ internal sealed class WorkerHost : IDisposable
         }
 
         var mapping = _configuration.Mappings.FirstOrDefault(item =>
-            item.Enabled &&
             string.Equals(item.KeyId, matchedKey.Id, StringComparison.OrdinalIgnoreCase));
 
-        if (mapping is not null)
+        if (mapping is not null && (mapping.Enabled || mapping.Osd.Enabled))
         {
             ExecuteMapping(mapping);
         }
@@ -258,7 +257,11 @@ internal sealed class WorkerHost : IDisposable
     {
         try
         {
-            ExecuteAction(mapping.Action);
+            if (mapping.Enabled)
+            {
+                ExecuteAction(mapping.Action);
+            }
+
             ShowMappingOsd(mapping);
         }
         catch (Exception exception)

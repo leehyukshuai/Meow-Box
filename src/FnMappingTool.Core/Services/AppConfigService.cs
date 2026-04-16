@@ -277,7 +277,9 @@ public sealed class AppConfigService
         KeyActionMappingConfiguration template,
         string? baseDirectory)
     {
-        var source = mapping ?? template;
+        var restoreLegacyDefault = ShouldRestoreLegacyFixedMapping(mapping, template);
+        var effectiveMapping = restoreLegacyDefault ? null : mapping;
+        var source = effectiveMapping ?? template;
         var forceOsdOnly = SupportedDeviceConfiguration.ShouldUseOsdOnlyDefault(template.KeyId);
         var legacyAction = forceOsdOnly
             ? template.Action ?? new ActionDefinitionConfiguration()
@@ -300,20 +302,42 @@ public sealed class AppConfigService
         }
 
         var hasAssignedAction = !string.IsNullOrWhiteSpace(normalizedAction.Type);
-        var isRuntimeActive = hasAssignedAction || normalizedOsd.Enabled;
-        var isOsdOnlyMapping = !hasAssignedAction && normalizedOsd.Enabled;
 
         return new KeyActionMappingConfiguration
         {
             Id = template.Id,
             Name = template.Name,
-            Enabled = isOsdOnlyMapping
-                ? true
-                : isRuntimeActive && (mapping?.Enabled ?? template.Enabled),
+            Enabled = hasAssignedAction && (effectiveMapping?.Enabled ?? template.Enabled),
             KeyId = template.KeyId,
             Action = normalizedAction,
             Osd = normalizedOsd
         };
+    }
+
+    private static bool ShouldRestoreLegacyFixedMapping(
+        KeyActionMappingConfiguration? mapping,
+        KeyActionMappingConfiguration template)
+    {
+        if (mapping is null)
+        {
+            return false;
+        }
+
+        var normalizedActionType = NormalizeActionType(mapping.Action?.Type);
+        if (!string.Equals(normalizedActionType, HotkeyActionType.None, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (mapping.Osd?.Enabled != true)
+        {
+            return false;
+        }
+
+        return SupportedDeviceConfiguration.ShouldRestoreLegacyOsdOnlyDefault(
+            template.KeyId,
+            mapping.Osd.Title,
+            mapping.Osd.Icon?.Path);
     }
 
     private static ActionDefinitionConfiguration NormalizeAction(ActionDefinitionConfiguration? action, string? baseDirectory)
@@ -344,6 +368,10 @@ public sealed class AppConfigService
                 touchpad.DeepPressThreshold <= 0 ? RuntimeDefaults.DefaultTouchpadDeepPressThreshold : touchpad.DeepPressThreshold,
                 100,
                 4000),
+            LongPressDurationMs = Math.Clamp(
+                touchpad.LongPressDurationMs <= 0 ? RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs : touchpad.LongPressDurationMs,
+                200,
+                3000),
             SurfaceWidth = surfaceWidth,
             SurfaceHeight = surfaceHeight,
             DeepPressAction = NormalizeAction(touchpad.DeepPressAction, baseDirectory),
@@ -369,6 +397,17 @@ public sealed class AppConfigService
         int surfaceWidth,
         int surfaceHeight)
     {
+        if (IsLegacyTouchpadCornerBounds(region?.Bounds, template.Id, surfaceWidth))
+        {
+            region = new TouchpadCornerRegionConfiguration
+            {
+                Id = template.Id,
+                Bounds = template.Bounds,
+                DeepPressAction = region?.DeepPressAction ?? template.DeepPressAction,
+                LongPressAction = region?.LongPressAction ?? template.LongPressAction
+            };
+        }
+
         var bounds = NormalizeTouchpadBounds(region?.Bounds, template.Bounds, surfaceWidth, surfaceHeight);
         return new TouchpadCornerRegionConfiguration
         {
@@ -405,6 +444,30 @@ public sealed class AppConfigService
         }
 
         return normalized;
+    }
+
+    private static bool IsLegacyTouchpadCornerBounds(
+        TouchpadRegionBoundsConfiguration? bounds,
+        string regionId,
+        int surfaceWidth)
+    {
+        if (bounds is null)
+        {
+            return false;
+        }
+
+        return regionId switch
+        {
+            TouchpadCornerRegionId.LeftTop => bounds.Left == 0 &&
+                                             bounds.Top == 0 &&
+                                             (bounds.Right == 200 || bounds.Right == 250) &&
+                                             (bounds.Bottom == 200 || bounds.Bottom == 250),
+            TouchpadCornerRegionId.RightTop => (bounds.Left == surfaceWidth - 200 || bounds.Left == surfaceWidth - 250) &&
+                                              bounds.Top == 0 &&
+                                              bounds.Right == surfaceWidth &&
+                                              (bounds.Bottom == 200 || bounds.Bottom == 250),
+            _ => false
+        };
     }
 
     private static MappingOsdConfiguration NormalizeMappingOsd(

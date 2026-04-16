@@ -90,19 +90,26 @@ Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映
 .\build.ps1
 ```
 
+默认只会生成一个便于直接调试的便携目录：
+
+- `artifacts/FnMappingTool/`
+
 可选参数：
 
 ```powershell
 .\build.ps1 -Version 0.2.0
-.\build.ps1 -SkipZip
-.\build.ps1 -SkipMsi
+.\build.ps1 -Zip
+.\build.ps1 -Msi
+.\build.ps1 -PackageAll
 .\build.ps1 -SelfContained
 ```
 
 输出文件：
 
-- `artifacts/FnMappingTool-portable-v<version>.zip`
-- `artifacts/FnMappingTool-setup-v<version>.msi`
+- 默认：`artifacts/FnMappingTool/`
+- `-Zip`：`artifacts/FnMappingTool-portable-v<version>.zip`
+- `-Msi`：`artifacts/FnMappingTool-setup-v<version>.msi`
+- `-PackageAll`：同时生成 zip 和 msi
 
 ### 🗂️ 项目结构
 
@@ -212,19 +219,26 @@ Default build:
 .\build.ps1
 ```
 
+By default this now creates only a portable folder for quick local testing:
+
+- `artifacts/FnMappingTool/`
+
 Optional arguments:
 
 ```powershell
 .\build.ps1 -Version 0.2.0
-.\build.ps1 -SkipZip
-.\build.ps1 -SkipMsi
+.\build.ps1 -Zip
+.\build.ps1 -Msi
+.\build.ps1 -PackageAll
 .\build.ps1 -SelfContained
 ```
 
 Outputs:
 
-- `artifacts/FnMappingTool-portable-v<version>.zip`
-- `artifacts/FnMappingTool-setup-v<version>.msi`
+- Default: `artifacts/FnMappingTool/`
+- `-Zip`: `artifacts/FnMappingTool-portable-v<version>.zip`
+- `-Msi`: `artifacts/FnMappingTool-setup-v<version>.msi`
+- `-PackageAll`: builds both zip and msi
 
 ### 🗂️ Project layout
 

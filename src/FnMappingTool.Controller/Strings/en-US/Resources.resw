@@ -462,6 +462,9 @@
   <data name="OsdScaleNumberBox.Header" xml:space="preserve">
     <value>OSD size (%)</value>
   </data>
+  <data name="TouchpadLongPressDurationNumberBox.Header" xml:space="preserve">
+    <value>Touchpad long press (ms)</value>
+  </data>
   <data name="OsdIconFolderTextBox.Header" xml:space="preserve">
     <value>OSD icon folder</value>
   </data>

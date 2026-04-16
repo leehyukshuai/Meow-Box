@@ -39,6 +39,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
     private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
+    private int _touchpadLongPressDurationMs = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
 
     public ObservableCollection<KeyDefinitionViewModel> KeyItems { get; } = [];
 
@@ -180,6 +181,12 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         private set => SetProperty(ref _osdScalePercent, value);
     }
 
+    public int TouchpadLongPressDurationMs
+    {
+        get => _touchpadLongPressDurationMs;
+        private set => SetProperty(ref _touchpadLongPressDurationMs, value);
+    }
+
     public void Initialize(Window window)
     {
         _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
@@ -255,7 +262,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         }
 
         SelectedMapping.Action.ClearAssignment();
-        SelectedMapping.Enabled = SelectedMapping.Osd.Enabled;
+        SelectedMapping.Enabled = false;
         RefreshMappingReferences();
     }
 
@@ -423,6 +430,16 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
+    public void ApplyTouchpadPreferences(int longPressDurationMs)
+    {
+        var normalizedValue = Math.Clamp(longPressDurationMs, 200, 3000);
+        _configuration.Touchpad.LongPressDurationMs = normalizedValue;
+        Touchpad.LongPressDurationMs = normalizedValue;
+        TouchpadLongPressDurationMs = normalizedValue;
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
     public async Task<bool> RestartWorkerServiceAsync()
     {
         if (_workerProcessService.IsWorkerProcessRunning())
@@ -535,6 +552,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             LanguagePreference = _configuration.Preferences.Language;
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
             Touchpad = new TouchpadConfigurationViewModel(_configuration.Touchpad);
+            TouchpadLongPressDurationMs = Touchpad.LongPressDurationMs;
             SyncOsdPreferenceState();
             RefreshMappingReferences();
             SelectedMapping = MappingItems.FirstOrDefault();

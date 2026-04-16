@@ -1,6 +1,9 @@
 param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version = '0.1.0',
+    [switch]$Zip,
+    [switch]$Msi,
+    [switch]$PackageAll,
     [switch]$SkipZip,
     [switch]$SkipMsi,
     [switch]$SelfContained
@@ -204,6 +207,7 @@ $packageAppRoot = Join-Path $packageRoot 'FnMappingTool'
 $packageWorkerRoot = Join-Path $packageAppRoot 'runtime\worker'
 $legacyPortableRoot = Join-Path $root 'portable'
 $artifactsRoot = Join-Path $root 'artifacts'
+$artifactPortableRoot = Join-Path $artifactsRoot 'FnMappingTool'
 $controllerProject = Join-Path $srcRoot 'FnMappingTool.Controller\FnMappingTool.Controller.csproj'
 $workerProject = Join-Path $srcRoot 'FnMappingTool.Worker\FnMappingTool.Worker.csproj'
 $installerProject = Join-Path $srcRoot 'FnMappingTool.Setup\FnMappingTool.Setup.wixproj'
@@ -216,6 +220,10 @@ $workerPublishOutput = Join-Path $publishRoot 'worker'
 $installerOutputRoot = Join-Path $buildRoot 'bin\FnMappingTool.Setup'
 $portableZipPath = Join-Path $artifactsRoot ("FnMappingTool-portable-v{0}.zip" -f $Version)
 $msiPath = Join-Path $artifactsRoot ("FnMappingTool-setup-v{0}.msi" -f $Version)
+
+$legacyPackagingRequested = $PackageAll -or $SkipZip -or $SkipMsi
+$buildZip = $PackageAll -or $Zip -or ($legacyPackagingRequested -and -not $SkipZip)
+$buildMsi = $PackageAll -or $Msi -or ($legacyPackagingRequested -and -not $SkipMsi)
 
 if (-not (Test-Path $controllerProject) -or -not (Test-Path $workerProject)) {
     throw 'Worker or Controller project not found.'
@@ -268,16 +276,17 @@ Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $workerProject -Publ
 Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $packageWorkerRoot
 
 Get-ChildItem $packageAppRoot -Recurse -Include *.pdb | Remove-Item -Force
+Copy-DirectoryContent -SourceDirectory $packageAppRoot -DestinationDirectory $artifactPortableRoot
 
-if (-not $SkipZip) {
+if ($buildZip) {
     if (Test-Path $portableZipPath) {
         Remove-Item -LiteralPath $portableZipPath -Force
     }
 
-    Compress-Archive -Path $packageAppRoot -DestinationPath $portableZipPath -CompressionLevel Optimal
+    Compress-Archive -Path $artifactPortableRoot -DestinationPath $portableZipPath -CompressionLevel Optimal
 }
 
-if (-not $SkipMsi) {
+if ($buildMsi) {
     if (-not (Test-Path $installerProject)) {
         throw 'Installer project not found.'
     }
@@ -318,11 +327,12 @@ Remove-PathIfExists $generatedInstallerSource
 
 Write-Host 'Packaging mode:' ($(if ($SelfContained) { 'self-contained win-x64' } else { 'framework-dependent win-x64' }))
 Write-Host 'Package staging folder:' $packageAppRoot
-Write-Host 'Launcher:' (Join-Path $packageAppRoot 'FnMappingTool.Controller.exe')
-Write-Host 'Internal worker:' (Join-Path $packageWorkerRoot 'FnMappingTool.Worker.exe')
-if (-not $SkipZip) {
+Write-Host 'Portable folder:' $artifactPortableRoot
+Write-Host 'Launcher:' (Join-Path $artifactPortableRoot 'FnMappingTool.Controller.exe')
+Write-Host 'Internal worker:' (Join-Path $artifactPortableRoot 'runtime\worker\FnMappingTool.Worker.exe')
+if ($buildZip) {
     Write-Host 'Portable zip:' $portableZipPath
 }
-if (-not $SkipMsi) {
+if ($buildMsi) {
     Write-Host 'MSI installer:' $msiPath
 }
