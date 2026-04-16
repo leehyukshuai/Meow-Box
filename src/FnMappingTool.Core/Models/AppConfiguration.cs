@@ -16,15 +16,7 @@ public sealed class AppConfiguration
 
     public static AppConfiguration CreateDefault()
     {
-        return new AppConfiguration
-        {
-            Preferences = new AppPreferences
-            {
-                IsListening = true,
-                PreferPriorityStartup = false,
-                Language = AppLanguagePreference.System
-            }
-        };
+        return SupportedDeviceConfiguration.CreateDefault();
     }
 }
 

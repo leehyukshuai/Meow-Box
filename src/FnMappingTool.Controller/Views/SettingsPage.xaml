@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="FnMappingTool.Controller.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -32,8 +32,8 @@
                                 <Setter Target="AppearanceCard.(Grid.Column)" Value="1" />
                                 <Setter Target="ConfigsCard.(Grid.Row)" Value="1" />
                                 <Setter Target="ConfigsCard.(Grid.Column)" Value="0" />
-                                <Setter Target="FilesCard.(Grid.Row)" Value="1" />
-                                <Setter Target="FilesCard.(Grid.Column)" Value="1" />
+                                <Setter Target="DeviceCard.(Grid.Row)" Value="1" />
+                                <Setter Target="DeviceCard.(Grid.Column)" Value="1" />
                             </VisualState.Setters>
                         </VisualState>
                     </VisualStateGroup>
@@ -122,7 +122,7 @@
                             <ComboBox x:Uid="LanguageComboBox" x:Name="LanguageComboBox" Header="Language" SelectionChanged="OnLanguageSelectionChanged">
                                 <ComboBoxItem x:Uid="LanguageSystemItem" Content="Use system language" Tag="System" />
                                 <ComboBoxItem x:Uid="LanguageEnglishItem" Content="English" Tag="English" />
-                                <ComboBoxItem x:Uid="LanguageChineseItem" Content="简体中文" Tag="Chinese" />
+                                <ComboBoxItem x:Uid="LanguageChineseItem" Content="Chinese" Tag="Chinese" />
                             </ComboBox>
                             <TextBlock x:Uid="LanguageRestartHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Language changes apply after restarting the app." TextWrapping="WrapWholeWords" />
                         </StackPanel>
@@ -172,37 +172,24 @@
                     </Grid>
                 </Border>
 
-                <Border x:Name="FilesCard" Grid.Row="3" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
-                    <Grid RowSpacing="14">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                <Border x:Name="DeviceCard" Grid.Row="3" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock x:Uid="DeviceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Device" />
 
-                        <TextBlock x:Uid="FilesCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Files" />
+                        <Border Style="{StaticResource SubtlePanelCardStyle}">
+                            <StackPanel Spacing="6">
+                                <TextBlock x:Uid="SupportedDeviceTitleText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Supported device" />
+                                <TextBlock x:Name="SupportedDeviceNameTextBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="Xiaomi Book Pro 14 2026" />
+                                <TextBlock x:Uid="SupportedDeviceDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="This build is simplified for Xiaomi Book Pro 14 2026 only." TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </Border>
 
-                        <StackPanel Grid.Row="1" Spacing="12">
-                            <TextBlock x:Uid="PresetDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Preset files live in their own folder. Copy JSON presets there, refresh the list, then load one." TextWrapping="WrapWholeWords" />
-                            <TextBox x:Uid="PresetDirectoryTextBox" x:Name="PresetDirectoryTextBox" Header="Preset folder" IsReadOnly="True" Text="{Binding PresetDirectory}" />
+                        <TextBox x:Uid="ConfigPathTextBox" x:Name="ConfigPathTextBox" Header="Config file" IsReadOnly="True" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button x:Uid="OpenConfigFolderButton" Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource AccentButtonStyle}" />
                         </StackPanel>
-
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
-                            <Button x:Uid="OpenPresetFolderButton" Click="OnOpenPresetFolderClick" Content="Open preset folder" Style="{StaticResource AccentButtonStyle}" />
-                            <Button x:Uid="RefreshConfigFilesButton" Click="OnRefreshConfigFilesClick" Content="Refresh list" Style="{StaticResource SubtleButtonStyle}" />
-                        </StackPanel>
-
-                        <Grid Grid.Row="3" ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <ComboBox x:Uid="ConfigFilesComboBox" x:Name="ConfigFilesComboBox" DisplayMemberPath="DisplayName" Header="Preset files" PlaceholderText="No preset JSON files found" SelectionChanged="OnConfigFileSelectionChanged" SelectedValuePath="Path" />
-                            <Button x:Uid="LoadPresetButton" x:Name="LoadPresetButton" Grid.Column="1" Click="OnImportSelectedConfigClick" Content="Load preset" Style="{StaticResource AccentButtonStyle}" />
-                        </Grid>
-                    </Grid>
+                    </StackPanel>
                 </Border>
             </Grid>
         </Grid>

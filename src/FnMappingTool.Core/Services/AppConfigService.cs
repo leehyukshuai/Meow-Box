@@ -83,29 +83,12 @@ public sealed class AppConfigService
         }
     }
 
-    public AppConfiguration LoadFromFile(string path)
-    {
-        try
-        {
-            return NormalizeConfiguration(ReadConfiguration(path), Path.GetDirectoryName(path));
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)
-        {
-            throw new InvalidOperationException("The selected JSON file is not a valid FnMappingTool configuration.", exception);
-        }
-    }
-
     public void Save(AppConfiguration configuration)
     {
         Directory.CreateDirectory(ConfigDirectory);
         var normalized = NormalizeConfiguration(configuration, ConfigDirectory);
         var json = JsonSerializer.Serialize(normalized, JsonOptions);
         WriteConfiguration(ConfigPath, json + Environment.NewLine);
-    }
-
-    public void ImportFromFile(string path)
-    {
-        Save(LoadFromFile(path));
     }
 
     private static AppConfiguration ReadConfiguration(string path)
@@ -204,6 +187,7 @@ public sealed class AppConfigService
     private static AppConfiguration NormalizeConfiguration(AppConfiguration? configuration, string? baseDirectory)
     {
         configuration ??= new AppConfiguration();
+        var supported = SupportedDeviceConfiguration.CreateDefault();
 
         configuration.Theme = configuration.Theme switch
         {
@@ -239,57 +223,72 @@ public sealed class AppConfigService
             60,
             200);
 
-        configuration.Keys = (configuration.Keys ?? [])
-            .Select(NormalizeKey)
+        configuration.Keys = supported.Keys
+            .Select(CloneKey)
             .ToList();
 
-        var firstKeyId = configuration.Keys.FirstOrDefault()?.Id ?? string.Empty;
-        var validKeyIds = configuration.Keys
-            .Where(item => !string.IsNullOrWhiteSpace(item.Id))
-            .Select(item => item.Id)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var mappingByKeyId = new Dictionary<string, KeyActionMappingConfiguration>(StringComparer.OrdinalIgnoreCase);
+        var mappingById = new Dictionary<string, KeyActionMappingConfiguration>(StringComparer.OrdinalIgnoreCase);
+        foreach (var mapping in configuration.Mappings ?? [])
+        {
+            if (mapping is null)
+            {
+                continue;
+            }
 
-        configuration.Mappings = (configuration.Mappings ?? [])
-            .Select(mapping => NormalizeMapping(mapping, configuration.Keys, validKeyIds, firstKeyId, baseDirectory))
+            var keyId = NormalizeOptional(mapping.KeyId);
+            if (!string.IsNullOrWhiteSpace(keyId) && !mappingByKeyId.ContainsKey(keyId))
+            {
+                mappingByKeyId[keyId] = mapping;
+            }
+
+            var id = NormalizeOptional(mapping.Id);
+            if (!string.IsNullOrWhiteSpace(id) && !mappingById.ContainsKey(id))
+            {
+                mappingById[id] = mapping;
+            }
+        }
+
+        configuration.Mappings = supported.Mappings
+            .Select(template =>
+            {
+                mappingByKeyId.TryGetValue(template.KeyId, out var mappingByKey);
+                mappingById.TryGetValue(template.Id, out var mappingByTemplateId);
+                return NormalizeFixedMapping(mappingByKey ?? mappingByTemplateId, template, baseDirectory);
+            })
             .ToList();
 
         return configuration;
     }
 
-    private static KeyDefinitionConfiguration NormalizeKey(KeyDefinitionConfiguration? key)
+    private static KeyDefinitionConfiguration CloneKey(KeyDefinitionConfiguration key)
     {
-        key ??= new KeyDefinitionConfiguration();
-        key.Id = NormalizeId(key.Id);
-        key.Name = NormalizeName(key.Name, LocalizedText.Pick("Unnamed key", "未命名按键"));
-        key.Trigger ??= new EventMatcherConfiguration();
-        return key;
+        return new KeyDefinitionConfiguration
+        {
+            Id = NormalizeId(key.Id),
+            Name = NormalizeName(key.Name, LocalizedText.Pick("Unnamed key", "未命名按键")),
+            Trigger = key.Trigger ?? new EventMatcherConfiguration()
+        };
     }
 
-    private static KeyActionMappingConfiguration NormalizeMapping(
+    private static KeyActionMappingConfiguration NormalizeFixedMapping(
         KeyActionMappingConfiguration? mapping,
-        IReadOnlyList<KeyDefinitionConfiguration> keys,
-        ISet<string> validKeyIds,
-        string fallbackKeyId,
+        KeyActionMappingConfiguration template,
         string? baseDirectory)
     {
-        mapping ??= new KeyActionMappingConfiguration();
-        mapping.Id = NormalizeId(mapping.Id);
-        mapping.KeyId = NormalizeOptional(mapping.KeyId) ?? string.Empty;
-
-        if (!string.IsNullOrWhiteSpace(fallbackKeyId) && !validKeyIds.Contains(mapping.KeyId))
-        {
-            mapping.KeyId = fallbackKeyId;
-        }
-
-        var legacyAction = mapping.Action ?? new ActionDefinitionConfiguration();
+        var source = mapping ?? template;
+        var legacyAction = source.Action ?? template.Action ?? new ActionDefinitionConfiguration();
         var legacyShowOsd = string.Equals(legacyAction.Type, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase);
 
-        mapping.Action = NormalizeAction(legacyAction, baseDirectory);
-        mapping.Osd = NormalizeMappingOsd(mapping.Osd, legacyAction, legacyShowOsd, baseDirectory);
-
-        var keyName = keys.FirstOrDefault(item => string.Equals(item.Id, mapping.KeyId, StringComparison.OrdinalIgnoreCase))?.Name;
-        mapping.Name = DescribeMapping(keyName, mapping.Action.Type, mapping.Osd);
-        return mapping;
+        return new KeyActionMappingConfiguration
+        {
+            Id = template.Id,
+            Name = template.Name,
+            Enabled = true,
+            KeyId = template.KeyId,
+            Action = NormalizeAction(legacyAction, baseDirectory),
+            Osd = NormalizeMappingOsd(source.Osd ?? template.Osd, legacyAction, legacyShowOsd, baseDirectory)
+        };
     }
 
     private static ActionDefinitionConfiguration NormalizeAction(ActionDefinitionConfiguration? action, string? baseDirectory)
@@ -349,12 +348,6 @@ public sealed class AppConfigService
             Mode = isPng ? IconSourceMode.CustomFile : IconSourceMode.None,
             Path = isPng ? path : null
         };
-    }
-
-    private static string DescribeMapping(string? keyName, string actionType, MappingOsdConfiguration osd)
-    {
-        var keyLabel = string.IsNullOrWhiteSpace(keyName) ? LocalizedText.Pick("Select key", "选择按键") : keyName.Trim();
-        return keyLabel;
     }
 
     private static string NormalizeId(string? value)

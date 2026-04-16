@@ -12,7 +12,6 @@ public static class WorkerCommandType
     public const string GetStatus = "GetStatus";
     public const string StopWorker = "StopWorker";
     public const string ReloadConfig = "ReloadConfig";
-    public const string CaptureNextEvent = "CaptureNextEvent";
 }
 
 public sealed class WorkerRequest
@@ -27,8 +26,6 @@ public sealed class WorkerResponse
     public string? Error { get; set; }
 
     public WorkerStatus? Status { get; set; }
-
-    public InputEvent? CapturedEvent { get; set; }
 }
 
 public sealed class WorkerStatus

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -21,7 +21,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private DispatcherQueue? _dispatcherQueue;
     private DispatcherQueueTimer? _statusTimer;
     private AppConfiguration _configuration = AppConfiguration.CreateDefault();
-    private KeyDefinitionViewModel? _selectedKey;
     private MappingDefinitionViewModel? _selectedMapping;
     private ActionTagOption? _selectedActionTag;
     private bool _serviceRunning;
@@ -43,12 +42,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     public ObservableCollection<ActionOptionItemViewModel> FilteredActionOptions { get; } = [];
 
     public IReadOnlyList<ActionTagOption> ActionTags => ActionCatalog.TagOptions;
-
-    public KeyDefinitionViewModel? SelectedKey
-    {
-        get => _selectedKey;
-        set => SetProperty(ref _selectedKey, value);
-    }
 
     public MappingDefinitionViewModel? SelectedMapping
     {
@@ -142,11 +135,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public string ThemePreference => App.ThemeService.CurrentPreference;
 
+    public string SupportedDeviceName => SupportedDeviceConfiguration.DeviceDisplayName;
+
     public string ConfigDirectory => _configService.ConfigDirectory;
 
     public string ConfigPath => _configService.ConfigPath;
-
-    public string PresetDirectory => Path.Combine(_configService.ConfigDirectory, "presets");
 
     public string OsdIconDirectory => OsdIconPathResolver.GetOsdIconDirectory(_configService.ConfigDirectory);
 
@@ -178,7 +171,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     {
         _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
         SyncBundledOsdIconsToConfigDirectory();
-        SyncBundledPresetsToConfigDirectory();
         _configuration = _configService.Load();
         ReloadCollectionsFromConfiguration();
 
@@ -196,109 +188,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ThemePreference));
     }
 
-    public async Task<InputEvent?> CaptureNextEventAsync(CancellationToken cancellationToken = default)
-    {
-        if (!ServiceRunning)
-        {
-            return null;
-        }
-
-        var response = await _workerPipeClient.SendAsync(new WorkerRequest
-        {
-            Command = WorkerCommandType.CaptureNextEvent
-        }, 30000, cancellationToken);
-
-        return response?.Success == true ? response.CapturedEvent : null;
-    }
-
-    public void CancelCapture()
-    {
-    }
-
-    public KeyDefinitionViewModel AddKey(string name, InputEvent inputEvent)
-    {
-        var normalizedName = NormalizeName(name, LocalizedText.Pick("New key", "新按键"));
-        EnsureUniqueName(KeyItems.Select(item => item.ListTitle), normalizedName, LocalizedText.Pick("Key names must be unique.", "按键名称必须唯一。"));
-
-        var viewModel = new KeyDefinitionViewModel(new KeyDefinitionConfiguration
-        {
-            Name = normalizedName,
-            Trigger = EventMatcherConfiguration.FromInputEvent(inputEvent)
-        });
-
-        KeyItems.Add(viewModel);
-        SelectedKey = viewModel;
-        SaveConfiguration();
-        RefreshMappingReferences();
-        _ = ReloadWorkerAsync();
-        return viewModel;
-    }
-
-    public MappingDefinitionViewModel AddMapping()
-    {
-        var viewModel = new MappingDefinitionViewModel(new KeyActionMappingConfiguration
-        {
-            Enabled = true,
-            KeyId = string.Empty,
-            Action = new ActionDefinitionConfiguration
-            {
-                Type = HotkeyActionType.None
-            }
-        });
-
-        MappingItems.Add(viewModel);
-        SelectedMapping = viewModel;
-        RefreshMappingReferences();
-        SaveConfiguration();
-        _ = ReloadWorkerAsync();
-        return viewModel;
-    }
-
-    public void SaveSelectedKey()
-    {
-        if (IsReloadingConfiguration || SelectedKey is null)
-        {
-            return;
-        }
-
-        EnsureUniqueName(
-            KeyItems.Where(item => item != SelectedKey).Select(item => item.ListTitle),
-            NormalizeName(SelectedKey.Name, LocalizedText.Pick("Unnamed key", "未命名按键")),
-            "Key names must be unique.");
-
-        SelectedKey.Name = NormalizeName(SelectedKey.Name, LocalizedText.Pick("Unnamed key", "未命名按键"));
-        SaveConfiguration();
-        RefreshMappingReferences();
-        _ = ReloadWorkerAsync();
-    }
-
-    public int DeleteSelectedKey()
-    {
-        if (SelectedKey is null)
-        {
-            return 0;
-        }
-
-        var keyId = SelectedKey.Id;
-        var removedMappings = MappingItems.Where(item => string.Equals(item.KeyId, keyId, StringComparison.OrdinalIgnoreCase)).ToList();
-        foreach (var mapping in removedMappings)
-        {
-            MappingItems.Remove(mapping);
-        }
-
-        KeyItems.Remove(SelectedKey);
-        SelectedKey = KeyItems.FirstOrDefault();
-        if (SelectedMapping is not null && removedMappings.Any(item => item.Id == SelectedMapping.Id))
-        {
-            SelectedMapping = MappingItems.FirstOrDefault();
-        }
-
-        SaveConfiguration();
-        RefreshMappingReferences();
-        _ = ReloadWorkerAsync();
-        return removedMappings.Count;
-    }
-
     public void SaveSelectedMapping()
     {
         if (IsReloadingConfiguration || SelectedMapping is null)
@@ -311,22 +200,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
-    public bool DeleteSelectedMapping()
-    {
-        if (SelectedMapping is null)
-        {
-            return false;
-        }
-
-        var mappingToDelete = SelectedMapping;
-        MappingItems.Remove(mappingToDelete);
-        SelectedMapping = MappingItems.FirstOrDefault();
-        SaveConfiguration();
-        RefreshMappingReferences();
-        _ = ReloadWorkerAsync();
-        return true;
-    }
-
     public void ClearSelectedMappingAction()
     {
         if (SelectedMapping is null)
@@ -336,11 +209,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
         SelectedMapping.Action.ClearAssignment();
         RefreshMappingReferences();
-    }
-
-    public bool IsDuplicateKeyName(string name, string? excludedId = null)
-    {
-        return IsDuplicateName(KeyItems.Select(item => (item.Id, item.ListTitle)), name, excludedId);
     }
 
     public async Task<IReadOnlyList<InstalledAppEntry>> GetInstalledAppsAsync()
@@ -363,6 +231,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         });
     }
 
+    public void OpenConfigFolder()
+    {
+        OpenFolder(ConfigDirectory);
+    }
+
     public void OpenOsdIconFolder()
     {
         Directory.CreateDirectory(OsdIconDirectory);
@@ -372,11 +245,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     public void RefreshOsdIconCatalog()
     {
         SyncBundledOsdIconsToConfigDirectory();
-    }
-
-    public void RefreshPresetCatalog()
-    {
-        SyncBundledPresetsToConfigDirectory();
     }
 
     public async Task<bool> StartWorkerServiceAsync()
@@ -480,7 +348,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
-
     public void SetLanguagePreference(string languagePreference)
     {
         var normalizedPreference = AppLanguageService.ResolveStoredPreference(languagePreference);
@@ -504,21 +371,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         SyncOsdPreferenceState();
         SaveConfiguration();
         _ = ReloadWorkerAsync();
-    }
-
-    public void ImportConfiguration(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            throw new ArgumentException("The configuration path cannot be empty.", nameof(path));
-        }
-
-        var importedConfiguration = _configService.LoadFromFile(path);
-        _configService.Save(importedConfiguration);
-        _configuration = importedConfiguration;
-        App.ThemeService.ApplyPreference(_configuration.Theme);
-        ReloadCollectionsFromConfiguration();
-        OnPropertyChanged(nameof(ThemePreference));
     }
 
     public async Task<bool> RestartWorkerServiceAsync()
@@ -547,11 +399,10 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
         foreach (var mapping in MappingItems)
         {
-            var key = !string.IsNullOrWhiteSpace(mapping.KeyId) &&
-                      keyLookup.TryGetValue(mapping.KeyId, out var keyVm)
+            var key = keyLookup.TryGetValue(mapping.KeyId, out var keyVm)
                 ? keyVm
                 : null;
-            mapping.UpdateDisplay(key?.ListTitle ?? LocalizedText.Pick("Select key", "选择按键"));
+            mapping.UpdateDisplay(key?.ListTitle ?? LocalizedText.Pick("Unknown key", "未知按键"));
         }
 
         UpdateActionSelectionState();
@@ -601,7 +452,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         IsReloadingConfiguration = true;
         try
         {
-            SelectedKey = null;
             SelectedMapping = null;
 
             KeyItems.Clear();
@@ -622,7 +472,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
             SyncOsdPreferenceState();
             RefreshMappingReferences();
-            SelectedKey = KeyItems.FirstOrDefault();
             SelectedMapping = MappingItems.FirstOrDefault();
         }
         finally
@@ -650,32 +499,6 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             }
 
             var destinationPath = Path.Combine(OsdIconDirectory, fileName);
-            if (!File.Exists(destinationPath) || File.GetLastWriteTimeUtc(sourcePath) > File.GetLastWriteTimeUtc(destinationPath))
-            {
-                File.Copy(sourcePath, destinationPath, overwrite: true);
-            }
-        }
-    }
-
-    private void SyncBundledPresetsToConfigDirectory()
-    {
-        Directory.CreateDirectory(PresetDirectory);
-
-        var bundledDirectory = Path.Combine(AppContext.BaseDirectory, "assets", "config");
-        if (!Directory.Exists(bundledDirectory))
-        {
-            return;
-        }
-
-        foreach (var sourcePath in Directory.GetFiles(bundledDirectory, "*.json", SearchOption.TopDirectoryOnly))
-        {
-            var fileName = Path.GetFileName(sourcePath);
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                continue;
-            }
-
-            var destinationPath = Path.Combine(PresetDirectory, fileName);
             if (!File.Exists(destinationPath) || File.GetLastWriteTimeUtc(sourcePath) > File.GetLastWriteTimeUtc(destinationPath))
             {
                 File.Copy(sourcePath, destinationPath, overwrite: true);
@@ -838,31 +661,5 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         {
             item.IsSelected = string.Equals(item.Key, selectedType, StringComparison.OrdinalIgnoreCase);
         }
-    }
-
-    private static bool IsDuplicateName(IEnumerable<(string Id, string Name)> source, string name, string? excludedId)
-    {
-        var normalized = NormalizeName(name, string.Empty);
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            return false;
-        }
-
-        return source.Any(item =>
-            !string.Equals(item.Id, excludedId, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(item.Name, normalized, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static void EnsureUniqueName(IEnumerable<string> existingNames, string candidate, string message)
-    {
-        if (existingNames.Any(item => string.Equals(item, candidate, StringComparison.OrdinalIgnoreCase)))
-        {
-            throw new InvalidOperationException(message);
-        }
-    }
-
-    private static string NormalizeName(string? value, string fallback)
-    {
-        return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
     }
 }

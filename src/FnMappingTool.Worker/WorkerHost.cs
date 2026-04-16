@@ -26,8 +26,7 @@ internal sealed class WorkerHost : IDisposable
     private TrayIconService? _trayIconService;
     private WorkerOsdService? _osdService;
     private AppConfiguration _configuration = AppConfiguration.CreateDefault();
-    private TaskCompletionSource<InputEvent?>? _captureRequest;
-    private string _lastEventSummary = "No OEM event captured yet.";
+    private string _lastEventSummary = "No OEM event received yet.";
     private string? _resolvedControllerPath;
     private string _stateMessage = "Starting worker";
     private volatile bool _interactiveShellReady;
@@ -148,7 +147,6 @@ internal sealed class WorkerHost : IDisposable
             }),
             WorkerCommandType.ReloadConfig => Task.FromResult(ReloadConfig()),
             WorkerCommandType.StopWorker => Task.FromResult(StopWorker()),
-            WorkerCommandType.CaptureNextEvent => CaptureNextEventAsync(),
             _ => Task.FromResult(new WorkerResponse
             {
                 Success = false,
@@ -173,22 +171,6 @@ internal sealed class WorkerHost : IDisposable
         return new WorkerResponse
         {
             Success = true
-        };
-    }
-
-    private async Task<WorkerResponse> CaptureNextEventAsync()
-    {
-        var request = new TaskCompletionSource<InputEvent?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _captureRequest = request;
-        _stateMessage = "Waiting for next OEM event for capture.";
-
-        var result = await request.Task;
-        return new WorkerResponse
-        {
-            Success = result is not null,
-            CapturedEvent = result,
-            Status = BuildStatus(),
-            Error = result is null ? "No event captured." : null
         };
     }
 
@@ -239,29 +221,22 @@ internal sealed class WorkerHost : IDisposable
     {
         _lastEventSummary = BuildEventSummary(inputEvent);
 
-        var captureRequest = _captureRequest;
-        if (captureRequest is not null)
-        {
-            _captureRequest = null;
-            captureRequest.TrySetResult(inputEvent);
-        }
-
         if (!_configuration.Preferences.IsListening)
         {
             return;
         }
 
-        var matchingKeyIds = _configuration.Keys
-            .Where(item => item.Trigger.IsMatch(inputEvent))
-            .Select(item => item.Id)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        if (matchingKeyIds.Count == 0)
+        var matchedKey = _configuration.Keys.FirstOrDefault(item => item.Trigger.IsMatch(inputEvent));
+        if (matchedKey is null)
         {
             return;
         }
 
-        foreach (var mapping in _configuration.Mappings.Where(item => item.Enabled && matchingKeyIds.Contains(item.KeyId)))
+        var mapping = _configuration.Mappings.FirstOrDefault(item =>
+            item.Enabled &&
+            string.Equals(item.KeyId, matchedKey.Id, StringComparison.OrdinalIgnoreCase));
+
+        if (mapping is not null)
         {
             ExecuteMapping(mapping);
         }

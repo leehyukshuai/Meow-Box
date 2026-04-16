@@ -208,7 +208,7 @@
     <value>No mappings yet</value>
   </data>
   <data name="MappingsPageEmptyBodyText.Text" xml:space="preserve">
-    <value>Add a mapping to connect a key to an action.</value>
+    <value>No supported hardware keys were loaded.</value>
   </data>
   <data name="MappingDetailsTitleText.Text" xml:space="preserve">
     <value>Mapping details</value>
@@ -289,7 +289,7 @@
     <value>No mapping selected</value>
   </data>
   <data name="MappingDetailsEmptyBodyText.Text" xml:space="preserve">
-    <value>Pick a mapping from the list or add a new one.</value>
+    <value>Pick a hardware key from the list.</value>
   </data>
   <data name="ActionPickerDialog.PrimaryButtonText" xml:space="preserve">
     <value>Choose action</value>
@@ -507,4 +507,4 @@
   <data name="AddKeyNameLabelText.Text" xml:space="preserve">
     <value>Name this key</value>
   </data>
-</root>
+<data name="MappingFixedKeyEyebrowText.Text" xml:space="preserve"><value>Trigger</value></data><data name="MappingFixedKeyDescriptionText.Text" xml:space="preserve"><value>This Xiaomi Book Pro hardware key is fixed. You can only change what it does.</value></data><data name="ClearActionButtonText.Content" xml:space="preserve"><value>Clear action</value></data><data name="DeviceCardTitleText.Text" xml:space="preserve"><value>Device</value></data><data name="SupportedDeviceTitleText.Text" xml:space="preserve"><value>Supported device</value></data><data name="SupportedDeviceDescriptionText.Text" xml:space="preserve"><value>This build is simplified for Xiaomi Book Pro 14 2026 only.</value></data><data name="ConfigPathTextBox.Header" xml:space="preserve"><value>Config file</value></data><data name="OpenConfigFolderButton.Content" xml:space="preserve"><value>Open config folder</value></data></root>

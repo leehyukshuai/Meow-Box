@@ -49,7 +49,7 @@
                     <TextBlock
                         x:Name="PageContextTextBlock"
                         Style="{StaticResource TitleBarSubtitleTextBlockStyle}"
-                        Text="Keys" />
+                        Text="Mappings" />
                 </StackPanel>
             </StackPanel>
 
@@ -119,12 +119,6 @@
             SelectionChanged="OnNavigationSelectionChanged">
 
             <NavigationView.MenuItems>
-                <NavigationViewItem
-                    x:Uid="KeysItem"
-                    x:Name="KeysItem"
-                    Content="Keys"
-                    Icon="Keyboard"
-                    Tag="keys" />
                 <NavigationViewItem
                     x:Uid="MappingsItem"
                     x:Name="MappingsItem"

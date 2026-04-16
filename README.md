@@ -14,14 +14,13 @@ Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映
 
 它目前支持：
 
-- 捕获 OEM / WMI 抛出的特殊按键事件
+- 监听 Xiaomi Book Pro 14 2026 的 OEM / WMI 特殊按键事件
 - 把厂商自定义按键映射为标准键盘按键
 - 执行设置、投屏、媒体控制、音量、亮度、启动应用等动作
 - 为 Caps Lock、麦克风静音、Fn Lock 等状态显示 OSD
-- 通过 preset 快速适配特定机型
 - 使用 Controller + Worker 的方式长期稳定运行
 
-它的实现方式也比较直接：后台 Worker 监听 OEM 通过 WMI 抛出的事件，再把这些事件转成应用里可配置的 Key 和 Mapping。并不是所有机型都会通过 WMI 暴露这些事件，所以兼容性仍然取决于厂商自身的实现。
+它的实现方式也比较直接：后台 Worker 监听 OEM 通过 WMI 抛出的事件，再把这些事件映射到内置的固定按键表，然后执行每个按键对应的 Mapping。当前版本已精简为只支持 Xiaomi Book Pro 14 2026。
 
 ### 📦 最新版本
 
@@ -43,9 +42,8 @@ Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映
 
 ### 🚀 现在能做什么
 
-- 捕获 OEM / WMI 特殊按键事件
-- 保存按键定义（Keys）
-- 给按键配置映射（Mappings）
+- 监听内置支持的 OEM / WMI 特殊按键事件
+- 给固定的一对一按键映射配置动作（Mappings）
 - 执行设置、投屏、音量、媒体控制、亮度、启动应用等动作
 - 显示 OSD
 - 由后台 Worker 常驻处理按键事件
@@ -54,8 +52,6 @@ Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映
 
 > 目前只在 **Xiaomi Book Pro 14 2026 + Windows 11** 上实际测试过。
 
-如果你在别的机器上跑通了，欢迎提交 preset 😄
-
 ### 🧩 运行结构
 
 - **Controller**：WinUI 3 桌面界面，用来编辑配置和控制后台服务
@@ -63,23 +59,13 @@ Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映
 
 普通用户实际需要打开的是 **Controller**。
 
-### 📦 Preset
+### 📦 当前支持机型
 
-仓库内置的 preset 在：
+当前内置并固定支持：
 
-- `assets/config/`
+- `Xiaomi Book Pro 14 2026`
 
-例如：
-
-- `assets/config/xiaomibookpro14 2026.json`
-
-应用启动后，这些 preset 会同步到：
-
-- `%LocalAppData%\FnMappingTool\presets`
-
-你可以在 **Settings > Files** 里打开 preset 文件夹、复制自己的 preset、刷新列表并直接加载。
-
-如果你想给别的机器做适配，也欢迎把 preset 提交回来。文件名最好写清楚机型，比如 `brand-model-year.json`，再顺手说明一下机器型号、系统版本，以及已经适配了哪些键，这样别人更容易直接用上 👍
+应用会直接生成这台机器对应的默认配置，不再提供 preset 导入或切换。
 
 ### 🛠️ 运行时要求
 
@@ -124,7 +110,7 @@ Fn Mapping Tool 是一个面向 Windows 笔记本的 OEM / 厂商特殊按键映
 - `src/FnMappingTool.Worker/` — 后台 Worker
 - `src/FnMappingTool.Core/` — 共享模型、服务、IPC
 - `src/FnMappingTool.Setup/` — WiX 安装包工程
-- `assets/` — 应用资源和 preset
+- `assets/` — 应用资源
 - `build/` — 中间产物
 - `artifacts/` — 最终发布产物
 
@@ -150,14 +136,13 @@ Fn Mapping Tool is a Windows utility for turning OEM / vendor-specific keys into
 
 It currently supports:
 
-- capturing OEM / WMI special-key events
+- listening to the OEM / WMI special-key events exposed by Xiaomi Book Pro 14 2026
 - mapping vendor-specific keys to standard keyboard keys
 - running actions such as Settings, projection, media controls, volume, brightness, and app launch
 - showing OSD for states like Caps Lock, microphone mute, and Fn Lock
-- applying presets for specific laptop models
 - keeping a Controller + Worker workflow running reliably in the background
 
-The implementation is fairly direct: the Worker listens for OEM events exposed through WMI, turns them into configurable Keys and Mappings, and then executes the mapped behavior. Not every machine exposes these events through WMI, so compatibility still depends on the vendor's implementation.
+The implementation is fairly direct: the Worker listens for OEM events exposed through WMI, resolves them against a built-in fixed key list, and then executes the mapped behavior. The current build is intentionally simplified to support Xiaomi Book Pro 14 2026 only.
 
 ### 📦 Latest release
 
@@ -179,9 +164,8 @@ The implementation is fairly direct: the Worker listens for OEM events exposed t
 
 ### 🚀 What it does
 
-- captures OEM / WMI key events
-- saves them as Keys
-- maps Keys to Actions
+- listens for the built-in OEM / WMI key events
+- lets you edit the fixed one-to-one key mappings
 - runs actions such as Settings, projection, volume, media, brightness, app launch, and more
 - shows OSD
 - keeps a background Worker running to handle events
@@ -190,8 +174,6 @@ The implementation is fairly direct: the Worker listens for OEM events exposed t
 
 > Right now, it has only been tested on **Xiaomi Book Pro 14 2026 + Windows 11**.
 
-If you get it working on another machine, preset contributions are very welcome 😄
-
 ### 🧩 Runtime structure
 
 - **Controller**: WinUI 3 desktop app for editing config and controlling the background service
@@ -199,23 +181,13 @@ If you get it working on another machine, preset contributions are very welcome 
 
 For normal users, the entry point is **Controller**.
 
-### 📦 Presets
+### 📦 Supported device
 
-Built-in presets are stored in:
+The current build has one built-in target:
 
-- `assets/config/`
+- `Xiaomi Book Pro 14 2026`
 
-Example:
-
-- `assets/config/xiaomibookpro14 2026.json`
-
-When the app starts, presets are synced to:
-
-- `%LocalAppData%\FnMappingTool\presets`
-
-In **Settings > Files**, you can open the preset folder, drop in your own preset files, refresh the list, and load one directly.
-
-If you adapt the tool for another machine, feel free to contribute the preset back. A clear file name like `brand-model-year.json`, plus a short note about the laptop model, OS version, and supported keys, makes it much easier for others to use 👍
+The app now creates the matching default configuration directly and no longer exposes preset import or model switching.
 
 ### 🛠️ Runtime requirements
 
@@ -260,7 +232,7 @@ Outputs:
 - `src/FnMappingTool.Worker/` — background worker
 - `src/FnMappingTool.Core/` — shared models, services, IPC
 - `src/FnMappingTool.Setup/` — WiX installer project
-- `assets/` — app assets and presets
+- `assets/` — app assets
 - `build/` — intermediate outputs
 - `artifacts/` — final distributables
 

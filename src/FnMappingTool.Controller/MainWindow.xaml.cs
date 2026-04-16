@@ -30,14 +30,12 @@ public sealed partial class MainWindow : Window
 
     private readonly Dictionary<string, Type> _pages = new()
     {
-        ["keys"] = typeof(KeysPage),
         ["mappings"] = typeof(MappingsPage),
         ["settings"] = typeof(SettingsPage)
     };
 
     private readonly Dictionary<string, string> _pageTitleKeys = new()
     {
-        ["keys"] = "PageTitle.Keys",
         ["mappings"] = "PageTitle.Mappings",
         ["settings"] = "PageTitle.Settings"
     };
@@ -84,7 +82,6 @@ public sealed partial class MainWindow : Window
         var appTitle = Localizer.GetString("App.Title");
         Title = appTitle;
         AppTitleTextBlock.Text = appTitle;
-        KeysItem.Content = Localizer.GetString("Navigation.Keys");
         MappingsItem.Content = Localizer.GetString("Navigation.Mappings");
         SettingsItem.Content = Localizer.GetString("Navigation.Settings");
     }
@@ -116,8 +113,8 @@ public sealed partial class MainWindow : Window
 
     private void ConfigureNavigation()
     {
-        ShellNavigationView.SelectedItem = KeysItem;
-        Navigate("keys");
+        ShellNavigationView.SelectedItem = MappingsItem;
+        Navigate("mappings");
     }
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

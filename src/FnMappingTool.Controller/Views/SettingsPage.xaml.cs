@@ -1,5 +1,4 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using FnMappingTool.Controller.Services;
@@ -12,8 +11,6 @@ public sealed partial class SettingsPage : Page
     private bool _isLoading;
 
     public FnMappingToolController Controller => App.Controller;
-
-    public ObservableCollection<ConfigurationFileEntry> ConfigFiles { get; } = [];
 
     public SettingsPage()
     {
@@ -28,7 +25,6 @@ public sealed partial class SettingsPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SyncState();
-        RefreshConfigFiles();
         DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
@@ -72,38 +68,9 @@ public sealed partial class SettingsPage : Page
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
         OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
-        PresetDirectoryTextBox.Text = Controller.PresetDirectory;
+        ConfigPathTextBox.Text = Controller.ConfigPath;
+        SupportedDeviceNameTextBlock.Text = Controller.SupportedDeviceName;
         _isLoading = false;
-    }
-
-    private void RefreshConfigFiles(string? preferredPath = null)
-    {
-        var selectedPath = preferredPath ?? (ConfigFilesComboBox.SelectedItem as ConfigurationFileEntry)?.Path;
-        Controller.RefreshPresetCatalog();
-        var presetDirectory = Controller.PresetDirectory;
-        Directory.CreateDirectory(presetDirectory);
-
-        _isLoading = true;
-        ConfigFilesComboBox.SelectedItem = null;
-        ConfigFilesComboBox.ItemsSource = null;
-        ConfigFiles.Clear();
-
-        foreach (var file in Directory.GetFiles(presetDirectory, "*.json", SearchOption.TopDirectoryOnly)
-                     .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
-        {
-            ConfigFiles.Add(new ConfigurationFileEntry
-            {
-                DisplayName = Path.GetFileName(file),
-                Path = file
-            });
-        }
-
-        ConfigFilesComboBox.ItemsSource = ConfigFiles;
-        ConfigFilesComboBox.SelectedItem = ConfigFiles.FirstOrDefault(item =>
-            string.Equals(item.Path, selectedPath, StringComparison.OrdinalIgnoreCase))
-            ?? ConfigFiles.FirstOrDefault();
-        _isLoading = false;
-        UpdatePresetSelectionState();
     }
 
     private void ApplyOsdSettingsFromControls()
@@ -235,43 +202,6 @@ public sealed partial class SettingsPage : Page
         Controller.SetTrayIconEnabled(TrayIconToggleSwitch.IsOn);
     }
 
-    private async void OnImportSelectedConfigClick(object sender, RoutedEventArgs e)
-    {
-        if (ConfigFilesComboBox.SelectedItem is not ConfigurationFileEntry configurationFile)
-        {
-            return;
-        }
-
-        var presetPath = configurationFile.Path;
-        try
-        {
-            Controller.ImportConfiguration(presetPath);
-        }
-        catch (Exception exception)
-        {
-            await ShowMessageAsync(Localizer.GetString("Settings.Messages.ImportFailed.Title"), exception.Message);
-            return;
-        }
-
-        RefreshConfigFiles(presetPath);
-        await ShowImportAppliedAsync();
-    }
-
-    private void OnRefreshConfigFilesClick(object sender, RoutedEventArgs e)
-    {
-        RefreshConfigFiles();
-    }
-
-    private void OnConfigFileSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        UpdatePresetSelectionState();
-    }
-
     private void OnOpenOsdIconFolderClick(object sender, RoutedEventArgs e)
     {
         Controller.OpenOsdIconFolder();
@@ -283,15 +213,9 @@ public sealed partial class SettingsPage : Page
         SyncState();
     }
 
-    private void OnOpenPresetFolderClick(object sender, RoutedEventArgs e)
+    private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
     {
-        Controller.RefreshPresetCatalog();
-        Controller.OpenFolder(Controller.PresetDirectory);
-    }
-
-    private void UpdatePresetSelectionState()
-    {
-        LoadPresetButton.IsEnabled = ConfigFilesComboBox.SelectedItem is ConfigurationFileEntry;
+        Controller.OpenConfigFolder();
     }
 
     private static void SelectComboItem(ComboBox comboBox, string value)
@@ -338,47 +262,4 @@ public sealed partial class SettingsPage : Page
             App.Restart();
         }
     }
-
-    private async Task ShowImportAppliedAsync()
-    {
-        var serviceRunning = Controller.ServiceRunning;
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = Localizer.GetString("Settings.Messages.ImportApplied.Title"),
-            Content = Localizer.GetString(serviceRunning
-                ? "Settings.Messages.ImportApplied.BodyServiceRunning"
-                : "Settings.Messages.ImportApplied.BodyServiceStopped"),
-            CloseButtonText = Localizer.GetString("Dialog.Later")
-        };
-
-        if (serviceRunning)
-        {
-            dialog.PrimaryButtonText = Localizer.GetString("Dialog.RestartService");
-            dialog.DefaultButton = ContentDialogButton.Primary;
-        }
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
-
-        if (!await Controller.RestartWorkerServiceAsync())
-        {
-            await ShowMessageAsync(
-                Localizer.GetString("Settings.Messages.RestartServiceFailed.Title"),
-                Localizer.GetString("Settings.Messages.RestartServiceFailed.Body"));
-            SyncState();
-            return;
-        }
-
-        SyncState();
-    }
-}
-
-public sealed class ConfigurationFileEntry
-{
-    public string DisplayName { get; set; } = string.Empty;
-
-    public string Path { get; set; } = string.Empty;
 }

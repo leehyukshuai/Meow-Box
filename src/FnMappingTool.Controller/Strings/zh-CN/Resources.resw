@@ -205,7 +205,7 @@
     <value>还没有映射</value>
   </data>
   <data name="MappingsPageEmptyBodyText.Text" xml:space="preserve">
-    <value>添加一个映射，把按键连接到动作。</value>
+    <value>没有加载到受支持的硬件按键。</value>
   </data>
   <data name="MappingDetailsTitleText.Text" xml:space="preserve">
     <value>映射详情</value>
@@ -286,7 +286,7 @@
     <value>未选择映射</value>
   </data>
   <data name="MappingDetailsEmptyBodyText.Text" xml:space="preserve">
-    <value>从列表中选择一个映射，或添加一个新的映射。</value>
+    <value>请先从列表中选择一个硬件按键。</value>
   </data>
   <data name="ActionPickerDialog.PrimaryButtonText" xml:space="preserve">
     <value>选择动作</value>
@@ -506,5 +506,29 @@
   </data>
   <data name="AddKeyNameLabelText.Text" xml:space="preserve">
     <value>为这个按键命名</value>
+  </data>
+  <data name="MappingFixedKeyEyebrowText.Text" xml:space="preserve">
+    <value>???</value>
+  </data>
+  <data name="MappingFixedKeyDescriptionText.Text" xml:space="preserve">
+    <value>这个小米 Book Pro 的硬件按键是固定的，你只能修改它执行的动作。</value>
+  </data>
+  <data name="ClearActionButtonText.Content" xml:space="preserve">
+    <value>清空动作</value>
+  </data>
+  <data name="DeviceCardTitleText.Text" xml:space="preserve">
+    <value>机型</value>
+  </data>
+  <data name="SupportedDeviceTitleText.Text" xml:space="preserve">
+    <value>支持机型</value>
+  </data>
+  <data name="SupportedDeviceDescriptionText.Text" xml:space="preserve">
+    <value>此版本已精简为只支持 Xiaomi Book Pro 14 2026。</value>
+  </data>
+  <data name="ConfigPathTextBox.Header" xml:space="preserve">
+    <value>配置文件</value>
+  </data>
+  <data name="OpenConfigFolderButton.Content" xml:space="preserve">
+    <value>打开配置文件夹</value>
   </data>
 </root>

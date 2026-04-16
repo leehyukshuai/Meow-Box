@@ -1,10 +1,9 @@
-<Page
+﻿<Page
     x:Class="FnMappingTool.Controller.Views.MappingsPage"
     x:Name="MappingsPageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:viewModels="using:FnMappingTool.Controller.ViewModels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -27,21 +26,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock x:Uid="MappingsPageListTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mappings" />
-
-                        <Button x:Name="AddMappingButton" Grid.Column="1" Click="OnAddMappingClick" Style="{StaticResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" />
-                                <TextBlock x:Uid="MappingsPageAddMappingButtonText" Text="Add mapping" />
-                            </StackPanel>
-                        </Button>
-                    </Grid>
+                    <TextBlock x:Uid="MappingsPageListTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mappings" />
 
                     <ListView
                         x:Name="MappingsListView"
@@ -75,7 +60,7 @@
                     <StackPanel x:Name="MappingsEmptyStatePanel" Grid.Row="1" Style="{StaticResource EmptyStatePanelStyle}" Visibility="Collapsed">
                         <FontIcon FontFamily="Segoe Fluent Icons" Style="{StaticResource EmptyStateIconStyle}" Glyph="&#xE8D2;" />
                         <TextBlock x:Uid="MappingsPageEmptyTitleText" Style="{StaticResource EmptyStateTitleTextBlockStyle}" Text="No mappings yet" />
-                        <TextBlock x:Uid="MappingsPageEmptyBodyText" Style="{StaticResource EmptyStateBodyTextBlockStyle}" Text="Add a mapping to connect a key to an action." />
+                        <TextBlock x:Uid="MappingsPageEmptyBodyText" Style="{StaticResource EmptyStateBodyTextBlockStyle}" Text="No supported hardware keys were loaded." />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -91,52 +76,37 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="MappingDetailsTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping details" />
 
-                                <TextBlock x:Uid="MappingDetailsTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping details" />
-
-                                <Button Grid.Column="1" Click="OnDeleteMappingClick" Style="{StaticResource DangerButtonStyle}">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74D;" />
-                                        <TextBlock x:Uid="MappingDeleteButtonText" Text="Delete" />
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-
-                            <Grid x:Name="MappingSelectorsGrid" Grid.Row="1" ColumnSpacing="16" RowSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                            <Grid x:Name="MappingSelectorsGrid" Grid.Row="1" RowSpacing="12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
                                 <Border Style="{StaticResource SubtlePanelCardStyle}">
                                     <StackPanel Spacing="12">
-                                        <TextBlock x:Uid="ChooseKeyEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Choose key" />
+                                        <TextBlock x:Uid="MappingFixedKeyEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Hardware key" />
                                         <StackPanel Spacing="2">
                                             <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.KeyDisplayName, Mode=OneWay}" />
-                                            <TextBlock x:Uid="ChooseKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Pick the OEM key event this mapping should respond to." TextWrapping="WrapWholeWords" />
+                                            <TextBlock x:Uid="MappingFixedKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="This Xiaomi Book Pro hardware key is fixed. You can only change what it does." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
-                                        <ComboBox x:Name="KeySelectorCombo" DisplayMemberPath="ListTitle" ItemsSource="{Binding KeyItems}" SelectedValue="{Binding SelectedMapping.KeyId, Mode=TwoWay}" SelectedValuePath="Id" SelectionChanged="OnMappingReferenceChanged" />
                                     </StackPanel>
                                 </Border>
 
-                                <Border Grid.Column="1" Style="{StaticResource SubtlePanelCardStyle}">
+                                <Border Grid.Row="1" Style="{StaticResource SubtlePanelCardStyle}">
                                     <StackPanel Spacing="12">
                                         <TextBlock x:Uid="ChooseActionEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Choose action" />
                                         <StackPanel Spacing="2">
                                             <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
                                             <TextBlock x:Uid="ChooseActionDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Choose what happens after that key is pressed." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
-                                        <Button x:Name="ChooseActionButton" Click="OnChooseActionClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE70F;" />
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Button x:Name="ChooseActionButton" Click="OnChooseActionClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
                                                 <TextBlock x:Uid="ChooseActionButtonText" Text="Choose action" />
-                                            </StackPanel>
-                                        </Button>
+                                            </Button>
+                                            <Button x:Uid="ClearActionButtonText" Click="OnClearActionClick" Content="Clear action" IsEnabled="{Binding SelectedMapping.Action.HasAssignedAction, Mode=OneWay}" Style="{StaticResource SubtleButtonStyle}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </Grid>
@@ -217,7 +187,7 @@
                     <StackPanel x:Name="MappingDetailsEmptyStatePanel" Style="{StaticResource EmptyStatePanelStyle}" Visibility="Collapsed">
                         <FontIcon FontFamily="Segoe Fluent Icons" Style="{StaticResource EmptyStateIconStyle}" Glyph="&#xE7C3;" />
                         <TextBlock x:Uid="MappingDetailsEmptyTitleText" Style="{StaticResource EmptyStateTitleTextBlockStyle}" Text="No mapping selected" />
-                        <TextBlock x:Uid="MappingDetailsEmptyBodyText" Style="{StaticResource EmptyStateBodyTextBlockStyle}" Text="Pick a mapping from the list or add a new one." />
+                        <TextBlock x:Uid="MappingDetailsEmptyBodyText" Style="{StaticResource EmptyStateBodyTextBlockStyle}" Text="Pick a hardware key from the list." />
                     </StackPanel>
                 </Grid>
             </Border>

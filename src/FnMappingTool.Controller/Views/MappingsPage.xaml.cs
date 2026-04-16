@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
@@ -89,37 +89,6 @@ public sealed partial class MappingsPage : Page
         }
     }
 
-    private async void OnAddMappingClick(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            Controller.AddMapping();
-            MappingsListView.UpdateLayout();
-            RefreshOsdIcons();
-            UpdateEmptyStates();
-            if (Controller.SelectedMapping is not null)
-            {
-                MappingsListView.ScrollIntoView(Controller.SelectedMapping);
-                MappingsListView.Focus(FocusState.Programmatic);
-            }
-        }
-        catch (Exception exception)
-        {
-            await ShowMessageAsync(Localizer.GetString("Mappings.Messages.AddFailed.Title"), exception.Message);
-        }
-    }
-
-    private void OnMappingReferenceChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (Controller.IsReloadingConfiguration)
-        {
-            return;
-        }
-
-        Controller.RefreshMappingReferences();
-        TrySaveMappingAsync();
-    }
-
     private async void OnPickInstalledAppClick(object sender, RoutedEventArgs e)
     {
         var apps = await Controller.GetInstalledAppsAsync();
@@ -168,29 +137,16 @@ public sealed partial class MappingsPage : Page
         TrySaveMappingAsync();
     }
 
-    private async void OnDeleteMappingClick(object sender, RoutedEventArgs e)
+    private void OnClearActionClick(object sender, RoutedEventArgs e)
     {
         if (Controller.SelectedMapping is null)
         {
             return;
         }
 
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = Localizer.GetString("Mappings.Messages.Delete.Title"),
-            Content = Localizer.GetString("Mappings.Messages.Delete.Body"),
-            PrimaryButtonText = Localizer.GetString("Dialog.Delete"),
-            CloseButtonText = Localizer.GetString("Dialog.Cancel"),
-            DefaultButton = ContentDialogButton.Close
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
-
-        Controller.DeleteSelectedMapping();
+        Controller.ClearSelectedMappingAction();
+        RefreshStandardKeyChoices();
+        TrySaveMappingAsync();
     }
 
     private async Task<string?> PickFileAsync(IEnumerable<string> types)
