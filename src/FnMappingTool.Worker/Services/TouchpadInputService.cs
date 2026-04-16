@@ -8,6 +8,7 @@ namespace FnMappingTool.Worker.Services;
 internal sealed class TouchpadInputService : NativeWindow, IDisposable
 {
     private static readonly TimeSpan StaleInteractionTimeout = TimeSpan.FromMilliseconds(140);
+    private static readonly TimeSpan SessionResetThreshold = TimeSpan.FromMilliseconds(350);
 
     private readonly object _sync = new();
     private readonly Dictionary<nint, RawInputDeviceSnapshot> _deviceCache = [];
@@ -21,6 +22,10 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
     };
 
     private int _deepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
+    private int _surfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
+    private int _surfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
+    private TouchpadRegionBoundsConfiguration _leftTopBounds = TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds;
+    private TouchpadRegionBoundsConfiguration _rightTopBounds = TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds;
     private DateTimeOffset _lastFrameAt;
     private bool _disposed;
 
@@ -41,17 +46,27 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         _staleStateTimer = new System.Threading.Timer(OnStaleStateTimerTick, null, 50, 50);
     }
 
-    public event EventHandler? DeepPressTriggered;
+    public event EventHandler<TouchpadGestureTriggerEventArgs>? GestureTriggered;
     public event EventHandler<TouchpadLiveStateSnapshot>? StateChanged;
 
     public void UpdateConfiguration(TouchpadConfiguration? configuration)
     {
+        configuration ??= new TouchpadConfiguration();
+
         lock (_sync)
         {
             _deepPressThreshold = Math.Clamp(
-                configuration?.DeepPressThreshold ?? RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
+                configuration.DeepPressThreshold,
                 100,
                 4000);
+            _surfaceWidth = configuration.SurfaceWidth > 0
+                ? configuration.SurfaceWidth
+                : RuntimeDefaults.DefaultTouchpadSurfaceWidth;
+            _surfaceHeight = configuration.SurfaceHeight > 0
+                ? configuration.SurfaceHeight
+                : RuntimeDefaults.DefaultTouchpadSurfaceHeight;
+            _leftTopBounds = CloneBounds(configuration.LeftTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds);
+            _rightTopBounds = CloneBounds(configuration.RightTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds);
             _latestState.DeepPressThreshold = _deepPressThreshold;
         }
 
@@ -232,15 +247,20 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             })
             .ToList();
 
-        var triggerDeepPress = false;
+        TouchpadGestureTriggerEventArgs? gestureTriggered = null;
         lock (_sync)
         {
-            if (hasInteraction && (!_context.HasInteraction || (timestamp - _context.LastActiveAt).TotalMilliseconds > 350))
+            var primaryContact = GetPrimaryContact(parsed.Contacts);
+            if (hasInteraction && (!_context.HasInteraction || timestamp - _context.LastActiveAt > SessionResetThreshold))
             {
                 _context = new TouchpadTrackingContext
                 {
                     PressStartPressure = pressure,
-                    PeakPressure = pressure
+                    PeakPressure = pressure,
+                    InteractionStartedAt = timestamp,
+                    SessionRegionId = ResolveRegionId(primaryContact),
+                    StartX = primaryContact?.X ?? 0,
+                    StartY = primaryContact?.Y ?? 0
                 };
             }
 
@@ -264,7 +284,12 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             if (parsed.Button1 && !_context.DeepPressed && deepCandidateFrames >= 2)
             {
                 _context.DeepPressed = true;
-                triggerDeepPress = true;
+                gestureTriggered = new TouchpadGestureTriggerEventArgs(
+                    TouchpadGestureTriggerKind.DeepPress,
+                    _context.SessionRegionId,
+                    _context.StartX,
+                    _context.StartY,
+                    pressure);
             }
 
             var releaseFloor = Math.Max(100, threshold - 40);
@@ -279,6 +304,19 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             {
                 _context.PressStartPressure = 0;
                 _context.PeakPressure = 0;
+            }
+            else if (hasInteraction &&
+                     !_context.LongPressTriggered &&
+                     !string.IsNullOrWhiteSpace(_context.SessionRegionId) &&
+                     timestamp - _context.InteractionStartedAt >= TimeSpan.FromMilliseconds(RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs))
+            {
+                _context.LongPressTriggered = true;
+                gestureTriggered ??= new TouchpadGestureTriggerEventArgs(
+                    TouchpadGestureTriggerKind.LongPress,
+                    _context.SessionRegionId,
+                    _context.StartX,
+                    _context.StartY,
+                    pressure);
             }
 
             _context.DeepCandidateFrames = deepCandidateFrames;
@@ -310,9 +348,9 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             };
         }
 
-        if (triggerDeepPress)
+        if (gestureTriggered is not null)
         {
-            DeepPressTriggered?.Invoke(this, EventArgs.Empty);
+            GestureTriggered?.Invoke(this, gestureTriggered);
         }
 
         StateChanged?.Invoke(this, GetLatestState());
@@ -503,6 +541,67 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
     private sealed record RawInputDeviceSnapshot(nint Handle, ushort UsagePage, ushort Usage, string DisplayName, string DevicePath, bool IsTouchpad);
 
+    private static TouchpadRegionBoundsConfiguration CloneBounds(
+        TouchpadRegionBoundsConfiguration? source,
+        TouchpadRegionBoundsConfiguration fallback)
+    {
+        return new TouchpadRegionBoundsConfiguration
+        {
+            Left = source?.Left ?? fallback.Left,
+            Top = source?.Top ?? fallback.Top,
+            Right = source?.Right ?? fallback.Right,
+            Bottom = source?.Bottom ?? fallback.Bottom
+        };
+    }
+
+    private static TouchpadDecodedContact? GetPrimaryContact(IReadOnlyList<TouchpadDecodedContact> contacts)
+    {
+        TouchpadDecodedContact? bestContact = null;
+        foreach (var contact in contacts)
+        {
+            if (!contact.Tip && !contact.Confidence)
+            {
+                continue;
+            }
+
+            if (bestContact is null || contact.Pressure > bestContact.Value.Pressure)
+            {
+                bestContact = contact;
+            }
+        }
+
+        return bestContact;
+    }
+
+    private string? ResolveRegionId(TouchpadDecodedContact? contact)
+    {
+        if (contact is null)
+        {
+            return null;
+        }
+
+        if (IsWithinBounds(contact.Value.X, contact.Value.Y, _leftTopBounds))
+        {
+            return TouchpadCornerRegionId.LeftTop;
+        }
+
+        if (IsWithinBounds(contact.Value.X, contact.Value.Y, _rightTopBounds))
+        {
+            return TouchpadCornerRegionId.RightTop;
+        }
+
+        return null;
+    }
+
+    private bool IsWithinBounds(int x, int y, TouchpadRegionBoundsConfiguration bounds)
+    {
+        var clampedRight = Math.Clamp(bounds.Right, 1, _surfaceWidth);
+        var clampedBottom = Math.Clamp(bounds.Bottom, 1, _surfaceHeight);
+        var clampedLeft = Math.Clamp(bounds.Left, 0, clampedRight - 1);
+        var clampedTop = Math.Clamp(bounds.Top, 0, clampedBottom - 1);
+        return x >= clampedLeft && x < clampedRight && y >= clampedTop && y < clampedBottom;
+    }
+
     private sealed class TouchpadTrackingContext
     {
         public bool HasInteraction { get; set; }
@@ -517,9 +616,19 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
         public bool DeepPressed { get; set; }
 
+        public bool LongPressTriggered { get; set; }
+
         public int DeepCandidateFrames { get; set; }
 
         public DateTimeOffset LastActiveAt { get; set; }
+
+        public DateTimeOffset InteractionStartedAt { get; set; }
+
+        public string? SessionRegionId { get; set; }
+
+        public int StartX { get; set; }
+
+        public int StartY { get; set; }
     }
 
     private static class NativeMethods
@@ -594,4 +703,28 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             public ushort usUsage;
         }
     }
+}
+
+internal enum TouchpadGestureTriggerKind
+{
+    DeepPress,
+    LongPress
+}
+
+internal sealed class TouchpadGestureTriggerEventArgs(
+    TouchpadGestureTriggerKind triggerKind,
+    string? regionId,
+    int startX,
+    int startY,
+    int pressure) : EventArgs
+{
+    public TouchpadGestureTriggerKind TriggerKind { get; } = triggerKind;
+
+    public string? RegionId { get; } = regionId;
+
+    public int StartX { get; } = startX;
+
+    public int StartY { get; } = startY;
+
+    public int Pressure { get; } = pressure;
 }

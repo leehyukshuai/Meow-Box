@@ -38,6 +38,11 @@
     <SolidColorBrush x:Key="AppPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.42" />
     <SolidColorBrush x:Key="AppPickerSelectedBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.18" />
     <SolidColorBrush x:Key="AppPickerSelectedBorderPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.56" />
+    <SolidColorBrush x:Key="ActionPickerSelectedBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.09" />
+    <SolidColorBrush x:Key="ActionPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.34" />
+    <SolidColorBrush x:Key="ActionPickerSelectedBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.12" />
+    <SolidColorBrush x:Key="ActionPickerSelectedBorderPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.42" />
+    <SolidColorBrush x:Key="ActionPickerPressedOverlayBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.12" />
 
     <StaticResource x:Key="ButtonBackground" ResourceKey="LayerFillColorAltBrush" />
     <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource AppButtonBackgroundPointerOverColor}" />

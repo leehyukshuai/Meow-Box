@@ -40,6 +40,14 @@
             Style="{StaticResource ListHostStyle}"
             SelectionMode="Single"
             SelectionChanged="OnSelectionChanged">
+            <ListView.Resources>
+                <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.09" />
+                <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="{ThemeResource SystemAccentColor}" Opacity="0.12" />
+                <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="{ThemeResource SystemAccentColor}" Opacity="0.15" />
+                <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.3" />
+                <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.38" />
+                <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPressedBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.46" />
+            </ListView.Resources>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid ColumnSpacing="12">

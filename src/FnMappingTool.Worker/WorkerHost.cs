@@ -45,7 +45,7 @@ internal sealed class WorkerHost : IDisposable
 
         _pipeServer = new WorkerPipeServer(HandleRequestAsync);
         _touchpadInputService = new TouchpadInputService();
-        _touchpadInputService.DeepPressTriggered += OnTouchpadDeepPressTriggered;
+        _touchpadInputService.GestureTriggered += OnTouchpadGestureTriggered;
         _touchpadInputService.StateChanged += OnTouchpadStateChanged;
         _touchpadStreamServer = new TouchpadStreamServer(_touchpadInputService.GetLatestState);
         LoadConfiguration();
@@ -137,7 +137,7 @@ internal sealed class WorkerHost : IDisposable
         _configWatcher?.Dispose();
         _wmiMonitor?.Dispose();
         _pipeServer.Dispose();
-        _touchpadInputService.DeepPressTriggered -= OnTouchpadDeepPressTriggered;
+        _touchpadInputService.GestureTriggered -= OnTouchpadGestureTriggered;
         _touchpadInputService.StateChanged -= OnTouchpadStateChanged;
         _touchpadStreamServer.Dispose();
         _touchpadInputService.Dispose();
@@ -267,14 +267,14 @@ internal sealed class WorkerHost : IDisposable
         }
     }
 
-    private void OnTouchpadDeepPressTriggered(object? sender, EventArgs e)
+    private void OnTouchpadGestureTriggered(object? sender, TouchpadGestureTriggerEventArgs e)
     {
         if (!_configuration.Preferences.IsListening || !_configuration.Touchpad.Enabled)
         {
             return;
         }
 
-        var action = _configuration.Touchpad.DeepPressAction;
+        var action = ResolveTouchpadAction(e);
         if (action is null || string.IsNullOrWhiteSpace(action.Type))
         {
             return;
@@ -283,7 +283,7 @@ internal sealed class WorkerHost : IDisposable
         try
         {
             ExecuteAction(action);
-            _lastEventSummary = "Touchpad deep press";
+            _lastEventSummary = BuildTouchpadGestureSummary(e);
         }
         catch (Exception exception)
         {
@@ -405,6 +405,46 @@ internal sealed class WorkerHost : IDisposable
         return !string.IsNullOrWhiteSpace(mapping.Action.Type)
             ? ActionCatalog.GetLabel(mapping.Action.Type)
             : MappingDisplayCatalog.ShowOsdLabel;
+    }
+
+    private ActionDefinitionConfiguration? ResolveTouchpadAction(TouchpadGestureTriggerEventArgs e)
+    {
+        var touchpad = _configuration.Touchpad ?? new TouchpadConfiguration();
+        return e.TriggerKind switch
+        {
+            TouchpadGestureTriggerKind.LongPress => ResolveCornerRegion(e.RegionId)?.LongPressAction,
+            TouchpadGestureTriggerKind.DeepPress => ResolveCornerRegion(e.RegionId)?.DeepPressAction is { Type.Length: > 0 } cornerDeepPress
+                ? cornerDeepPress
+                : touchpad.DeepPressAction,
+            _ => null
+        };
+    }
+
+    private TouchpadCornerRegionConfiguration? ResolveCornerRegion(string? regionId)
+    {
+        return regionId switch
+        {
+            TouchpadCornerRegionId.LeftTop => _configuration.Touchpad.LeftTopCorner,
+            TouchpadCornerRegionId.RightTop => _configuration.Touchpad.RightTopCorner,
+            _ => null
+        };
+    }
+
+    private static string BuildTouchpadGestureSummary(TouchpadGestureTriggerEventArgs e)
+    {
+        var regionLabel = e.RegionId switch
+        {
+            TouchpadCornerRegionId.LeftTop => "left-top corner",
+            TouchpadCornerRegionId.RightTop => "right-top corner",
+            _ => "surface"
+        };
+
+        return e.TriggerKind switch
+        {
+            TouchpadGestureTriggerKind.LongPress => $"Touchpad long press ({regionLabel})",
+            TouchpadGestureTriggerKind.DeepPress when !string.IsNullOrWhiteSpace(e.RegionId) => $"Touchpad deep press ({regionLabel})",
+            _ => "Touchpad deep press"
+        };
     }
 
     private WorkerStatus BuildStatus()

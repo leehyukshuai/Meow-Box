@@ -318,6 +318,8 @@ public sealed class AppConfigService
     private static TouchpadConfiguration NormalizeTouchpadConfiguration(TouchpadConfiguration? touchpad, string? baseDirectory)
     {
         touchpad ??= new TouchpadConfiguration();
+        var surfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
+        var surfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
         return new TouchpadConfiguration
         {
             Enabled = touchpad.Enabled,
@@ -325,8 +327,67 @@ public sealed class AppConfigService
                 touchpad.DeepPressThreshold <= 0 ? RuntimeDefaults.DefaultTouchpadDeepPressThreshold : touchpad.DeepPressThreshold,
                 100,
                 4000),
-            DeepPressAction = NormalizeAction(touchpad.DeepPressAction, baseDirectory)
+            SurfaceWidth = surfaceWidth,
+            SurfaceHeight = surfaceHeight,
+            DeepPressAction = NormalizeAction(touchpad.DeepPressAction, baseDirectory),
+            LeftTopCorner = NormalizeTouchpadCornerRegion(
+                touchpad.LeftTopCorner,
+                TouchpadCornerRegionConfiguration.CreateLeftTopDefault(),
+                baseDirectory,
+                surfaceWidth,
+                surfaceHeight),
+            RightTopCorner = NormalizeTouchpadCornerRegion(
+                touchpad.RightTopCorner,
+                TouchpadCornerRegionConfiguration.CreateRightTopDefault(),
+                baseDirectory,
+                surfaceWidth,
+                surfaceHeight)
         };
+    }
+
+    private static TouchpadCornerRegionConfiguration NormalizeTouchpadCornerRegion(
+        TouchpadCornerRegionConfiguration? region,
+        TouchpadCornerRegionConfiguration template,
+        string? baseDirectory,
+        int surfaceWidth,
+        int surfaceHeight)
+    {
+        var bounds = NormalizeTouchpadBounds(region?.Bounds, template.Bounds, surfaceWidth, surfaceHeight);
+        return new TouchpadCornerRegionConfiguration
+        {
+            Id = template.Id,
+            Bounds = bounds,
+            DeepPressAction = NormalizeAction(region?.DeepPressAction ?? template.DeepPressAction, baseDirectory),
+            LongPressAction = NormalizeAction(region?.LongPressAction ?? template.LongPressAction, baseDirectory)
+        };
+    }
+
+    private static TouchpadRegionBoundsConfiguration NormalizeTouchpadBounds(
+        TouchpadRegionBoundsConfiguration? bounds,
+        TouchpadRegionBoundsConfiguration template,
+        int surfaceWidth,
+        int surfaceHeight)
+    {
+        var normalized = new TouchpadRegionBoundsConfiguration
+        {
+            Left = Math.Clamp(bounds?.Left ?? template.Left, 0, surfaceWidth - 1),
+            Top = Math.Clamp(bounds?.Top ?? template.Top, 0, surfaceHeight - 1),
+            Right = Math.Clamp(bounds?.Right ?? template.Right, 1, surfaceWidth),
+            Bottom = Math.Clamp(bounds?.Bottom ?? template.Bottom, 1, surfaceHeight)
+        };
+
+        if (normalized.Right <= normalized.Left || normalized.Bottom <= normalized.Top)
+        {
+            return new TouchpadRegionBoundsConfiguration
+            {
+                Left = template.Left,
+                Top = template.Top,
+                Right = template.Right,
+                Bottom = template.Bottom
+            };
+        }
+
+        return normalized;
     }
 
     private static MappingOsdConfiguration NormalizeMappingOsd(

@@ -27,10 +27,14 @@ public static class SupportedDeviceConfiguration
             {
                 Enabled = true,
                 DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
+                SurfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth,
+                SurfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight,
                 DeepPressAction = new ActionDefinitionConfiguration
                 {
                     Type = HotkeyActionType.None
-                }
+                },
+                LeftTopCorner = TouchpadCornerRegionConfiguration.CreateLeftTopDefault(),
+                RightTopCorner = TouchpadCornerRegionConfiguration.CreateRightTopDefault()
             },
             Keys = CreateKeys(),
             Mappings = CreateMappings()
@@ -51,10 +55,10 @@ public static class SupportedDeviceConfiguration
             CreateKey(DefaultKeyIds.CapsLockOff, "Caps Lock Off", "01-09-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.MicrophoneMuteOn, "Microphone Mute On", "01-21-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.MicrophoneMuteOff, "Microphone Mute Off", "01-21-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.BacklightOff, "Backlight Off", "01-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.BacklightLevel1, "Backlight Level 1", "01-05-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.BacklightLevel2, "Backlight Level 2", "01-05-0A-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.BacklightAuto, "Backlight Auto", "01-05-80-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00")
+            CreateKey(DefaultKeyIds.BacklightOff, "Backlight Off", "01-05-00", requireWmiActive: false),
+            CreateKey(DefaultKeyIds.BacklightLevel1, "Backlight Level 1", "01-05-05", requireWmiActive: false),
+            CreateKey(DefaultKeyIds.BacklightLevel2, "Backlight Level 2", "01-05-0A", requireWmiActive: false),
+            CreateKey(DefaultKeyIds.BacklightAuto, "Backlight Auto", "01-05-80", requireWmiActive: false)
         ];
     }
 
@@ -79,7 +83,7 @@ public static class SupportedDeviceConfiguration
         ];
     }
 
-    private static KeyDefinitionConfiguration CreateKey(string id, string name, string reportHex)
+    private static KeyDefinitionConfiguration CreateKey(string id, string name, string reportHex, bool requireWmiActive = true)
     {
         return new KeyDefinitionConfiguration
         {
@@ -89,7 +93,7 @@ public static class SupportedDeviceConfiguration
             {
                 Source = InputSourceKind.Wmi,
                 WmiClassName = "HID_EVENT20",
-                WmiActive = true,
+                WmiActive = requireWmiActive ? true : null,
                 ReportHex = reportHex
             }
         };

@@ -309,9 +309,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
         if (_workerProcessService.IsWorkerProcessRunning())
         {
-            ServiceRunning = true;
-            _ = EnsureWorkerReadyAsync();
-            return true;
+            return await WaitForWorkerReadyAsync();
         }
 
         if (!_workerProcessService.StartWorker())
@@ -319,30 +317,29 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             return false;
         }
 
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            if (_workerProcessService.IsWorkerProcessRunning())
-            {
-                ServiceRunning = true;
-                _ = EnsureWorkerReadyAsync();
-                return true;
-            }
-
-            await Task.Delay(100);
-        }
-
-        await RefreshWorkerStatusAsync();
-        return ServiceRunning;
+        return await WaitForWorkerReadyAsync();
     }
 
     public async Task StopWorkerServiceAsync()
     {
-        await _workerPipeClient.SendAsync(new WorkerRequest
+        _ = await _workerPipeClient.SendAsync(new WorkerRequest
         {
             Command = WorkerCommandType.StopWorker
-        }, 1500);
+        }, 600);
 
-        await Task.Delay(500);
+        ResetTouchpadLiveState();
+
+        for (var attempt = 0; attempt < 12; attempt++)
+        {
+            if (!_workerProcessService.IsWorkerProcessRunning())
+            {
+                await RefreshWorkerStatusAsync();
+                return;
+            }
+
+            await Task.Delay(80);
+        }
+
         await RefreshWorkerStatusAsync();
     }
 
@@ -640,12 +637,12 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         var response = await _workerPipeClient.SendAsync(new WorkerRequest
         {
             Command = WorkerCommandType.GetStatus
-        }, 800);
+        }, 350);
 
         ServiceRunning = response?.Success == true && response.Status is not null;
-        if (!_touchpadStreamConnected)
+        if (!_touchpadStreamConnected || !ServiceRunning)
         {
-            TouchpadLive.Update(response?.Status?.Touchpad, ServiceRunning, Touchpad.DeepPressThreshold);
+            TouchpadLive.Update(ServiceRunning ? response?.Status?.Touchpad : null, ServiceRunning, Touchpad.DeepPressThreshold);
         }
         }
         finally
@@ -654,31 +651,44 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         }
     }
 
-    private async Task EnsureWorkerReadyAsync()
+    private async Task<bool> WaitForWorkerReadyAsync()
     {
-        for (var attempt = 0; attempt < 20; attempt++)
+        for (var attempt = 0; attempt < 12; attempt++)
         {
             var response = await _workerPipeClient.SendAsync(new WorkerRequest
             {
                 Command = WorkerCommandType.GetStatus
-            }, 200);
+            }, 150);
 
             if (response?.Success == true && response.Status is not null)
             {
                 ServiceRunning = true;
-                return;
+                if (!_touchpadStreamConnected)
+                {
+                    TouchpadLive.Update(response.Status.Touchpad, serviceAvailable: true, Touchpad.DeepPressThreshold);
+                }
+
+                return true;
             }
 
             if (!_workerProcessService.IsWorkerProcessRunning())
             {
-                ServiceRunning = false;
-                return;
+                ResetTouchpadLiveState();
+                return false;
             }
 
-            await Task.Delay(150);
+            await Task.Delay(80);
         }
 
         await RefreshWorkerStatusAsync();
+        return ServiceRunning;
+    }
+
+    private void ResetTouchpadLiveState()
+    {
+        _touchpadStreamConnected = false;
+        ServiceRunning = false;
+        TouchpadLive.Update(null, serviceAvailable: false, Touchpad.DeepPressThreshold);
     }
 
     private void ApplyActionType(string type)
@@ -738,6 +748,12 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
                 _dispatcherQueue.TryEnqueue(() => ServiceRunning = true);
             }
 
+            return;
+        }
+
+        if (!_workerProcessService.IsWorkerProcessRunning())
+        {
+            ResetTouchpadLiveState();
             return;
         }
 

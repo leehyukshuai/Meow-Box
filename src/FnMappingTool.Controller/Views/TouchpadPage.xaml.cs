@@ -2,11 +2,11 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Microsoft.UI;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.UI.Text;
 using FnMappingTool.Controller.Services;
 using FnMappingTool.Controller.ViewModels;
 using FnMappingTool.Core.Models;
@@ -19,21 +19,19 @@ public sealed partial class TouchpadPage : Page
 {
     private const int LightPressThreshold = 125;
     private const double PressureScaleMax = 2500d;
-    private double _maxObservedX = 2048;
-    private double _maxObservedY = 2048;
     private double _displayPressure;
     private DateTimeOffset _lastDisplayPressureAt;
-    private bool _refreshingStandardKeyChoices;
     private bool _renderPending;
     private bool _touchpadStateRefreshPending;
+    private bool _touchpadSurfaceExpanded = true;
     private readonly Dictionary<int, SmoothedContactState> _smoothedContacts = [];
 
     public FnMappingToolController Controller => App.Controller;
 
-    public IReadOnlyList<StandardKeyGroupOption> StandardKeyGroups { get; } = StandardKeyCatalog.GroupOptions;
-
-    public ObservableCollection<StandardKeyOption> FilteredStandardKeys { get; } = [];
     public ObservableCollection<TouchpadLiveContactViewModel> VisibleContacts { get; } = [];
+    public string SurfaceToggleLabel => _touchpadSurfaceExpanded ? "Collapse" : "Expand";
+    public string SurfaceToggleGlyph => _touchpadSurfaceExpanded ? "\uE70D" : "\uE70E";
+    public Visibility SurfaceContentVisibility => _touchpadSurfaceExpanded ? Visibility.Visible : Visibility.Collapsed;
 
     public TouchpadPage()
     {
@@ -48,7 +46,6 @@ public sealed partial class TouchpadPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SubscribeTouchpadState();
-        RefreshStandardKeyChoices();
         ScheduleTouchpadStateRefresh();
         DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
@@ -63,19 +60,23 @@ public sealed partial class TouchpadPage : Page
     {
         Controller.TouchpadLive.PropertyChanged += OnTouchpadLivePropertyChanged;
         Controller.TouchpadLive.Contacts.CollectionChanged += OnTouchpadContactsChanged;
-        Controller.Touchpad.DeepPressAction.PropertyChanged += OnTouchpadActionPropertyChanged;
     }
 
     private void UnsubscribeTouchpadState()
     {
         Controller.TouchpadLive.PropertyChanged -= OnTouchpadLivePropertyChanged;
         Controller.TouchpadLive.Contacts.CollectionChanged -= OnTouchpadContactsChanged;
-        Controller.Touchpad.DeepPressAction.PropertyChanged -= OnTouchpadActionPropertyChanged;
     }
 
     private async void OnChooseTouchpadActionClick(object sender, RoutedEventArgs e)
     {
-        var dialog = new ActionPickerDialog(Controller.Touchpad.DeepPressAction.Type)
+        var editor = GetActionEditor(sender);
+        if (editor is null)
+        {
+            return;
+        }
+
+        var dialog = new ActionPickerDialog(editor.Action.Type)
         {
             XamlRoot = Content.XamlRoot
         };
@@ -85,15 +86,21 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        Controller.SetTouchpadActionType(dialog.SelectedAction.Key);
-        RefreshStandardKeyChoices();
+        editor.Action.Type = dialog.SelectedAction.Key;
+        editor.RefreshStandardKeys();
         TrySaveTouchpadConfigurationAsync();
     }
 
     private void OnClearTouchpadActionClick(object sender, RoutedEventArgs e)
     {
-        Controller.ClearTouchpadAction();
-        RefreshStandardKeyChoices();
+        var editor = GetActionEditor(sender);
+        if (editor is null)
+        {
+            return;
+        }
+
+        editor.Action.ClearAssignment();
+        editor.RefreshStandardKeys();
         TrySaveTouchpadConfigurationAsync();
     }
 
@@ -105,51 +112,62 @@ public sealed partial class TouchpadPage : Page
         }
     }
 
-    private void OnTouchpadSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OnTouchpadActionSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (Controller.IsReloadingConfiguration)
         {
             return;
         }
 
-        if (_refreshingStandardKeyChoices)
+        var editor = GetActionEditor(sender);
+        if (editor is null || editor.IsRefreshingStandardKeys)
         {
             return;
         }
 
-        if (ReferenceEquals(sender, TouchpadStandardKeyComboBox))
+        if (sender is ComboBox comboBox)
         {
             var selectedOption = e.AddedItems.OfType<StandardKeyOption>().FirstOrDefault()
-                ?? TouchpadStandardKeyComboBox.SelectedItem as StandardKeyOption;
-
-            Controller.Touchpad.DeepPressAction.StandardKey = selectedOption?.Key ?? string.Empty;
+                ?? comboBox.SelectedItem as StandardKeyOption;
+            editor.Action.StandardKey = selectedOption?.Key ?? string.Empty;
         }
 
         TrySaveTouchpadConfigurationAsync();
     }
 
-    private void OnStandardKeyGroupSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OnTouchpadStandardKeyGroupSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (Controller.IsReloadingConfiguration)
         {
             return;
         }
 
-        if (ReferenceEquals(sender, TouchpadStandardKeyGroupComboBox))
+        var editor = GetActionEditor(sender);
+        if (editor is null)
+        {
+            return;
+        }
+
+        if (sender is ComboBox comboBox)
         {
             var selectedGroup = e.AddedItems.OfType<StandardKeyGroupOption>().FirstOrDefault()
-                ?? TouchpadStandardKeyGroupComboBox.SelectedItem as StandardKeyGroupOption;
-
-            Controller.Touchpad.DeepPressAction.StandardKeyGroup =
+                ?? comboBox.SelectedItem as StandardKeyGroupOption;
+            editor.Action.StandardKeyGroup =
                 selectedGroup?.Key ?? StandardKeyCatalog.GroupOptions[0].Key;
         }
 
-        RefreshStandardKeyChoices();
+        editor.RefreshStandardKeys();
         TrySaveTouchpadConfigurationAsync();
     }
 
     private async void OnPickInstalledAppClick(object sender, RoutedEventArgs e)
     {
+        var editor = GetActionEditor(sender);
+        if (editor is null)
+        {
+            return;
+        }
+
         var apps = await Controller.GetInstalledAppsAsync();
         var dialog = new AppPickerDialog(apps)
         {
@@ -159,17 +177,23 @@ public sealed partial class TouchpadPage : Page
         var result = await dialog.ShowAsync();
         if (result == ContentDialogResult.Primary && dialog.SelectedApp is not null)
         {
-            Controller.Touchpad.DeepPressAction.Target = dialog.SelectedApp.LaunchTarget;
+            editor.Action.Target = dialog.SelectedApp.LaunchTarget;
             TrySaveTouchpadConfigurationAsync();
         }
     }
 
     private async void OnBrowseExecutableClick(object sender, RoutedEventArgs e)
     {
+        var editor = GetActionEditor(sender);
+        if (editor is null)
+        {
+            return;
+        }
+
         var path = await PickFileAsync([".exe", ".lnk", ".bat", "*"]);
         if (!string.IsNullOrWhiteSpace(path))
         {
-            Controller.Touchpad.DeepPressAction.Target = path;
+            editor.Action.Target = path;
             TrySaveTouchpadConfigurationAsync();
         }
     }
@@ -177,6 +201,21 @@ public sealed partial class TouchpadPage : Page
     private void OnTouchpadCanvasSizeChanged(object sender, SizeChangedEventArgs e)
     {
         RequestRender();
+    }
+
+    private void OnTouchpadSurfaceToggleClick(object sender, RoutedEventArgs e)
+    {
+        _touchpadSurfaceExpanded = !_touchpadSurfaceExpanded;
+        Bindings.Update();
+
+        if (_touchpadSurfaceExpanded)
+        {
+            RequestRender();
+        }
+        else
+        {
+            TouchpadCanvas.Children.Clear();
+        }
     }
 
     private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -188,10 +227,8 @@ public sealed partial class TouchpadPage : Page
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            UnsubscribeTouchpadState();
-            SubscribeTouchpadState();
-            RefreshStandardKeyChoices();
             ScheduleTouchpadStateRefresh();
+            RequestRender();
             XamlStringLocalizer.Apply(this);
         });
     }
@@ -206,40 +243,15 @@ public sealed partial class TouchpadPage : Page
         ScheduleTouchpadStateRefresh();
     }
 
-    private void OnTouchpadActionPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(ActionDefinitionViewModel.Type))
-        {
-            DispatcherQueue.TryEnqueue(RefreshStandardKeyChoices);
-        }
-    }
-
-    private void RefreshStandardKeyChoices()
-    {
-        _refreshingStandardKeyChoices = true;
-        try
-        {
-            var selectedGroup = Controller.Touchpad.DeepPressAction.StandardKeyGroup;
-            FilteredStandardKeys.Clear();
-            foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))
-            {
-                FilteredStandardKeys.Add(option);
-            }
-
-            TouchpadStandardKeyGroupComboBox.SelectedValue = selectedGroup;
-            var selectedKey = Controller.Touchpad.DeepPressAction.StandardKey;
-            TouchpadStandardKeyComboBox.SelectedItem = FilteredStandardKeys
-                .FirstOrDefault(item => string.Equals(item.Key, selectedKey, StringComparison.OrdinalIgnoreCase));
-            TouchpadStandardKeyComboBox.SelectedValue = selectedKey;
-        }
-        finally
-        {
-            _refreshingStandardKeyChoices = false;
-        }
-    }
-
     private void RefreshVisibleContacts()
     {
+        if (!Controller.ServiceRunning || Controller.TouchpadLive.IsVisualizerEmpty)
+        {
+            VisibleContacts.Clear();
+            _smoothedContacts.Clear();
+            return;
+        }
+
         var now = DateTimeOffset.UtcNow;
         var activeSlots = new HashSet<int>();
         var orderedContacts = Controller.TouchpadLive.Contacts.ToList();
@@ -322,16 +334,10 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        foreach (var contact in VisibleContacts)
-        {
-            _maxObservedX = Math.Max(_maxObservedX, contact.X);
-            _maxObservedY = Math.Max(_maxObservedY, contact.Y);
-        }
-
-        var detailsMinWidth = 240d;
+        var detailsMinWidth = 280d;
         var availablePadWidth = Math.Max(220d, layoutWidth - detailsMinWidth - 16d);
         var availablePadHeight = layoutHeight;
-        var targetAspect = 3d / 2d;
+        var targetAspect = Controller.Touchpad.SurfaceWidth / (double)Math.Max(1, Controller.Touchpad.SurfaceHeight);
 
         var padWidth = Math.Min(availablePadWidth, availablePadHeight * targetAspect);
         var padHeight = padWidth / targetAspect;
@@ -359,8 +365,50 @@ public sealed partial class TouchpadPage : Page
         Canvas.SetLeft(padBorder, padLeft);
         Canvas.SetTop(padBorder, padTop);
 
+        AddCornerOverlays(padLeft, padTop, padWidth, padHeight);
         AddGridLines(padLeft, padTop, padWidth, padHeight);
         AddContacts(displayPressure, padLeft, padTop, padWidth, padHeight);
+    }
+
+    private void AddCornerOverlays(double padLeft, double padTop, double padWidth, double padHeight)
+    {
+        var regions = new[]
+        {
+            (ViewModel: Controller.Touchpad.LeftTopCorner, Label: "LT"),
+            (ViewModel: Controller.Touchpad.RightTopCorner, Label: "RT")
+        };
+
+        foreach (var region in regions)
+        {
+            var widthRatio = Math.Clamp((region.ViewModel.Bounds.Right - region.ViewModel.Bounds.Left) / (double)Math.Max(1, Controller.Touchpad.SurfaceWidth), 0d, 1d);
+            var heightRatio = Math.Clamp((region.ViewModel.Bounds.Bottom - region.ViewModel.Bounds.Top) / (double)Math.Max(1, Controller.Touchpad.SurfaceHeight), 0d, 1d);
+            var leftRatio = Math.Clamp(region.ViewModel.Bounds.Left / (double)Math.Max(1, Controller.Touchpad.SurfaceWidth), 0d, 1d);
+            var topRatio = Math.Clamp(region.ViewModel.Bounds.Top / (double)Math.Max(1, Controller.Touchpad.SurfaceHeight), 0d, 1d);
+
+            var overlay = new Border
+            {
+                Width = Math.Max(32d, padWidth * widthRatio),
+                Height = Math.Max(28d, padHeight * heightRatio),
+                CornerRadius = new CornerRadius(16),
+                Background = new SolidColorBrush(ColorHelper.FromArgb(18, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(ColorHelper.FromArgb(40, 255, 255, 255)),
+                BorderThickness = new Thickness(1)
+            };
+            TouchpadCanvas.Children.Add(overlay);
+            Canvas.SetLeft(overlay, padLeft + (padWidth * leftRatio));
+            Canvas.SetTop(overlay, padTop + (padHeight * topRatio));
+
+            var label = new TextBlock
+            {
+                Text = region.Label,
+                Foreground = new SolidColorBrush(ColorHelper.FromArgb(168, 255, 255, 255)),
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold
+            };
+            TouchpadCanvas.Children.Add(label);
+            Canvas.SetLeft(label, padLeft + (padWidth * leftRatio) + 10);
+            Canvas.SetTop(label, padTop + (padHeight * topRatio) + 8);
+        }
     }
 
     private void AddGridLines(double padLeft, double padTop, double padWidth, double padHeight)
@@ -395,12 +443,14 @@ public sealed partial class TouchpadPage : Page
     {
         var showHalo = displayPressure >= LightPressThreshold;
         var color = GetPressureColor(displayPressure);
+        var surfaceWidth = Math.Max(1d, Controller.Touchpad.SurfaceWidth);
+        var surfaceHeight = Math.Max(1d, Controller.Touchpad.SurfaceHeight);
         foreach (var contact in VisibleContacts)
         {
-            var x = padLeft + ((contact.X / Math.Max(1d, _maxObservedX)) * (padWidth - 24)) + 12;
-            var y = padTop + ((contact.Y / Math.Max(1d, _maxObservedY)) * (padHeight - 24)) + 12;
+            var x = padLeft + ((contact.X / surfaceWidth) * (padWidth - 24)) + 12;
+            var y = padTop + ((contact.Y / surfaceHeight) * (padHeight - 24)) + 12;
             var ratio = Math.Clamp(contact.Pressure / PressureScaleMax, 0d, 1d);
-            var radius = 10 + (ratio * 16);
+            var radius = 9 + (ratio * 12);
 
             if (showHalo)
             {
@@ -576,6 +626,11 @@ public sealed partial class TouchpadPage : Page
         };
 
         await dialog.ShowAsync();
+    }
+
+    private static TouchpadTriggerActionEditorViewModel? GetActionEditor(object sender)
+    {
+        return (sender as FrameworkElement)?.DataContext as TouchpadTriggerActionEditorViewModel;
     }
 
     private struct SmoothedContactState(double x, double y, double pressure, DateTimeOffset updatedAt)

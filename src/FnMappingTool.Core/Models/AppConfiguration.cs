@@ -155,10 +155,18 @@ public sealed class EventMatcherConfiguration
             return false;
         }
 
-        if (!string.IsNullOrWhiteSpace(ReportHex) &&
-            !string.Equals(NormalizeHex(ReportHex), NormalizeHex(inputEvent.ReportHex), StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(ReportHex))
         {
-            return false;
+            var expectedReport = NormalizeHex(ReportHex);
+            var actualReport = NormalizeHex(inputEvent.ReportHex);
+            var matchesReport = actualReport.Length >= expectedReport.Length
+                ? actualReport.StartsWith(expectedReport, StringComparison.OrdinalIgnoreCase)
+                : string.Equals(expectedReport, actualReport, StringComparison.OrdinalIgnoreCase);
+
+            if (!matchesReport)
+            {
+                return false;
+            }
         }
 
         return true;
@@ -267,6 +275,11 @@ public static class RuntimeDefaults
     public const int DefaultOsdBackgroundOpacityPercent = 20;
     public const int DefaultOsdScalePercent = 75;
     public const int DefaultTouchpadDeepPressThreshold = 500;
+    public const int DefaultTouchpadSurfaceWidth = 3282;
+    public const int DefaultTouchpadSurfaceHeight = 2124;
+    public const int DefaultTouchpadCornerWidth = 720;
+    public const int DefaultTouchpadCornerHeight = 560;
+    public const int DefaultTouchpadCornerLongPressDurationMs = 450;
     public const int MaxOsdTitleLength = 32;
 }
 

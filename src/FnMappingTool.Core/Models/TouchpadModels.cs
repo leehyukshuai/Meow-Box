@@ -6,7 +6,73 @@ public sealed class TouchpadConfiguration
 
     public int DeepPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
 
+    public int SurfaceWidth { get; set; } = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
+
+    public int SurfaceHeight { get; set; } = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
+
     public ActionDefinitionConfiguration DeepPressAction { get; set; } = new();
+
+    public TouchpadCornerRegionConfiguration LeftTopCorner { get; set; } = TouchpadCornerRegionConfiguration.CreateLeftTopDefault();
+
+    public TouchpadCornerRegionConfiguration RightTopCorner { get; set; } = TouchpadCornerRegionConfiguration.CreateRightTopDefault();
+}
+
+public sealed class TouchpadCornerRegionConfiguration
+{
+    public string Id { get; set; } = string.Empty;
+
+    public TouchpadRegionBoundsConfiguration Bounds { get; set; } = new();
+
+    public ActionDefinitionConfiguration DeepPressAction { get; set; } = new();
+
+    public ActionDefinitionConfiguration LongPressAction { get; set; } = new();
+
+    public static TouchpadCornerRegionConfiguration CreateLeftTopDefault()
+    {
+        return new TouchpadCornerRegionConfiguration
+        {
+            Id = TouchpadCornerRegionId.LeftTop,
+            Bounds = new TouchpadRegionBoundsConfiguration
+            {
+                Left = 0,
+                Top = 0,
+                Right = RuntimeDefaults.DefaultTouchpadCornerWidth,
+                Bottom = RuntimeDefaults.DefaultTouchpadCornerHeight
+            }
+        };
+    }
+
+    public static TouchpadCornerRegionConfiguration CreateRightTopDefault()
+    {
+        return new TouchpadCornerRegionConfiguration
+        {
+            Id = TouchpadCornerRegionId.RightTop,
+            Bounds = new TouchpadRegionBoundsConfiguration
+            {
+                Left = RuntimeDefaults.DefaultTouchpadSurfaceWidth - RuntimeDefaults.DefaultTouchpadCornerWidth,
+                Top = 0,
+                Right = RuntimeDefaults.DefaultTouchpadSurfaceWidth,
+                Bottom = RuntimeDefaults.DefaultTouchpadCornerHeight
+            }
+        };
+    }
+}
+
+public sealed class TouchpadRegionBoundsConfiguration
+{
+    public int Left { get; set; }
+
+    public int Top { get; set; }
+
+    public int Right { get; set; }
+
+    public int Bottom { get; set; }
+}
+
+public static class TouchpadCornerRegionId
+{
+    public const string LeftTop = "left-top";
+    public const string RightTop = "right-top";
 }
 
 public sealed class TouchpadLiveStateSnapshot

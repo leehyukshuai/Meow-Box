@@ -1,10 +1,10 @@
+using System.Globalization;
 using FnMappingTool.Core.Models;
 
 namespace FnMappingTool.Controller.ViewModels;
 
 public sealed class TouchpadConfigurationViewModel : ObservableObject
 {
-    private readonly ActionDefinitionViewModel _deepPressAction;
     private bool _enabled;
     private int _deepPressThreshold;
 
@@ -15,13 +15,48 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
         _deepPressThreshold = model.DeepPressThreshold <= 0
             ? RuntimeDefaults.DefaultTouchpadDeepPressThreshold
             : model.DeepPressThreshold;
-        _deepPressAction = new ActionDefinitionViewModel(model.DeepPressAction);
-        _deepPressAction.PropertyChanged += (_, _) =>
+
+        SurfaceWidth = model.SurfaceWidth > 0
+            ? model.SurfaceWidth
+            : RuntimeDefaults.DefaultTouchpadSurfaceWidth;
+        SurfaceHeight = model.SurfaceHeight > 0
+            ? model.SurfaceHeight
+            : RuntimeDefaults.DefaultTouchpadSurfaceHeight;
+
+        GlobalDeepPress = new TouchpadTriggerActionEditorViewModel(
+            LocalizedText.Pick("Global deep press", "全局重按"),
+            LocalizedText.Pick(
+                "Runs once when pressure reaches the built-in deep press level anywhere on the touchpad, unless a corner override matches first.",
+                "当触控板任意位置达到内置重按力度时执行一次；若角落重按命中，则优先执行角落动作。"),
+            model.DeepPressAction);
+        LeftTopCorner = new TouchpadCornerRegionViewModel(
+            TouchpadCornerRegionId.LeftTop,
+            model.LeftTopCorner,
+            SurfaceWidth,
+            SurfaceHeight);
+        RightTopCorner = new TouchpadCornerRegionViewModel(
+            TouchpadCornerRegionId.RightTop,
+            model.RightTopCorner,
+            SurfaceWidth,
+            SurfaceHeight);
+
+        CornerRegions = [LeftTopCorner, RightTopCorner];
+        AllActionEditors =
+        [
+            GlobalDeepPress,
+            LeftTopCorner.DeepPress,
+            LeftTopCorner.LongPress,
+            RightTopCorner.DeepPress,
+            RightTopCorner.LongPress
+        ];
+
+        foreach (var editor in AllActionEditors)
         {
-            OnPropertyChanged(nameof(ActionSummary));
-            OnPropertyChanged(nameof(ActionDescription));
-            OnPropertyChanged(nameof(ActionIconGlyph));
-        };
+            editor.Action.PropertyChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(HasAnyAssignedAction));
+            };
+        }
     }
 
     public bool Enabled
@@ -36,21 +71,47 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
         set => SetProperty(ref _deepPressThreshold, Math.Clamp(value, 100, 4000));
     }
 
-    public ActionDefinitionViewModel DeepPressAction => _deepPressAction;
+    public int SurfaceWidth { get; }
 
-    public string ActionSummary => DeepPressAction.ActionLabel;
+    public int SurfaceHeight { get; }
 
-    public string ActionDescription => DeepPressAction.ActionDescription;
+    public string SurfaceSizeLabel => string.Format(
+        CultureInfo.CurrentCulture,
+        "{0} × {1}",
+        SurfaceWidth,
+        SurfaceHeight);
 
-    public string ActionIconGlyph => DeepPressAction.ActionIconGlyph;
+    public bool HasAnyAssignedAction => AllActionEditors.Any(item => item.Action.HasAssignedAction);
+
+    public TouchpadTriggerActionEditorViewModel GlobalDeepPress { get; }
+
+    public ActionDefinitionViewModel DeepPressAction => GlobalDeepPress.Action;
+
+    public TouchpadCornerRegionViewModel LeftTopCorner { get; }
+
+    public TouchpadCornerRegionViewModel RightTopCorner { get; }
+
+    public IReadOnlyList<TouchpadCornerRegionViewModel> CornerRegions { get; }
+
+    public IReadOnlyList<TouchpadTriggerActionEditorViewModel> AllActionEditors { get; }
+
+    public string ActionSummary => GlobalDeepPress.ActionSummary;
+
+    public string ActionDescription => GlobalDeepPress.ActionDescription;
+
+    public string ActionIconGlyph => GlobalDeepPress.ActionIconGlyph;
 
     public TouchpadConfiguration ToConfiguration()
     {
         return new TouchpadConfiguration
         {
-            Enabled = DeepPressAction.HasAssignedAction,
+            Enabled = HasAnyAssignedAction,
             DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
-            DeepPressAction = DeepPressAction.ToConfiguration()
+            SurfaceWidth = SurfaceWidth,
+            SurfaceHeight = SurfaceHeight,
+            DeepPressAction = GlobalDeepPress.Action.ToConfiguration(),
+            LeftTopCorner = LeftTopCorner.ToConfiguration(),
+            RightTopCorner = RightTopCorner.ToConfiguration()
         };
     }
 }
