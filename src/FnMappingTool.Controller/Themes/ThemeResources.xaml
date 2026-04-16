@@ -187,6 +187,10 @@
         <Setter Property="Background" Value="{ThemeResource LayerFillColorAltBrush}" />
     </Style>
 
+    <Style x:Key="InsetPanelCardStyle" TargetType="Border" BasedOn="{StaticResource SubtlePanelCardStyle}">
+        <Setter Property="Padding" Value="14" />
+    </Style>
+
     <Style x:Key="ListHostStyle" TargetType="ListView">
         <Setter Property="Padding" Value="0" />
         <Setter Property="BorderThickness" Value="0" />

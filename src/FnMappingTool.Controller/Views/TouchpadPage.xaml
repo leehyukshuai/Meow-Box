@@ -163,20 +163,16 @@
             <Border
                 Grid.Row="0"
                 Style="{StaticResource PanelCardStyle}">
-                <Border
-                    Background="{ThemeResource LayerFillColorAltBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="18"
-                    Padding="16">
-                    <Grid
-                        x:Name="TouchpadVisualizerLayoutGrid"
-                        ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                <Grid
+                    x:Name="TouchpadVisualizerLayoutGrid"
+                    ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
+                    <Border
+                        Style="{StaticResource InsetPanelCardStyle}">
                         <Grid
                             x:Name="TouchpadPreviewHost"
                             Width="500"
@@ -207,10 +203,13 @@
                                     TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Grid>
+                    </Border>
 
+                    <Border
+                        Grid.Column="1"
+                        Style="{StaticResource InsetPanelCardStyle}">
                         <StackPanel
                             x:Name="TouchpadGuidancePanel"
-                            Grid.Column="1"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"
                             Spacing="8">
@@ -231,9 +230,8 @@
                                 Text="• 长按需要的触发时间可以在设置页面当中设置。"
                                 TextWrapping="WrapWholeWords" />
                         </StackPanel>
-
-                    </Grid>
-                </Border>
+                    </Border>
+                </Grid>
             </Border>
 
             <Grid
