@@ -34,10 +34,10 @@
     <SolidColorBrush x:Key="ListSelectionIndicatorBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.34" />
     <SolidColorBrush x:Key="ListSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.44" />
     <SolidColorBrush x:Key="ListSelectionIndicatorPressedBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.5" />
-    <SolidColorBrush x:Key="AppPickerSelectedBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.13" />
-    <SolidColorBrush x:Key="AppPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.42" />
-    <SolidColorBrush x:Key="AppPickerSelectedBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.18" />
-    <SolidColorBrush x:Key="AppPickerSelectedBorderPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.56" />
+    <SolidColorBrush x:Key="AppPickerSelectedBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.17" />
+    <SolidColorBrush x:Key="AppPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.48" />
+    <SolidColorBrush x:Key="AppPickerSelectedBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.22" />
+    <SolidColorBrush x:Key="AppPickerSelectedBorderPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.62" />
     <SolidColorBrush x:Key="ActionPickerSelectedBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.09" />
     <SolidColorBrush x:Key="ActionPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.34" />
     <SolidColorBrush x:Key="ActionPickerSelectedBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.12" />

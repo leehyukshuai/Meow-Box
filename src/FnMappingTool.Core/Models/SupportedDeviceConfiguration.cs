@@ -45,8 +45,8 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
-            CreateKey(DefaultKeyIds.XiaoAiPress, "XiaoAi Press", "01-23-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.ManagerPress, "PC Manager Press", "01-25-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
+            CreateKey(DefaultKeyIds.XiaoAiPress, "XiaoAi Press", "01-23-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.SettingsPress, "Settings Press", "01-1B-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.Projection, "Projection UI", "01-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.FnLockOn, "Fn Lock On", "01-07-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
@@ -66,10 +66,10 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
-            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None, enabled: false),
-            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.MediaPlayPause),
-            CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
-            CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection),
+            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.None, CreateOsd("PC Manager")),
+            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None, CreateOsd("XiaoAi")),
+            CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.None, CreateOsd("Settings")),
+            CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.None, CreateOsd("Projection")),
             CreateMapping("mapping-fn-lock-on", DefaultKeyIds.FnLockOn, "Fn Lock On", HotkeyActionType.None, CreateOsd("Fn lock on", "fn-lock.png")),
             CreateMapping("mapping-fn-lock-off", DefaultKeyIds.FnLockOff, "Fn Lock Off", HotkeyActionType.None, CreateOsd("Fn lock off", "fn-unlock.png")),
             CreateMapping("mapping-caps-lock-on", DefaultKeyIds.CapsLockOn, "Caps Lock On", HotkeyActionType.None, CreateOsd("Caps lock on", "caps-lock.png")),
@@ -121,7 +121,13 @@ public static class SupportedDeviceConfiguration
         };
     }
 
-    private static MappingOsdConfiguration CreateOsd(string title, string iconPath)
+    public static bool ShouldUseOsdOnlyDefault(string keyId)
+    {
+        return !string.Equals(keyId, DefaultKeyIds.MicrophoneMuteOn, StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(keyId, DefaultKeyIds.MicrophoneMuteOff, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static MappingOsdConfiguration CreateOsd(string title, string? iconPath = null)
     {
         return new MappingOsdConfiguration
         {
@@ -129,8 +135,8 @@ public static class SupportedDeviceConfiguration
             Title = title,
             Icon = new IconConfiguration
             {
-                Mode = IconSourceMode.CustomFile,
-                Path = iconPath
+                Mode = string.IsNullOrWhiteSpace(iconPath) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                Path = string.IsNullOrWhiteSpace(iconPath) ? null : iconPath
             }
         };
     }

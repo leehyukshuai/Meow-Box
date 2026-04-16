@@ -278,10 +278,27 @@ public sealed class AppConfigService
         string? baseDirectory)
     {
         var source = mapping ?? template;
-        var legacyAction = source.Action ?? template.Action ?? new ActionDefinitionConfiguration();
+        var forceOsdOnly = SupportedDeviceConfiguration.ShouldUseOsdOnlyDefault(template.KeyId);
+        var legacyAction = forceOsdOnly
+            ? template.Action ?? new ActionDefinitionConfiguration()
+            : source.Action ?? template.Action ?? new ActionDefinitionConfiguration();
         var legacyShowOsd = string.Equals(legacyAction.Type, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase);
         var normalizedAction = NormalizeAction(legacyAction, baseDirectory);
         var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd, legacyAction, legacyShowOsd, baseDirectory);
+        if (forceOsdOnly)
+        {
+            normalizedOsd.Enabled = true;
+            if (string.IsNullOrWhiteSpace(normalizedOsd.Title))
+            {
+                normalizedOsd.Title = template.Osd?.Title;
+            }
+
+            if (string.IsNullOrWhiteSpace(normalizedOsd.Icon.Path) && !string.IsNullOrWhiteSpace(template.Osd?.Icon?.Path))
+            {
+                normalizedOsd.Icon = NormalizeIcon(template.Osd.Icon, baseDirectory);
+            }
+        }
+
         var hasAssignedAction = !string.IsNullOrWhiteSpace(normalizedAction.Type);
         var isRuntimeActive = hasAssignedAction || normalizedOsd.Enabled;
         var isOsdOnlyMapping = !hasAssignedAction && normalizedOsd.Enabled;

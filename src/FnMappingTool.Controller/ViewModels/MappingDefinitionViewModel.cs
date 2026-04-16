@@ -93,30 +93,39 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     private string BuildSummary()
     {
+        if (Osd.Enabled && Action.HasAssignedAction)
+        {
+            return string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                LocalizedText.Pick("{0} Also shows {1}.", "{0} 还会显示 {1}。"),
+                Action.ActionDescription,
+                BuildOsdSummaryLabel());
+        }
+
+        if (Osd.Enabled)
+        {
+            return string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                LocalizedText.Pick("Shows {0}.", "显示 {0}。"),
+                BuildOsdSummaryLabel());
+        }
+
         if (!Enabled)
         {
             return LocalizedText.Pick("This mapping is disabled.", "这个映射已禁用。");
         }
 
-        if (Osd.Enabled && Action.HasAssignedAction)
-        {
-            return string.Format(
-                System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("{0} Also shows an OSD.", "{0} 还会显示 OSD。"),
-                Action.ActionDescription);
-        }
-
-        if (Osd.Enabled)
-        {
-            return string.IsNullOrWhiteSpace(Osd.Title)
-                ? LocalizedText.Pick("Shows an OSD.", "显示 OSD。")
-                : string.Format(
-                    System.Globalization.CultureInfo.CurrentCulture,
-                    LocalizedText.Pick("Shows OSD: {0}", "显示 OSD：{0}"),
-                    Osd.Title);
-        }
-
         return Action.ActionDescription;
+    }
+
+    private string BuildOsdSummaryLabel()
+    {
+        return string.IsNullOrWhiteSpace(Osd.Title)
+            ? MappingDisplayCatalog.ShowOsdLabel
+            : string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                LocalizedText.Pick("OSD: {0}", "OSD：{0}"),
+                Osd.Title);
     }
 
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
