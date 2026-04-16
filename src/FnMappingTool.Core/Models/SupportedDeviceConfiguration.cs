@@ -23,6 +23,15 @@ public static class SupportedDeviceConfiguration
                     ScalePercent = RuntimeDefaults.DefaultOsdScalePercent
                 }
             },
+            Touchpad = new TouchpadConfiguration
+            {
+                Enabled = true,
+                DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
+                DeepPressAction = new ActionDefinitionConfiguration
+                {
+                    Type = HotkeyActionType.None
+                }
+            },
             Keys = CreateKeys(),
             Mappings = CreateMappings()
         };
@@ -32,20 +41,20 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
+            CreateKey(DefaultKeyIds.XiaoAiPress, "XiaoAi Press", "01-23-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
+            CreateKey(DefaultKeyIds.ManagerPress, "PC Manager Press", "01-25-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
+            CreateKey(DefaultKeyIds.SettingsPress, "Settings Press", "01-1B-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
+            CreateKey(DefaultKeyIds.Projection, "Projection UI", "01-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.FnLockOn, "Fn Lock On", "01-07-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.FnLockOff, "Fn Lock Off", "01-07-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.CapsLockOn, "Caps Lock On", "01-09-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.CapsLockOff, "Caps Lock Off", "01-09-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.MicrophoneMuteOn, "Microphone Mute On", "01-21-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.MicrophoneMuteOff, "Microphone Mute Off", "01-21-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.XiaoAiPress, "XiaoAi Press", "01-23-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.SettingsPress, "Settings Press", "01-1B-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.ManagerPress, "Manager Press", "01-25-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.BacklightOff, "Backlight Off", "01-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.BacklightLevel1, "Backlight Level 1", "01-05-05-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
             CreateKey(DefaultKeyIds.BacklightLevel2, "Backlight Level 2", "01-05-0A-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.BacklightAuto, "Backlight Auto", "01-05-80-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"),
-            CreateKey(DefaultKeyIds.Projection, "Projection UI", "01-01-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00")
+            CreateKey(DefaultKeyIds.BacklightAuto, "Backlight Auto", "01-05-80-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00")
         ];
     }
 
@@ -53,20 +62,20 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
+            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None, enabled: false),
+            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.MediaPlayPause),
+            CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
+            CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection),
             CreateMapping("mapping-fn-lock-on", DefaultKeyIds.FnLockOn, "Fn Lock On", HotkeyActionType.None, CreateOsd("Fn lock on", "fn-lock.png")),
             CreateMapping("mapping-fn-lock-off", DefaultKeyIds.FnLockOff, "Fn Lock Off", HotkeyActionType.None, CreateOsd("Fn lock off", "fn-unlock.png")),
             CreateMapping("mapping-caps-lock-on", DefaultKeyIds.CapsLockOn, "Caps Lock On", HotkeyActionType.None, CreateOsd("Caps lock on", "caps-lock.png")),
             CreateMapping("mapping-caps-lock-off", DefaultKeyIds.CapsLockOff, "Caps Lock Off", HotkeyActionType.None, CreateOsd("Caps lock off", "caps-unlock.png")),
             CreateMapping("mapping-mic-on", DefaultKeyIds.MicrophoneMuteOn, "Microphone Mute On", HotkeyActionType.MicrophoneMuteOn, CreateOsd("Microphone off", "microphone-mute.png")),
             CreateMapping("mapping-mic-off", DefaultKeyIds.MicrophoneMuteOff, "Microphone Mute Off", HotkeyActionType.MicrophoneMuteOff, CreateOsd("Microphone on", "microphone-on.png")),
-            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None),
-            CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
-            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "Manager Press", HotkeyActionType.MediaPlayPause),
             CreateMapping("mapping-backlight-off", DefaultKeyIds.BacklightOff, "Backlight Off", HotkeyActionType.None, CreateOsd("Backlight off", "backlight-off.png")),
             CreateMapping("mapping-backlight-level1", DefaultKeyIds.BacklightLevel1, "Backlight Level 1", HotkeyActionType.None, CreateOsd("Backlight low", "backlight-low.png")),
             CreateMapping("mapping-backlight-level2", DefaultKeyIds.BacklightLevel2, "Backlight Level 2", HotkeyActionType.None, CreateOsd("Backlight high", "backlight-high.png")),
-            CreateMapping("mapping-backlight-auto", DefaultKeyIds.BacklightAuto, "Backlight Auto", HotkeyActionType.None, CreateOsd("Backlight auto", "backlight-auto.png")),
-            CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection)
+            CreateMapping("mapping-backlight-auto", DefaultKeyIds.BacklightAuto, "Backlight Auto", HotkeyActionType.None, CreateOsd("Backlight auto", "backlight-auto.png"))
         ];
     }
 
@@ -91,13 +100,14 @@ public static class SupportedDeviceConfiguration
         string keyId,
         string name,
         string actionType,
-        MappingOsdConfiguration? osd = null)
+        MappingOsdConfiguration? osd = null,
+        bool enabled = true)
     {
         return new KeyActionMappingConfiguration
         {
             Id = id,
             Name = name,
-            Enabled = true,
+            Enabled = enabled,
             KeyId = keyId,
             Action = new ActionDefinitionConfiguration
             {

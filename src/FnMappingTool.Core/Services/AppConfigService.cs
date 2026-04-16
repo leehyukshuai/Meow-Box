@@ -222,6 +222,7 @@ public sealed class AppConfigService
             configuration.Preferences.Osd.ScalePercent <= 0 ? RuntimeDefaults.DefaultOsdScalePercent : configuration.Preferences.Osd.ScalePercent,
             60,
             200);
+        configuration.Touchpad = NormalizeTouchpadConfiguration(configuration.Touchpad, baseDirectory);
 
         configuration.Keys = supported.Keys
             .Select(CloneKey)
@@ -279,15 +280,22 @@ public sealed class AppConfigService
         var source = mapping ?? template;
         var legacyAction = source.Action ?? template.Action ?? new ActionDefinitionConfiguration();
         var legacyShowOsd = string.Equals(legacyAction.Type, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase);
+        var normalizedAction = NormalizeAction(legacyAction, baseDirectory);
+        var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd, legacyAction, legacyShowOsd, baseDirectory);
+        var hasAssignedAction = !string.IsNullOrWhiteSpace(normalizedAction.Type);
+        var isRuntimeActive = hasAssignedAction || normalizedOsd.Enabled;
+        var isOsdOnlyMapping = !hasAssignedAction && normalizedOsd.Enabled;
 
         return new KeyActionMappingConfiguration
         {
             Id = template.Id,
             Name = template.Name,
-            Enabled = true,
+            Enabled = isOsdOnlyMapping
+                ? true
+                : isRuntimeActive && (mapping?.Enabled ?? template.Enabled),
             KeyId = template.KeyId,
-            Action = NormalizeAction(legacyAction, baseDirectory),
-            Osd = NormalizeMappingOsd(source.Osd ?? template.Osd, legacyAction, legacyShowOsd, baseDirectory)
+            Action = normalizedAction,
+            Osd = normalizedOsd
         };
     }
 
@@ -295,6 +303,9 @@ public sealed class AppConfigService
     {
         action ??= new ActionDefinitionConfiguration();
         action.Type = NormalizeActionType(action.Type);
+        action.StandardKey = action.Type == HotkeyActionType.SendStandardKey
+            ? NormalizeOptional(StandardKeyCatalog.NormalizeKey(action.StandardKey))
+            : null;
 
         var target = NormalizeOptional(action.Target);
         var arguments = NormalizeOptional(action.Arguments);
@@ -302,6 +313,20 @@ public sealed class AppConfigService
         action.Target = action.Type == HotkeyActionType.OpenApplication ? target : null;
         action.Arguments = action.Type == HotkeyActionType.OpenApplication ? arguments : null;
         return action;
+    }
+
+    private static TouchpadConfiguration NormalizeTouchpadConfiguration(TouchpadConfiguration? touchpad, string? baseDirectory)
+    {
+        touchpad ??= new TouchpadConfiguration();
+        return new TouchpadConfiguration
+        {
+            Enabled = touchpad.Enabled,
+            DeepPressThreshold = Math.Clamp(
+                touchpad.DeepPressThreshold <= 0 ? RuntimeDefaults.DefaultTouchpadDeepPressThreshold : touchpad.DeepPressThreshold,
+                100,
+                4000),
+            DeepPressAction = NormalizeAction(touchpad.DeepPressAction, baseDirectory)
+        };
     }
 
     private static MappingOsdConfiguration NormalizeMappingOsd(

@@ -78,109 +78,152 @@
 
                             <TextBlock x:Uid="MappingDetailsTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping details" />
 
-                            <Grid x:Name="MappingSelectorsGrid" Grid.Row="1" RowSpacing="12">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <Border Style="{StaticResource SubtlePanelCardStyle}">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock x:Uid="MappingFixedKeyEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Hardware key" />
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.KeyDisplayName, Mode=OneWay}" />
-                                            <TextBlock x:Uid="MappingFixedKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="This Xiaomi Book Pro hardware key is fixed. You can only change what it does." TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
+                            <Border Grid.Row="1" Style="{StaticResource SubtlePanelCardStyle}">
+                                <StackPanel Spacing="12">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.KeyDisplayName, Mode=OneWay}" />
+                                        <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="{Binding SelectedMapping.KeyDescription, Mode=OneWay}" TextWrapping="WrapWholeWords" />
                                     </StackPanel>
-                                </Border>
+                                </StackPanel>
+                            </Border>
 
-                                <Border Grid.Row="1" Style="{StaticResource SubtlePanelCardStyle}">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock x:Uid="ChooseActionEyebrowText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Choose action" />
-                                        <StackPanel Spacing="2">
+                            <Border Grid.Row="2" Style="{StaticResource SubtlePanelCardStyle}">
+                                <StackPanel Spacing="16">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Spacing="4">
                                             <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
                                             <TextBlock x:Uid="ChooseActionDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Choose what happens after that key is pressed." TextWrapping="WrapWholeWords" />
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <Button x:Name="ChooseActionButton" Click="OnChooseActionClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
-                                                <TextBlock x:Uid="ChooseActionButtonText" Text="Choose action" />
-                                            </Button>
-                                            <Button x:Uid="ClearActionButtonText" Click="OnClearActionClick" Content="Clear action" IsEnabled="{Binding SelectedMapping.Action.HasAssignedAction, Mode=OneWay}" Style="{StaticResource SubtleButtonStyle}" />
-                                        </StackPanel>
+
+                                        <ToggleSwitch
+                                            Grid.Column="1"
+                                            Header="Enabled"
+                                            IsOn="{Binding SelectedMapping.Enabled, Mode=TwoWay}"
+                                            Toggled="OnMappingEnabledChanged" />
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Button x:Name="ChooseActionButton" Click="OnChooseActionClick" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}">
+                                            <TextBlock x:Uid="ChooseActionButtonText" Text="Choose action" />
+                                        </Button>
+                                        <Button x:Uid="ClearActionButtonText" Click="OnClearActionClick" Content="Clear action" IsEnabled="{Binding SelectedMapping.Action.HasAssignedAction, Mode=OneWay}" Style="{StaticResource SubtleButtonStyle}" />
                                     </StackPanel>
-                                </Border>
-                            </Grid>
 
-                            <Border Grid.Row="2" Style="{StaticResource SubtlePanelCardStyle}">
-                                <Grid ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        Style="{StaticResource SubtlePanelCardStyle}"
+                                        Visibility="{Binding SelectedMapping.Action.HasAssignedActionVisibility, Mode=OneWay}">
+                                        <StackPanel Spacing="12">
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
 
-                                    <Border Width="32" Height="32" Background="{StaticResource ShellInfoSoftBrush}" CornerRadius="8">
-                                        <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="14" Glyph="{Binding SelectedMapping.ActionIconGlyph, Mode=OneWay}" />
-                                    </Border>
+                                                <Border Width="32" Height="32" Background="{StaticResource ShellInfoSoftBrush}" CornerRadius="8">
+                                                    <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="14" Glyph="{Binding SelectedMapping.ActionIconGlyph, Mode=OneWay}" />
+                                                </Border>
 
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
-                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionTagsText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
-                                        <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionDescription, Mode=OneWay}" TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
+                                                <StackPanel Grid.Column="1" Spacing="2">
+                                                    <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionLabel, Mode=OneWay}" />
+                                                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionTagsText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+                                                    <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionDescription, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+                                                </StackPanel>
+                                            </Grid>
 
-                            <StackPanel Grid.Row="3" Spacing="16">
-                                <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.TargetVisibility}">
-                                    <TextBox x:Uid="TargetTextBox" Header="Target" LostFocus="OnMappingEditorLostFocus" PlaceholderText="Installed app target or executable path" Text="{Binding SelectedMapping.Action.Target, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding SelectedMapping.Action.InstalledAppPickerVisibility}">
-                                        <Button x:Uid="ChooseAppButton" Click="OnPickInstalledAppClick" Content="Choose app" Style="{StaticResource SubtleButtonStyle}" />
-                                        <Button x:Uid="BrowseFileButton" Click="OnBrowseExecutableClick" Content="Browse file" Style="{StaticResource SubtleButtonStyle}" />
-                                    </StackPanel>
-                                    <TextBox x:Uid="ArgumentsTextBox" Header="Arguments" LostFocus="OnMappingEditorLostFocus" PlaceholderText="Optional launch arguments" Text="{Binding SelectedMapping.Action.Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding SelectedMapping.Action.ArgumentsVisibility}" />
-                                </StackPanel>
-
-                                <Border Visibility="{Binding SelectedMapping.Action.StandardKeyEditorVisibility}" Style="{StaticResource SubtlePanelCardStyle}">
-                                    <StackPanel Spacing="12">
-                                        <TextBlock x:Uid="StandardKeyTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Standard key" />
-                                        <TextBlock x:Uid="StandardKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Choose the standard keyboard key this OEM key should emit." TextWrapping="WrapWholeWords" />
-                                        <Grid ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="220" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{x:Bind StandardKeyGroups, Mode=OneTime}" SelectedValue="{Binding SelectedMapping.Action.StandardKeyGroup, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnStandardKeyGroupSelectionChanged" />
-                                            <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{x:Bind FilteredStandardKeys, Mode=OneTime}" SelectedValue="{Binding SelectedMapping.Action.StandardKey, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnMappingEditorSelectionChanged" />
-                                        </Grid>
-                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding SelectedMapping.Action.ActionDescription, Mode=OneWay}" TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </Border>
-
-                                <Border Style="{StaticResource SubtlePanelCardStyle}">
-                                    <StackPanel Spacing="12">
-                                        <Grid ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Spacing="4">
-                                                <TextBlock x:Uid="OsdTitleBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
-                                                <TextBlock x:Uid="OsdDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Optionally show an OSD when this mapping runs." TextWrapping="WrapWholeWords" />
+                                            <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Action.TargetVisibility}">
+                                                <TextBox x:Uid="TargetTextBox" Header="Target" LostFocus="OnMappingEditorLostFocus" PlaceholderText="Installed app target or executable path" Text="{Binding SelectedMapping.Action.Target, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="12" Visibility="{Binding SelectedMapping.Action.InstalledAppPickerVisibility}">
+                                                    <Button x:Uid="ChooseAppButton" Click="OnPickInstalledAppClick" Content="Choose app" Style="{StaticResource SubtleButtonStyle}" />
+                                                    <Button x:Uid="BrowseFileButton" Click="OnBrowseExecutableClick" Content="Browse file" Style="{StaticResource SubtleButtonStyle}" />
+                                                </StackPanel>
+                                                <TextBox x:Uid="ArgumentsTextBox" Header="Arguments" LostFocus="OnMappingEditorLostFocus" PlaceholderText="Optional launch arguments" Text="{Binding SelectedMapping.Action.Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding SelectedMapping.Action.ArgumentsVisibility}" />
                                             </StackPanel>
 
-                                            <ToggleSwitch x:Uid="OsdEnabledToggleSwitch" x:Name="OsdEnabledToggleSwitch" Grid.Column="1" Header="Show OSD" IsOn="{Binding SelectedMapping.Osd.Enabled, Mode=TwoWay}" Toggled="OnOsdEnabledChanged" />
-                                        </Grid>
-
-                                        <StackPanel Spacing="12" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
-                                            <TextBox x:Uid="OsdTitleTextBox" Header="Title" LostFocus="OnMappingEditorLostFocus" MaxLength="32" Text="{Binding SelectedMapping.Osd.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                            <TextBlock x:Uid="OsdTitleHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Up to 32 characters." TextWrapping="WrapWholeWords" />
-                                            <ComboBox x:Uid="OsdIconComboBox" x:Name="OsdIconComboBox" DisplayMemberPath="DisplayName" Header="Icon" SelectionChanged="OnMappingEditorSelectionChanged" SelectedValuePath="RelativePath" />
-                                            <TextBlock x:Uid="OsdIconHintText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Manage OSD icon files from Settings." TextWrapping="WrapWholeWords" />
+                                            <StackPanel Visibility="{Binding SelectedMapping.Action.StandardKeyEditorVisibility}" Spacing="12">
+                                                <TextBlock x:Uid="StandardKeyTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Standard key" />
+                                                <TextBlock x:Uid="StandardKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Choose the standard keyboard key this OEM key should emit." TextWrapping="WrapWholeWords" />
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="220" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{x:Bind StandardKeyGroups, Mode=OneTime}" SelectedValue="{Binding SelectedMapping.Action.StandardKeyGroup, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnStandardKeyGroupSelectionChanged" />
+                                                    <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{x:Bind FilteredStandardKeys, Mode=OneTime}" SelectedValue="{Binding SelectedMapping.Action.StandardKey, Mode=TwoWay}" SelectedValuePath="Key" SelectionChanged="OnMappingEditorSelectionChanged" />
+                                                </Grid>
+                                            </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="3" Style="{StaticResource SubtlePanelCardStyle}">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock x:Uid="OsdTitleBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
+                                            <TextBlock x:Uid="OsdDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Optionally show an OSD when this mapping runs." TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
+
+                                        <ToggleSwitch x:Uid="OsdEnabledToggleSwitch" x:Name="OsdEnabledToggleSwitch" Grid.Column="1" Header="Show OSD" IsOn="{Binding SelectedMapping.Osd.Enabled, Mode=TwoWay}" Toggled="OnOsdEnabledChanged" />
+                                    </Grid>
+
+                                    <Grid Grid.Row="1" Margin="0,8,0,0" ColumnSpacing="10" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            x:Uid="OsdTitleLabelText"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="Title" />
+                                        <TextBox
+                                            x:Name="OsdTitleTextBox"
+                                            Grid.Column="1"
+                                            LostFocus="OnMappingEditorLostFocus"
+                                            MaxLength="32"
+                                            Text="{Binding SelectedMapping.Osd.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Grid>
+
+                                    <Grid Grid.Row="2" Margin="0,8,0,0" ColumnSpacing="10" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            x:Uid="OsdIconLabelText"
+                                            Margin="0,0,8,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="Icon" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            x:Name="OsdIconComboBox"
+                                            DisplayMemberPath="DisplayName"
+                                            SelectionChanged="OnMappingEditorSelectionChanged"
+                                            SelectedValuePath="RelativePath" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
                         </Grid>
                     </ScrollViewer>
 

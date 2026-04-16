@@ -19,7 +19,7 @@
     <value>按键</value>
   </data>
   <data name="Navigation.Mappings" xml:space="preserve">
-    <value>映射</value>
+    <value>键盘</value>
   </data>
   <data name="Navigation.Settings" xml:space="preserve">
     <value>设置</value>
@@ -28,7 +28,7 @@
     <value>按键</value>
   </data>
   <data name="PageTitle.Mappings" xml:space="preserve">
-    <value>映射</value>
+    <value>键盘</value>
   </data>
   <data name="PageTitle.Settings" xml:space="preserve">
     <value>设置</value>
@@ -196,7 +196,7 @@
     <value>从列表中选择一个按键，或捕获一个新的按键。</value>
   </data>
   <data name="MappingsPageListTitleText.Text" xml:space="preserve">
-    <value>映射</value>
+    <value>键盘</value>
   </data>
   <data name="MappingsPageAddMappingButtonText.Text" xml:space="preserve">
     <value>添加映射</value>
@@ -208,7 +208,7 @@
     <value>没有加载到受支持的硬件按键。</value>
   </data>
   <data name="MappingDetailsTitleText.Text" xml:space="preserve">
-    <value>映射详情</value>
+    <value>键盘动作</value>
   </data>
   <data name="MappingDeleteButtonText.Text" xml:space="preserve">
     <value>删除</value>
@@ -270,11 +270,17 @@
   <data name="OsdEnabledToggleSwitch.Header" xml:space="preserve">
     <value>显示 OSD</value>
   </data>
+  <data name="OsdTitleLabelText.Text" xml:space="preserve">
+    <value>标题</value>
+  </data>
   <data name="OsdTitleTextBox.Header" xml:space="preserve">
     <value>标题</value>
   </data>
   <data name="OsdTitleHintText.Text" xml:space="preserve">
     <value>最多 32 个字符。</value>
+  </data>
+  <data name="OsdIconLabelText.Text" xml:space="preserve">
+    <value>图标</value>
   </data>
   <data name="OsdIconComboBox.Header" xml:space="preserve">
     <value>图标</value>
@@ -508,7 +514,7 @@
     <value>为这个按键命名</value>
   </data>
   <data name="MappingFixedKeyEyebrowText.Text" xml:space="preserve">
-    <value>???</value>
+    <value>触发条件</value>
   </data>
   <data name="MappingFixedKeyDescriptionText.Text" xml:space="preserve">
     <value>这个小米 Book Pro 的硬件按键是固定的，你只能修改它执行的动作。</value>
@@ -530,5 +536,98 @@
   </data>
   <data name="OpenConfigFolderButton.Content" xml:space="preserve">
     <value>打开配置文件夹</value>
+  </data>
+  <data name="Navigation.Touchpad" xml:space="preserve">
+    <value>触控板</value>
+  </data>
+  <data name="PageTitle.Touchpad" xml:space="preserve">
+    <value>触控板</value>
+  </data>
+  <data name="TouchpadPageTitleText.Text" xml:space="preserve">
+    <value>触控板</value>
+  </data>
+  <data name="TouchpadStatusTitleText.Text" xml:space="preserve">
+    <value>实时压感</value>
+  </data>
+  <data name="TouchpadStatusDescriptionText.Text" xml:space="preserve">
+    <value>实时压力与触点状态来自触控板原始 HID 报文。</value>
+  </data>
+  <data name="TouchpadMetricPressureLabelText.Text" xml:space="preserve">
+    <value>压力</value>
+  </data>
+  <data name="TouchpadMetricPeakLabelText.Text" xml:space="preserve">
+    <value>峰值</value>
+  </data>
+  <data name="TouchpadMetricThresholdLabelText.Text" xml:space="preserve">
+    <value>阈值</value>
+  </data>
+  <data name="TouchpadMetricContactsLabelText.Text" xml:space="preserve">
+    <value>触点</value>
+  </data>
+  <data name="TouchpadVisualizerTitleText.Text" xml:space="preserve">
+    <value>触控板表面</value>
+  </data>
+  <data name="TouchpadVisualizerDescriptionText.Text" xml:space="preserve">
+    <value>每个触点都会显示自己的实时压力，右侧计量条则固定使用 0-2500 刻度。</value>
+  </data>
+  <data name="TouchpadVisualizerEmptyTitleText.Text" xml:space="preserve">
+    <value>等待触控板输入</value>
+  </data>
+  <data name="TouchpadVisualizerEmptyBodyText.Text" xml:space="preserve">
+    <value>启动服务后触摸或按压触控板，即可看到实时压力。</value>
+  </data>
+  <data name="TouchpadEnableTitleText.Text" xml:space="preserve">
+    <value>启用重按动作</value>
+  </data>
+  <data name="TouchpadEnableDescriptionText.Text" xml:space="preserve">
+    <value>重按使用内置阈值，到达后只触发一次所选动作。</value>
+  </data>
+  <data name="TouchpadThresholdNumberBox.Header" xml:space="preserve">
+    <value>重按阈值</value>
+  </data>
+  <data name="TouchpadActionCardTitleText.Text" xml:space="preserve">
+    <value>当前动作</value>
+  </data>
+  <data name="TouchpadActionTitleText.Text" xml:space="preserve">
+    <value>重按动作</value>
+  </data>
+  <data name="TouchpadActionDescriptionText.Text" xml:space="preserve">
+    <value>选择触控板达到内置重按力度后要执行的动作。</value>
+  </data>
+  <data name="TouchpadChooseActionButtonText.Text" xml:space="preserve">
+    <value>选择动作</value>
+  </data>
+  <data name="TouchpadClearActionButtonText.Content" xml:space="preserve">
+    <value>清空动作</value>
+  </data>
+  <data name="TouchpadTargetTextBox.Header" xml:space="preserve">
+    <value>目标</value>
+  </data>
+  <data name="TouchpadTargetTextBox.PlaceholderText" xml:space="preserve">
+    <value>已安装应用目标或可执行文件路径</value>
+  </data>
+  <data name="TouchpadChooseAppButton.Content" xml:space="preserve">
+    <value>选择应用</value>
+  </data>
+  <data name="TouchpadBrowseFileButton.Content" xml:space="preserve">
+    <value>浏览文件</value>
+  </data>
+  <data name="TouchpadArgumentsTextBox.Header" xml:space="preserve">
+    <value>参数</value>
+  </data>
+  <data name="TouchpadArgumentsTextBox.PlaceholderText" xml:space="preserve">
+    <value>可选的启动参数</value>
+  </data>
+  <data name="TouchpadStandardKeyTitleText.Text" xml:space="preserve">
+    <value>标准按键</value>
+  </data>
+  <data name="TouchpadStandardKeyDescriptionText.Text" xml:space="preserve">
+    <value>选择需要发送的标准键盘按键或媒体按键。</value>
+  </data>
+  <data name="TouchpadStandardKeyGroupComboBox.Header" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="TouchpadStandardKeyComboBox.Header" xml:space="preserve">
+    <value>按键</value>
   </data>
 </root>

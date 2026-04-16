@@ -19,6 +19,8 @@ internal sealed class WorkerHost : IDisposable
     private readonly AppConfigService _configService = new();
     private readonly NativeActionService _nativeActionService = new();
     private readonly WorkerPipeServer _pipeServer;
+    private readonly TouchpadInputService _touchpadInputService;
+    private readonly TouchpadStreamServer _touchpadStreamServer;
     private readonly CancellationTokenSource _shellReadyCancellation = new();
 
     private FileSystemWatcher? _configWatcher;
@@ -42,6 +44,10 @@ internal sealed class WorkerHost : IDisposable
         }
 
         _pipeServer = new WorkerPipeServer(HandleRequestAsync);
+        _touchpadInputService = new TouchpadInputService();
+        _touchpadInputService.DeepPressTriggered += OnTouchpadDeepPressTriggered;
+        _touchpadInputService.StateChanged += OnTouchpadStateChanged;
+        _touchpadStreamServer = new TouchpadStreamServer(_touchpadInputService.GetLatestState);
         LoadConfiguration();
         StartConfigWatcher();
         StartWmiWatcher();
@@ -131,6 +137,10 @@ internal sealed class WorkerHost : IDisposable
         _configWatcher?.Dispose();
         _wmiMonitor?.Dispose();
         _pipeServer.Dispose();
+        _touchpadInputService.DeepPressTriggered -= OnTouchpadDeepPressTriggered;
+        _touchpadInputService.StateChanged -= OnTouchpadStateChanged;
+        _touchpadStreamServer.Dispose();
+        _touchpadInputService.Dispose();
         _trayIconService?.Dispose();
         _osdService?.Dispose();
         _shellReadyCancellation.Dispose();
@@ -177,6 +187,8 @@ internal sealed class WorkerHost : IDisposable
     private void LoadConfiguration()
     {
         _configuration = _configService.Load();
+        _touchpadInputService.UpdateConfiguration(_configuration.Touchpad);
+        _touchpadStreamServer.Broadcast(_touchpadInputService.GetLatestState());
         ApplyTrayIconVisibility();
         _stateMessage = "Configuration loaded.";
     }
@@ -253,6 +265,35 @@ internal sealed class WorkerHost : IDisposable
         {
             _stateMessage = exception.Message;
         }
+    }
+
+    private void OnTouchpadDeepPressTriggered(object? sender, EventArgs e)
+    {
+        if (!_configuration.Preferences.IsListening || !_configuration.Touchpad.Enabled)
+        {
+            return;
+        }
+
+        var action = _configuration.Touchpad.DeepPressAction;
+        if (action is null || string.IsNullOrWhiteSpace(action.Type))
+        {
+            return;
+        }
+
+        try
+        {
+            ExecuteAction(action);
+            _lastEventSummary = "Touchpad deep press";
+        }
+        catch (Exception exception)
+        {
+            _stateMessage = exception.Message;
+        }
+    }
+
+    private void OnTouchpadStateChanged(object? sender, TouchpadLiveStateSnapshot state)
+    {
+        _touchpadStreamServer.Broadcast(state);
     }
 
     private void ExecuteAction(ActionDefinitionConfiguration action)
@@ -375,7 +416,8 @@ internal sealed class WorkerHost : IDisposable
             IsTrayIconVisible = _configuration.Preferences.ShowTrayIcon,
             LastEventSummary = _lastEventSummary,
             ConfigPath = _configService.ConfigPath,
-            StateMessage = _stateMessage
+            StateMessage = _stateMessage,
+            Touchpad = _touchpadInputService.GetLatestState()
         };
     }
 

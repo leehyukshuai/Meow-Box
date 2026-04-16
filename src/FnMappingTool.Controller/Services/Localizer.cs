@@ -10,9 +10,11 @@ public static class Localizer
         return key switch
         {
             "App.Title" => LocalizedText.Pick("Fn Mapping Tool", "Fn \u6620\u5c04\u5de5\u5177"),
-            "Navigation.Mappings" => LocalizedText.Pick("Mappings", "\u6620\u5c04"),
+            "Navigation.Mappings" => LocalizedText.Pick("Keyboard", "\u952e\u76d8"),
+            "Navigation.Touchpad" => LocalizedText.Pick("Touchpad", "\u89e6\u63a7\u677f"),
             "Navigation.Settings" => LocalizedText.Pick("Settings", "\u8bbe\u7f6e"),
-            "PageTitle.Mappings" => LocalizedText.Pick("Mappings", "\u6620\u5c04"),
+            "PageTitle.Mappings" => LocalizedText.Pick("Keyboard", "\u952e\u76d8"),
+            "PageTitle.Touchpad" => LocalizedText.Pick("Touchpad", "\u89e6\u63a7\u677f"),
             "PageTitle.Settings" => LocalizedText.Pick("Settings", "\u8bbe\u7f6e"),
             "ServiceStatus.Running" => LocalizedText.Pick("Service running", "\u670d\u52a1\u8fd0\u884c\u4e2d"),
             "ServiceStatus.Stopped" => LocalizedText.Pick("Service stopped", "\u670d\u52a1\u672a\u8fd0\u884c"),

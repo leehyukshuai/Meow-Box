@@ -28,6 +28,16 @@
 
     <SolidColorBrush x:Key="ShellAccentSoftBrush" Color="#1F4CC473" />
     <SolidColorBrush x:Key="ShellInfoSoftBrush" Color="#1F4A90E2" />
+    <SolidColorBrush x:Key="ListSelectionBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.08" />
+    <SolidColorBrush x:Key="ListSelectionBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.11" />
+    <SolidColorBrush x:Key="ListSelectionBackgroundPressedBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.14" />
+    <SolidColorBrush x:Key="ListSelectionIndicatorBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.34" />
+    <SolidColorBrush x:Key="ListSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.44" />
+    <SolidColorBrush x:Key="ListSelectionIndicatorPressedBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.5" />
+    <SolidColorBrush x:Key="AppPickerSelectedBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.13" />
+    <SolidColorBrush x:Key="AppPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.42" />
+    <SolidColorBrush x:Key="AppPickerSelectedBackgroundPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.18" />
+    <SolidColorBrush x:Key="AppPickerSelectedBorderPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.56" />
 
     <StaticResource x:Key="ButtonBackground" ResourceKey="LayerFillColorAltBrush" />
     <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource AppButtonBackgroundPointerOverColor}" />
@@ -45,18 +55,18 @@
     <StaticResource x:Key="ListViewItemBackground" ResourceKey="LayerFillColorAltBrush" />
     <StaticResource x:Key="ListViewItemBackgroundPointerOver" ResourceKey="ControlFillColorSecondaryBrush" />
     <StaticResource x:Key="ListViewItemBackgroundPressed" ResourceKey="ControlFillColorTertiaryBrush" />
-    <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="AccentFillColorTertiaryBrush" />
-    <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="AccentFillColorSecondaryBrush" />
-    <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="AccentFillColorTertiaryBrush" />
+    <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="ListSelectionBackgroundBrush" />
+    <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="ListSelectionBackgroundPointerOverBrush" />
+    <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="ListSelectionBackgroundPressedBrush" />
     <StaticResource x:Key="ListViewItemForeground" ResourceKey="TextFillColorPrimaryBrush" />
     <StaticResource x:Key="ListViewItemForegroundPointerOver" ResourceKey="TextFillColorPrimaryBrush" />
     <StaticResource x:Key="ListViewItemForegroundPressed" ResourceKey="TextFillColorPrimaryBrush" />
     <StaticResource x:Key="ListViewItemForegroundSelected" ResourceKey="TextFillColorPrimaryBrush" />
     <StaticResource x:Key="ListViewItemForegroundSelectedPointerOver" ResourceKey="TextFillColorPrimaryBrush" />
     <StaticResource x:Key="ListViewItemForegroundSelectedPressed" ResourceKey="TextFillColorPrimaryBrush" />
-    <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="AccentFillColorDefaultBrush" />
-    <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="AccentFillColorSecondaryBrush" />
-    <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorTertiaryBrush" />
+    <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="ListSelectionIndicatorBrush" />
+    <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="ListSelectionIndicatorPointerOverBrush" />
+    <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="ListSelectionIndicatorPressedBrush" />
 
     <StaticResource x:Key="GridViewItemBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
     <StaticResource x:Key="GridViewItemBackgroundPressed" ResourceKey="SubtleFillColorTertiaryBrush" />
@@ -240,5 +250,101 @@
         <Setter Property="Padding" Value="14" />
         <Setter Property="Margin" Value="0,0,0,10" />
         <Setter Property="MinHeight" Value="76" />
+    </Style>
+
+    <Style x:Key="AppPickerListItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource ListHostItemStyle}">
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <Grid>
+                        <Border
+                            x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    x:Name="SelectionAccent"
+                                    Margin="0,2,0,2"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="2"
+                                    Opacity="0" />
+
+                                <ContentPresenter
+                                    Grid.Column="1"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    ContentTransitions="{TemplateBinding ContentTransitions}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal" />
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Background" Value="{ThemeResource ListViewItemBackgroundPointerOver}" />
+                                    <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource ButtonBorderBrushPointerOver}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Pressed">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Background" Value="{ThemeResource ListViewItemBackgroundPressed}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Disabled">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Opacity" Value="0.55" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+
+                        <VisualStateGroup x:Name="SelectionStates">
+                            <VisualState x:Name="Unselected" />
+                            <VisualState x:Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Background" Value="{StaticResource AppPickerSelectedBackgroundBrush}" />
+                                    <Setter Target="RootBorder.BorderBrush" Value="{StaticResource AppPickerSelectedBorderBrush}" />
+                                    <Setter Target="SelectionAccent.Opacity" Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="SelectedPointerOver">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Background" Value="{StaticResource AppPickerSelectedBackgroundPointerOverBrush}" />
+                                    <Setter Target="RootBorder.BorderBrush" Value="{StaticResource AppPickerSelectedBorderPointerOverBrush}" />
+                                    <Setter Target="SelectionAccent.Opacity" Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="SelectedPressed">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Background" Value="{StaticResource AppPickerSelectedBackgroundPointerOverBrush}" />
+                                    <Setter Target="RootBorder.BorderBrush" Value="{StaticResource AppPickerSelectedBorderPointerOverBrush}" />
+                                    <Setter Target="SelectionAccent.Opacity" Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="SelectedUnfocused">
+                                <VisualState.Setters>
+                                    <Setter Target="RootBorder.Background" Value="{StaticResource AppPickerSelectedBackgroundBrush}" />
+                                    <Setter Target="RootBorder.BorderBrush" Value="{StaticResource AppPickerSelectedBorderBrush}" />
+                                    <Setter Target="SelectionAccent.Opacity" Value="0.82" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateManager.VisualStateGroups>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

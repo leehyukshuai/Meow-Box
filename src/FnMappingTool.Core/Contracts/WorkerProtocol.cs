@@ -1,10 +1,16 @@
-﻿using FnMappingTool.Core.Services;
+using FnMappingTool.Core.Models;
+using FnMappingTool.Core.Services;
 
 namespace FnMappingTool.Core.Contracts;
 
 public static class WorkerPipeConstants
 {
     public const string PipeName = "FnMappingTool.WorkerPipe";
+}
+
+public static class TouchpadPipeConstants
+{
+    public const string PipeName = "FnMappingTool.TouchpadStream";
 }
 
 public static class WorkerCommandType
@@ -41,4 +47,6 @@ public sealed class WorkerStatus
     public string ConfigPath { get; set; } = string.Empty;
 
     public string StateMessage { get; set; } = string.Empty;
+
+    public TouchpadLiveStateSnapshot Touchpad { get; set; } = new();
 }

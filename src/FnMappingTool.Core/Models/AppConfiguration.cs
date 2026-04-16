@@ -10,6 +10,8 @@ public sealed class AppConfiguration
 
     public AppPreferences Preferences { get; set; } = new();
 
+    public TouchpadConfiguration Touchpad { get; set; } = new();
+
     public List<KeyDefinitionConfiguration> Keys { get; set; } = new();
 
     public List<KeyActionMappingConfiguration> Mappings { get; set; } = new();
@@ -264,6 +266,7 @@ public static class RuntimeDefaults
     public const int DefaultOsdDurationMs = 800;
     public const int DefaultOsdBackgroundOpacityPercent = 20;
     public const int DefaultOsdScalePercent = 75;
+    public const int DefaultTouchpadDeepPressThreshold = 500;
     public const int MaxOsdTitleLength = 32;
 }
 

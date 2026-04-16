@@ -40,14 +40,6 @@
             Style="{StaticResource ListHostStyle}"
             SelectionMode="Single"
             SelectionChanged="OnSelectionChanged">
-            <ListView.Resources>
-                <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="AccentFillColorSecondaryBrush" />
-                <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="AccentFillColorDefaultBrush" />
-                <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="AccentFillColorTertiaryBrush" />
-                <StaticResource x:Key="ListViewItemSelectionIndicatorBrush" ResourceKey="AccentFillColorDefaultBrush" />
-                <StaticResource x:Key="ListViewItemSelectionIndicatorPointerOverBrush" ResourceKey="AccentFillColorDefaultBrush" />
-                <StaticResource x:Key="ListViewItemSelectionIndicatorPressedBrush" ResourceKey="AccentFillColorTertiaryBrush" />
-            </ListView.Resources>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid ColumnSpacing="12">

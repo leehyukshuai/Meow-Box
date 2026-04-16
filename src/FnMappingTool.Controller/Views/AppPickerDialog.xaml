@@ -24,7 +24,7 @@
         <ListView
             x:Name="AppsListView"
             Height="400"
-            ItemContainerStyle="{StaticResource ListHostItemStyle}"
+            ItemContainerStyle="{StaticResource AppPickerListItemStyle}"
             Style="{StaticResource ListHostStyle}"
             SelectionMode="Single"
             SelectionChanged="OnSelectionChanged">

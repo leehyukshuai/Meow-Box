@@ -30,13 +30,15 @@ public sealed partial class MainWindow : Window
 
     private readonly Dictionary<string, Type> _pages = new()
     {
-        ["mappings"] = typeof(MappingsPage),
+        ["keyboard"] = typeof(MappingsPage),
+        ["touchpad"] = typeof(TouchpadPage),
         ["settings"] = typeof(SettingsPage)
     };
 
     private readonly Dictionary<string, string> _pageTitleKeys = new()
     {
-        ["mappings"] = "PageTitle.Mappings",
+        ["keyboard"] = "PageTitle.Mappings",
+        ["touchpad"] = "PageTitle.Touchpad",
         ["settings"] = "PageTitle.Settings"
     };
 
@@ -83,6 +85,7 @@ public sealed partial class MainWindow : Window
         Title = appTitle;
         AppTitleTextBlock.Text = appTitle;
         MappingsItem.Content = Localizer.GetString("Navigation.Mappings");
+        TouchpadItem.Content = Localizer.GetString("Navigation.Touchpad");
         SettingsItem.Content = Localizer.GetString("Navigation.Settings");
     }
 
@@ -114,7 +117,7 @@ public sealed partial class MainWindow : Window
     private void ConfigureNavigation()
     {
         ShellNavigationView.SelectedItem = MappingsItem;
-        Navigate("mappings");
+        Navigate("keyboard");
     }
 
     private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -135,6 +138,7 @@ public sealed partial class MainWindow : Window
     {
         if (_pages.TryGetValue(key, out var pageType))
         {
+            Controller.SetTouchpadMonitoringActive(string.Equals(key, "touchpad", StringComparison.OrdinalIgnoreCase));
             ContentFrame.Navigate(pageType);
             UpdatePageChrome(key);
             DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));

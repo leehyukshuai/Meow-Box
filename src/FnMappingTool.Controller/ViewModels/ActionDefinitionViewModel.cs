@@ -34,6 +34,7 @@ public sealed class ActionDefinitionViewModel : ObservableObject
                 OnPropertyChanged(nameof(ActionDescription));
                 OnPropertyChanged(nameof(ActionIconGlyph));
                 OnPropertyChanged(nameof(ActionTagsText));
+                OnPropertyChanged(nameof(HasAssignedActionVisibility));
                 OnPropertyChanged(nameof(TargetVisibility));
                 OnPropertyChanged(nameof(ArgumentsVisibility));
                 OnPropertyChanged(nameof(InstalledAppPickerVisibility));
@@ -111,6 +112,8 @@ public sealed class ActionDefinitionViewModel : ObservableObject
     public string StandardKeyLabel => StandardKeyCatalog.GetLabel(StandardKey);
 
     public bool HasAssignedAction => !string.IsNullOrWhiteSpace(Type);
+
+    public Visibility HasAssignedActionVisibility => HasAssignedAction ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility TargetVisibility => Type == HotkeyActionType.OpenApplication ? Visibility.Visible : Visibility.Collapsed;
 

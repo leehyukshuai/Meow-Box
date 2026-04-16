@@ -17,12 +17,17 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private readonly AutostartService _autostartService = new();
     private readonly WorkerPipeClient _workerPipeClient = new();
     private readonly WorkerProcessService _workerProcessService = new();
+    private readonly TouchpadStreamClient _touchpadStreamClient = new();
 
     private DispatcherQueue? _dispatcherQueue;
     private DispatcherQueueTimer? _statusTimer;
     private AppConfiguration _configuration = AppConfiguration.CreateDefault();
     private MappingDefinitionViewModel? _selectedMapping;
     private ActionTagOption? _selectedActionTag;
+    private TouchpadConfigurationViewModel? _touchpad;
+    private bool _touchpadMonitoringActive;
+    private bool _touchpadStreamConnected;
+    private bool _statusRefreshInFlight;
     private bool _serviceRunning;
     private bool _autostartEnabled;
     private bool _priorityStartupEnabled;
@@ -41,7 +46,15 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public ObservableCollection<ActionOptionItemViewModel> FilteredActionOptions { get; } = [];
 
+    public TouchpadLiveStateViewModel TouchpadLive { get; } = new();
+
     public IReadOnlyList<ActionTagOption> ActionTags => ActionCatalog.TagOptions;
+
+    public TouchpadConfigurationViewModel Touchpad
+    {
+        get => _touchpad ??= new TouchpadConfigurationViewModel(_configuration.Touchpad);
+        private set => SetProperty(ref _touchpad, value);
+    }
 
     public MappingDefinitionViewModel? SelectedMapping
     {
@@ -173,10 +186,33 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         SyncBundledOsdIconsToConfigDirectory();
         _configuration = _configService.Load();
         ReloadCollectionsFromConfiguration();
+        _touchpadStreamClient.SnapshotReceived += OnTouchpadSnapshotReceived;
+        _touchpadStreamClient.ConnectionChanged += OnTouchpadStreamConnectionChanged;
 
         App.ThemeService.Initialize(window, _configuration.Theme);
         _ = RefreshAutostartStateAsync();
         StartStatusPolling();
+        _ = RefreshWorkerStatusAsync();
+    }
+
+    public void SetTouchpadMonitoringActive(bool active)
+    {
+        if (_touchpadMonitoringActive == active)
+        {
+            return;
+        }
+
+        _touchpadMonitoringActive = active;
+        if (active)
+        {
+            _touchpadStreamClient.Start();
+        }
+        else
+        {
+            _touchpadStreamClient.Stop();
+            _touchpadStreamConnected = false;
+        }
+
         _ = RefreshWorkerStatusAsync();
     }
 
@@ -200,6 +236,17 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
+    public void SaveTouchpadConfiguration()
+    {
+        if (IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
     public void ClearSelectedMappingAction()
     {
         if (SelectedMapping is null)
@@ -208,7 +255,13 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         }
 
         SelectedMapping.Action.ClearAssignment();
+        SelectedMapping.Enabled = SelectedMapping.Osd.Enabled;
         RefreshMappingReferences();
+    }
+
+    public void ClearTouchpadAction()
+    {
+        Touchpad.DeepPressAction.ClearAssignment();
     }
 
     public async Task<IReadOnlyList<InstalledAppEntry>> GetInstalledAppsAsync()
@@ -414,9 +467,22 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         ApplyActionType(type);
     }
 
+    public void SetTouchpadActionType(string type)
+    {
+        if (string.Equals(Touchpad.DeepPressAction.Type, type, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Touchpad.DeepPressAction.Type = type;
+    }
+
     public void Dispose()
     {
         _statusTimer?.Stop();
+        _touchpadStreamClient.SnapshotReceived -= OnTouchpadSnapshotReceived;
+        _touchpadStreamClient.ConnectionChanged -= OnTouchpadStreamConnectionChanged;
+        _touchpadStreamClient.Dispose();
     }
 
     private void SaveConfiguration()
@@ -429,6 +495,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _configuration.Theme = App.ThemeService.CurrentPreference;
         _configuration.Keys = KeyItems.Select(item => item.ToConfiguration()).ToList();
         _configuration.Mappings = MappingItems.Select(item => item.ToConfiguration()).ToList();
+        _configuration.Touchpad = Touchpad.ToConfiguration();
         _configService.Save(_configuration);
     }
 
@@ -470,9 +537,11 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             PriorityStartupEnabled = _configuration.Preferences.PreferPriorityStartup;
             LanguagePreference = _configuration.Preferences.Language;
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
+            Touchpad = new TouchpadConfigurationViewModel(_configuration.Touchpad);
             SyncOsdPreferenceState();
             RefreshMappingReferences();
             SelectedMapping = MappingItems.FirstOrDefault();
+            TouchpadLive.Update(null, serviceAvailable: false, Touchpad.DeepPressThreshold);
         }
         finally
         {
@@ -559,12 +628,30 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     private async Task RefreshWorkerStatusAsync()
     {
+        if (_statusRefreshInFlight)
+        {
+            return;
+        }
+
+        _statusRefreshInFlight = true;
+
+        try
+        {
         var response = await _workerPipeClient.SendAsync(new WorkerRequest
         {
             Command = WorkerCommandType.GetStatus
         }, 800);
 
         ServiceRunning = response?.Success == true && response.Status is not null;
+        if (!_touchpadStreamConnected)
+        {
+            TouchpadLive.Update(response?.Status?.Touchpad, ServiceRunning, Touchpad.DeepPressThreshold);
+        }
+        }
+        finally
+        {
+            _statusRefreshInFlight = false;
+        }
     }
 
     private async Task EnsureWorkerReadyAsync()
@@ -608,12 +695,53 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         }
 
         SelectedMapping.Action.Type = type;
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            SelectedMapping.Enabled = true;
+        }
+
         ApplyActionDefaults(SelectedMapping.Action);
         RefreshMappingReferences();
     }
 
     private void ApplyActionDefaults(ActionDefinitionViewModel action)
     {
+    }
+
+    private void OnTouchpadSnapshotReceived(object? sender, TouchpadLiveStateSnapshot snapshot)
+    {
+        if (_dispatcherQueue is null)
+        {
+            ServiceRunning = true;
+            TouchpadLive.Update(snapshot, serviceAvailable: true, Touchpad.DeepPressThreshold);
+            return;
+        }
+
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            ServiceRunning = true;
+            TouchpadLive.Update(snapshot, serviceAvailable: true, Touchpad.DeepPressThreshold);
+        });
+    }
+
+    private void OnTouchpadStreamConnectionChanged(object? sender, bool connected)
+    {
+        _touchpadStreamConnected = connected;
+        if (connected)
+        {
+            if (_dispatcherQueue is null)
+            {
+                ServiceRunning = true;
+            }
+            else
+            {
+                _dispatcherQueue.TryEnqueue(() => ServiceRunning = true);
+            }
+
+            return;
+        }
+
+        _ = RefreshWorkerStatusAsync();
     }
 
     private void SyncSelectedActionTag()

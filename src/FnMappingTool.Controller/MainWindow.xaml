@@ -49,7 +49,7 @@
                     <TextBlock
                         x:Name="PageContextTextBlock"
                         Style="{StaticResource TitleBarSubtitleTextBlockStyle}"
-                        Text="Mappings" />
+                        Text="Keyboard" />
                 </StackPanel>
             </StackPanel>
 
@@ -122,9 +122,20 @@
                 <NavigationViewItem
                     x:Uid="MappingsItem"
                     x:Name="MappingsItem"
-                    Content="Mappings"
-                    Icon="Switch"
-                    Tag="mappings" />
+                    Content="Keyboard"
+                    Tag="keyboard">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE765;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="TouchpadItem"
+                    Content="Touchpad"
+                    Tag="touchpad">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xEFA5;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem
                     x:Name="SettingsItem"
                     Content="Settings"

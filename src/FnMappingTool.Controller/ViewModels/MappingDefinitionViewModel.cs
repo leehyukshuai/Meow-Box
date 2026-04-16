@@ -7,12 +7,14 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 {
     private readonly ActionDefinitionViewModel _action;
     private readonly MappingOsdViewModel _osd;
+    private bool _enabled;
     private string _keyId;
     private string _keyDisplayName = LocalizedText.Pick("Select key", "选择按键");
 
     public MappingDefinitionViewModel(KeyActionMappingConfiguration model)
     {
         Id = string.IsNullOrWhiteSpace(model.Id) ? Guid.NewGuid().ToString("N") : model.Id;
+        _enabled = model.Enabled;
         _keyId = model.KeyId ?? string.Empty;
         _action = new ActionDefinitionViewModel(model.Action);
         _action.PropertyChanged += OnActionChanged;
@@ -28,7 +30,22 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         set
         {
             var normalizedValue = value ?? string.Empty;
-            SetProperty(ref _keyId, normalizedValue);
+            if (SetProperty(ref _keyId, normalizedValue))
+            {
+                OnPropertyChanged(nameof(KeyDescription));
+            }
+        }
+    }
+
+    public bool Enabled
+    {
+        get => _enabled;
+        set
+        {
+            if (SetProperty(ref _enabled, value))
+            {
+                OnPropertyChanged(nameof(Summary));
+            }
         }
     }
 
@@ -50,6 +67,8 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     public string ListTitle => KeyDisplayName;
 
+    public string KeyDescription => HardwareKeyCatalog.GetDescription(KeyId);
+
     public string Summary => BuildSummary();
 
     public string ActionIconGlyph => MappingDisplayCatalog.GetIconGlyph(Action.Type, Osd.Enabled);
@@ -65,7 +84,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         {
             Id = Id,
             Name = KeyDisplayName,
-            Enabled = true,
+            Enabled = Enabled,
             KeyId = KeyId,
             Action = Action.ToConfiguration(),
             Osd = Osd.ToConfiguration()
@@ -74,6 +93,11 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     private string BuildSummary()
     {
+        if (!Enabled)
+        {
+            return LocalizedText.Pick("This mapping is disabled.", "这个映射已禁用。");
+        }
+
         if (Osd.Enabled && Action.HasAssignedAction)
         {
             return string.Format(

@@ -24,11 +24,14 @@ public sealed class KeyDefinitionViewModel : ObservableObject
             if (SetProperty(ref _name, value))
             {
                 OnPropertyChanged(nameof(ListTitle));
+                OnPropertyChanged(nameof(Description));
             }
         }
     }
 
-    public string ListTitle => string.IsNullOrWhiteSpace(Name) ? LocalizedText.Pick("Unnamed key", "未命名按键") : Name.Trim();
+    public string ListTitle => HardwareKeyCatalog.GetLabel(Id, Name);
+
+    public string Description => HardwareKeyCatalog.GetDescription(Id);
 
     public string TriggerDetails => _trigger.ToDisplayText();
 

@@ -9,13 +9,10 @@
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <Grid Padding="{StaticResource AppPagePadding}" RowSpacing="16">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <TextBlock x:Uid="SettingsPageTitleText" Style="{StaticResource PageTitleTextBlockStyle}" Text="Settings" />
-
-            <Grid x:Name="SettingsSectionsGrid" Grid.Row="1" RowSpacing="16">
+            <Grid x:Name="SettingsSectionsGrid" Grid.Row="0" RowSpacing="16">
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroup>
                         <VisualState x:Name="WideLayout">

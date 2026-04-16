@@ -14,6 +14,7 @@ namespace FnMappingTool.Controller.Views;
 public sealed partial class MappingsPage : Page
 {
     private bool _isRefreshingOsdIcons;
+    private bool _isRefreshingStandardKeyChoices;
 
     public FnMappingToolController Controller => App.Controller;
 
@@ -201,6 +202,11 @@ public sealed partial class MappingsPage : Page
             return;
         }
 
+        if (_isRefreshingStandardKeyChoices)
+        {
+            return;
+        }
+
         if (ReferenceEquals(sender, OsdIconComboBox))
         {
             if (_isRefreshingOsdIcons)
@@ -214,6 +220,13 @@ public sealed partial class MappingsPage : Page
             }
         }
 
+        if (ReferenceEquals(sender, StandardKeyComboBox) && Controller.SelectedMapping is not null)
+        {
+            var selectedOption = e.AddedItems.OfType<StandardKeyOption>().FirstOrDefault()
+                ?? StandardKeyComboBox.SelectedItem as StandardKeyOption;
+            Controller.SelectedMapping.Action.StandardKey = selectedOption?.Key ?? string.Empty;
+        }
+
         TrySaveMappingAsync();
     }
 
@@ -224,7 +237,24 @@ public sealed partial class MappingsPage : Page
             return;
         }
 
+        if (Controller.SelectedMapping is not null)
+        {
+            var selectedGroup = e.AddedItems.OfType<StandardKeyGroupOption>().FirstOrDefault()
+                ?? StandardKeyGroupComboBox.SelectedItem as StandardKeyGroupOption;
+            Controller.SelectedMapping.Action.StandardKeyGroup = selectedGroup?.Key ?? StandardKeyCatalog.GroupOptions[0].Key;
+        }
+
         RefreshStandardKeyChoices();
+        TrySaveMappingAsync();
+    }
+
+    private void OnMappingEnabledChanged(object sender, RoutedEventArgs e)
+    {
+        if (Controller.IsReloadingConfiguration || Controller.SelectedMapping is null)
+        {
+            return;
+        }
+
         TrySaveMappingAsync();
     }
 
@@ -237,10 +267,15 @@ public sealed partial class MappingsPage : Page
 
         if (Controller.SelectedMapping.Osd.Enabled)
         {
+            Controller.SelectedMapping.Enabled = true;
             var fallbackTitle = Controller.SelectedMapping.Action.HasAssignedAction
                 ? Controller.SelectedMapping.Action.ActionLabel
                 : MappingDisplayCatalog.ShowOsdLabel;
             Controller.SelectedMapping.Osd.EnsureDefaultTitle(fallbackTitle);
+        }
+        else if (!Controller.SelectedMapping.Action.HasAssignedAction)
+        {
+            Controller.SelectedMapping.Enabled = false;
         }
 
         RefreshOsdIcons();
@@ -300,12 +335,33 @@ public sealed partial class MappingsPage : Page
 
     private void RefreshStandardKeyChoices()
     {
-        var selectedGroup = Controller.SelectedMapping?.Action.StandardKeyGroup;
-
-        FilteredStandardKeys.Clear();
-        foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))
+        _isRefreshingStandardKeyChoices = true;
+        try
         {
-            FilteredStandardKeys.Add(option);
+            var selectedGroup = Controller.SelectedMapping?.Action.StandardKeyGroup;
+
+            FilteredStandardKeys.Clear();
+            foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))
+            {
+                FilteredStandardKeys.Add(option);
+            }
+
+            if (StandardKeyGroupComboBox is not null)
+            {
+                StandardKeyGroupComboBox.SelectedValue = selectedGroup;
+            }
+
+            if (StandardKeyComboBox is not null)
+            {
+                var selectedKey = Controller.SelectedMapping?.Action.StandardKey;
+                StandardKeyComboBox.SelectedItem = FilteredStandardKeys.FirstOrDefault(item =>
+                    string.Equals(item.Key, selectedKey, StringComparison.OrdinalIgnoreCase));
+                StandardKeyComboBox.SelectedValue = selectedKey;
+            }
+        }
+        finally
+        {
+            _isRefreshingStandardKeyChoices = false;
         }
     }
 }
