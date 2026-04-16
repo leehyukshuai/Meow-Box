@@ -76,7 +76,12 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
         IsRefreshingStandardKeys = true;
         try
         {
-            var selectedGroup = Action.StandardKeyGroup;
+            var selectedGroup = Action.GetEffectiveStandardKeyGroup();
+            if (!string.Equals(Action.StandardKeyGroup, selectedGroup, StringComparison.OrdinalIgnoreCase))
+            {
+                Action.StandardKeyGroup = selectedGroup;
+            }
+
             FilteredStandardKeys.Clear();
             foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))
             {

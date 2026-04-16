@@ -121,8 +121,7 @@ public sealed class ActionDefinitionViewModel : ObservableObject
             Type = Type,
             StandardKey = Type == HotkeyActionType.SendStandardKey && !string.IsNullOrWhiteSpace(StandardKey) ? StandardKey : null,
             Target = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Target) ? Target.Trim() : null,
-            Arguments = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Arguments) ? Arguments.Trim() : null,
-            OsdIcon = new IconConfiguration()
+            Arguments = Type == HotkeyActionType.OpenApplication && !string.IsNullOrWhiteSpace(Arguments) ? Arguments.Trim() : null
         };
     }
 
@@ -142,6 +141,19 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         {
             StandardKey = string.Empty;
         }
+    }
+
+    public string GetEffectiveStandardKeyGroup()
+    {
+        return !string.IsNullOrWhiteSpace(StandardKey)
+            ? StandardKeyCatalog.GetPreferredGroupKey(StandardKey)
+            : StandardKeyCatalog.NormalizeGroupKey(StandardKeyGroup);
+    }
+
+    public void ApplyStandardKeyGroup(string? group)
+    {
+        StandardKeyGroup = StandardKeyCatalog.NormalizeGroupKey(group);
+        ClearStandardKeyIfGroupMismatch();
     }
 
     private string BuildActionDescription()

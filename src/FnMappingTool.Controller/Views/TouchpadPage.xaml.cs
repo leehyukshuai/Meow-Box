@@ -164,9 +164,7 @@ public sealed partial class TouchpadPage : Page
         {
             var selectedGroup = e.AddedItems.OfType<StandardKeyGroupOption>().FirstOrDefault()
                 ?? comboBox.SelectedItem as StandardKeyGroupOption;
-            editor.Action.StandardKeyGroup =
-                selectedGroup?.Key ?? StandardKeyCatalog.GroupOptions[0].Key;
-            editor.Action.ClearStandardKeyIfGroupMismatch();
+            editor.Action.ApplyStandardKeyGroup(selectedGroup?.Key);
         }
 
         RefreshTouchpadStandardKeyChoices(editor);
@@ -709,10 +707,7 @@ public sealed partial class TouchpadPage : Page
         _isRefreshingTouchpadStandardKeyChoices = true;
         try
         {
-            var selectedKey = editor.Action.StandardKey;
-            var selectedGroup = !string.IsNullOrWhiteSpace(selectedKey)
-                ? StandardKeyCatalog.GetPreferredGroupKey(selectedKey)
-                : editor.Action.StandardKeyGroup;
+            var selectedGroup = editor.Action.GetEffectiveStandardKeyGroup();
             if (!string.Equals(editor.Action.StandardKeyGroup, selectedGroup, StringComparison.OrdinalIgnoreCase))
             {
                 editor.Action.StandardKeyGroup = selectedGroup;

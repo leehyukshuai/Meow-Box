@@ -273,8 +273,7 @@ public sealed partial class MappingsPage : Page
         {
             var selectedGroup = e.AddedItems.OfType<StandardKeyGroupOption>().FirstOrDefault()
                 ?? StandardKeyGroupComboBox.SelectedItem as StandardKeyGroupOption;
-            Controller.SelectedMapping.Action.StandardKeyGroup = selectedGroup?.Key ?? StandardKeyCatalog.GroupOptions[0].Key;
-            Controller.SelectedMapping.Action.ClearStandardKeyIfGroupMismatch();
+            Controller.SelectedMapping.Action.ApplyStandardKeyGroup(selectedGroup?.Key);
         }
 
         RefreshStandardKeyChoices();
@@ -367,10 +366,7 @@ public sealed partial class MappingsPage : Page
         try
         {
             var action = Controller.SelectedMapping?.Action;
-            var selectedKey = action?.StandardKey;
-            var selectedGroup = !string.IsNullOrWhiteSpace(selectedKey)
-                ? StandardKeyCatalog.GetPreferredGroupKey(selectedKey)
-                : action?.StandardKeyGroup;
+            var selectedGroup = action?.GetEffectiveStandardKeyGroup();
 
             FilteredStandardKeys.Clear();
             foreach (var option in StandardKeyCatalog.All.Where(item => StandardKeyCatalog.MatchesGroup(item, selectedGroup)))

@@ -67,11 +67,6 @@ public sealed class ActionDefinitionConfiguration
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Arguments { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? OsdTitle { get; set; }
-
-    public IconConfiguration OsdIcon { get; set; } = new();
 }
 
 public sealed class MappingOsdConfiguration
@@ -265,7 +260,6 @@ public static class HotkeyActionType
     public const string LockWindows = "LockWindows";
     public const string Screenshot = "Screenshot";
     public const string OpenCalculator = "OpenCalculator";
-    public const string ShowOsd = "ShowOsd";
     public const string OpenApplication = "OpenApplication";
 }
 

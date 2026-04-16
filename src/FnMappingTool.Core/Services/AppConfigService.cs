@@ -277,16 +277,13 @@ public sealed class AppConfigService
         KeyActionMappingConfiguration template,
         string? baseDirectory)
     {
-        var restoreLegacyDefault = ShouldRestoreLegacyFixedMapping(mapping, template);
-        var effectiveMapping = restoreLegacyDefault ? null : mapping;
-        var source = effectiveMapping ?? template;
+        var source = mapping ?? template;
         var forceOsdOnly = SupportedDeviceConfiguration.ShouldUseOsdOnlyDefault(template.KeyId);
-        var legacyAction = forceOsdOnly
+        var normalizedAction = NormalizeAction(
+            forceOsdOnly
             ? template.Action ?? new ActionDefinitionConfiguration()
-            : source.Action ?? template.Action ?? new ActionDefinitionConfiguration();
-        var legacyShowOsd = string.Equals(legacyAction.Type, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase);
-        var normalizedAction = NormalizeAction(legacyAction, baseDirectory);
-        var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd, legacyAction, legacyShowOsd, baseDirectory);
+            : source.Action ?? template.Action ?? new ActionDefinitionConfiguration());
+        var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd, baseDirectory);
         if (forceOsdOnly)
         {
             normalizedOsd.Enabled = true;
@@ -307,40 +304,14 @@ public sealed class AppConfigService
         {
             Id = template.Id,
             Name = template.Name,
-            Enabled = hasAssignedAction && (effectiveMapping?.Enabled ?? template.Enabled),
+            Enabled = hasAssignedAction && (mapping?.Enabled ?? template.Enabled),
             KeyId = template.KeyId,
             Action = normalizedAction,
             Osd = normalizedOsd
         };
     }
 
-    private static bool ShouldRestoreLegacyFixedMapping(
-        KeyActionMappingConfiguration? mapping,
-        KeyActionMappingConfiguration template)
-    {
-        if (mapping is null)
-        {
-            return false;
-        }
-
-        var normalizedActionType = NormalizeActionType(mapping.Action?.Type);
-        if (!string.Equals(normalizedActionType, HotkeyActionType.None, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (mapping.Osd?.Enabled != true)
-        {
-            return false;
-        }
-
-        return SupportedDeviceConfiguration.ShouldRestoreLegacyOsdOnlyDefault(
-            template.KeyId,
-            mapping.Osd.Title,
-            mapping.Osd.Icon?.Path);
-    }
-
-    private static ActionDefinitionConfiguration NormalizeAction(ActionDefinitionConfiguration? action, string? baseDirectory)
+    private static ActionDefinitionConfiguration NormalizeAction(ActionDefinitionConfiguration? action)
     {
         action ??= new ActionDefinitionConfiguration();
         action.Type = NormalizeActionType(action.Type);
@@ -374,17 +345,15 @@ public sealed class AppConfigService
                 3000),
             SurfaceWidth = surfaceWidth,
             SurfaceHeight = surfaceHeight,
-            DeepPressAction = NormalizeAction(touchpad.DeepPressAction, baseDirectory),
+            DeepPressAction = NormalizeAction(touchpad.DeepPressAction),
             LeftTopCorner = NormalizeTouchpadCornerRegion(
                 touchpad.LeftTopCorner,
                 TouchpadCornerRegionConfiguration.CreateLeftTopDefault(),
-                baseDirectory,
                 surfaceWidth,
                 surfaceHeight),
             RightTopCorner = NormalizeTouchpadCornerRegion(
                 touchpad.RightTopCorner,
                 TouchpadCornerRegionConfiguration.CreateRightTopDefault(),
-                baseDirectory,
                 surfaceWidth,
                 surfaceHeight)
         };
@@ -393,28 +362,16 @@ public sealed class AppConfigService
     private static TouchpadCornerRegionConfiguration NormalizeTouchpadCornerRegion(
         TouchpadCornerRegionConfiguration? region,
         TouchpadCornerRegionConfiguration template,
-        string? baseDirectory,
         int surfaceWidth,
         int surfaceHeight)
     {
-        if (IsLegacyTouchpadCornerBounds(region?.Bounds, template.Id, surfaceWidth))
-        {
-            region = new TouchpadCornerRegionConfiguration
-            {
-                Id = template.Id,
-                Bounds = template.Bounds,
-                DeepPressAction = region?.DeepPressAction ?? template.DeepPressAction,
-                LongPressAction = region?.LongPressAction ?? template.LongPressAction
-            };
-        }
-
         var bounds = NormalizeTouchpadBounds(region?.Bounds, template.Bounds, surfaceWidth, surfaceHeight);
         return new TouchpadCornerRegionConfiguration
         {
             Id = template.Id,
             Bounds = bounds,
-            DeepPressAction = NormalizeAction(region?.DeepPressAction ?? template.DeepPressAction, baseDirectory),
-            LongPressAction = NormalizeAction(region?.LongPressAction ?? template.LongPressAction, baseDirectory)
+            DeepPressAction = NormalizeAction(region?.DeepPressAction ?? template.DeepPressAction),
+            LongPressAction = NormalizeAction(region?.LongPressAction ?? template.LongPressAction)
         };
     }
 
@@ -446,58 +403,23 @@ public sealed class AppConfigService
         return normalized;
     }
 
-    private static bool IsLegacyTouchpadCornerBounds(
-        TouchpadRegionBoundsConfiguration? bounds,
-        string regionId,
-        int surfaceWidth)
-    {
-        if (bounds is null)
-        {
-            return false;
-        }
-
-        return regionId switch
-        {
-            TouchpadCornerRegionId.LeftTop => bounds.Left == 0 &&
-                                             bounds.Top == 0 &&
-                                             (bounds.Right == 200 || bounds.Right == 250) &&
-                                             (bounds.Bottom == 200 || bounds.Bottom == 250),
-            TouchpadCornerRegionId.RightTop => (bounds.Left == surfaceWidth - 200 || bounds.Left == surfaceWidth - 250) &&
-                                              bounds.Top == 0 &&
-                                              bounds.Right == surfaceWidth &&
-                                              (bounds.Bottom == 200 || bounds.Bottom == 250),
-            _ => false
-        };
-    }
-
     private static MappingOsdConfiguration NormalizeMappingOsd(
         MappingOsdConfiguration? osd,
-        ActionDefinitionConfiguration legacyAction,
-        bool legacyShowOsd,
         string? baseDirectory)
     {
         osd ??= new MappingOsdConfiguration();
 
         var title = NormalizeOptional(osd.Title);
-        if (string.IsNullOrWhiteSpace(title) && legacyShowOsd)
-        {
-            title = NormalizeOptional(legacyAction.OsdTitle);
-        }
-
         if (!string.IsNullOrWhiteSpace(title) && title.Length > RuntimeDefaults.MaxOsdTitleLength)
         {
             title = title[..RuntimeDefaults.MaxOsdTitleLength];
         }
 
         var icon = NormalizeIcon(osd.Icon, baseDirectory);
-        if (string.IsNullOrWhiteSpace(icon.Path) && legacyShowOsd)
-        {
-            icon = NormalizeIcon(legacyAction.OsdIcon, baseDirectory);
-        }
 
         return new MappingOsdConfiguration
         {
-            Enabled = osd.Enabled || legacyShowOsd,
+            Enabled = osd.Enabled,
             Title = title,
             Icon = icon
         };
@@ -505,8 +427,7 @@ public sealed class AppConfigService
 
     private static IconConfiguration NormalizeIcon(IconConfiguration? icon, string? baseDirectory)
     {
-        var path = NormalizeBuiltInOsdIconPath(icon?.Path);
-        path = OsdIconPathResolver.NormalizeConfigPath(path, baseDirectory);
+        var path = OsdIconPathResolver.NormalizeConfigPath(icon?.Path, baseDirectory);
         var isPng = !string.IsNullOrWhiteSpace(path);
 
         return new IconConfiguration
@@ -533,35 +454,12 @@ public sealed class AppConfigService
 
     private static string NormalizeActionType(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value) || string.Equals(value, HotkeyActionType.ShowOsd, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(value))
         {
             return HotkeyActionType.None;
         }
 
         return ActionCatalog.All.FirstOrDefault(item => string.Equals(item.Key, value, StringComparison.OrdinalIgnoreCase))?.Key
             ?? HotkeyActionType.None;
-    }
-
-    private static string? NormalizeBuiltInOsdIconPath(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return path;
-        }
-
-        return Path.GetFileName(path).ToLowerInvariant() switch
-        {
-            "backlight-level1.png" => ReplaceIconFileName(path, "backlight-low.png"),
-            "backlight-level2.png" => ReplaceIconFileName(path, "backlight-high.png"),
-            _ => path
-        };
-    }
-
-    private static string ReplaceIconFileName(string originalPath, string newFileName)
-    {
-        var directory = Path.GetDirectoryName(originalPath);
-        return string.IsNullOrWhiteSpace(directory)
-            ? newFileName
-            : Path.Combine(directory, newFileName);
     }
 }

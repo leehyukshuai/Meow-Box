@@ -304,7 +304,6 @@ internal sealed class WorkerHost : IDisposable
         switch (action.Type)
         {
             case HotkeyActionType.None:
-            case HotkeyActionType.ShowOsd:
                 return;
             case HotkeyActionType.SendStandardKey:
                 _nativeActionService.SendConfiguredStandardKey(action.StandardKey);

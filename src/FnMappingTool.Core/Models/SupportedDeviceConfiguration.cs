@@ -133,28 +133,6 @@ public static class SupportedDeviceConfiguration
                string.Equals(keyId, DefaultKeyIds.BacklightAuto, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool ShouldRestoreLegacyOsdOnlyDefault(string keyId, string? osdTitle, string? iconPath)
-    {
-        if (!string.IsNullOrWhiteSpace(iconPath))
-        {
-            return false;
-        }
-
-        var normalizedTitle = osdTitle?.Trim();
-        return keyId switch
-        {
-            var value when string.Equals(value, DefaultKeyIds.ManagerPress, StringComparison.OrdinalIgnoreCase)
-                => string.Equals(normalizedTitle, "PC Manager", StringComparison.OrdinalIgnoreCase),
-            var value when string.Equals(value, DefaultKeyIds.XiaoAiPress, StringComparison.OrdinalIgnoreCase)
-                => string.Equals(normalizedTitle, "XiaoAi", StringComparison.OrdinalIgnoreCase),
-            var value when string.Equals(value, DefaultKeyIds.SettingsPress, StringComparison.OrdinalIgnoreCase)
-                => string.Equals(normalizedTitle, "Settings", StringComparison.OrdinalIgnoreCase),
-            var value when string.Equals(value, DefaultKeyIds.Projection, StringComparison.OrdinalIgnoreCase)
-                => string.Equals(normalizedTitle, "Projection", StringComparison.OrdinalIgnoreCase),
-            _ => false
-        };
-    }
-
     private static MappingOsdConfiguration CreateOsd(string title, string? iconPath = null)
     {
         return new MappingOsdConfiguration
