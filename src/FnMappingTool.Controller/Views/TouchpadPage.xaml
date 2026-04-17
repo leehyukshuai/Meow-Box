@@ -131,7 +131,6 @@
                                         Loaded="OnTouchpadStandardKeyGroupComboBoxLoaded"
                                         Unloaded="OnTouchpadStandardKeyComboBoxUnloaded"
                                         ItemsSource="{Binding StandardKeyGroups}"
-                                        SelectedValue="{Binding Action.StandardKeyGroup, Mode=TwoWay}"
                                         SelectedValuePath="Key"
                                         SelectionChanged="OnTouchpadStandardKeyGroupSelectionChanged" />
                                     <ComboBox
@@ -141,7 +140,6 @@
                                         Loaded="OnTouchpadStandardKeyComboBoxLoaded"
                                         Unloaded="OnTouchpadStandardKeyComboBoxUnloaded"
                                         ItemsSource="{Binding FilteredStandardKeys}"
-                                        SelectedValue="{Binding Action.StandardKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         SelectedValuePath="Key"
                                         SelectionChanged="OnTouchpadActionSelectionChanged" />
                                 </Grid>
