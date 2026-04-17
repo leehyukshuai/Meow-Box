@@ -27,12 +27,20 @@ public sealed class StandardKeyPickerViewModel : ObservableObject
         get => _selectedGroup;
         set
         {
-            if (!SetProperty(ref _selectedGroup, value) || _isSynchronizing)
+            if (_isSynchronizing)
+            {
+                SetProperty(ref _selectedGroup, value);
+                return;
+            }
+
+            // WinUI can momentarily clear SelectedItem during control teardown/rebinding.
+            // Treat only a concrete option as an intentional user change.
+            if (value is null || !SetProperty(ref _selectedGroup, value))
             {
                 return;
             }
 
-            _action.ApplyStandardKeyGroup(value?.Key);
+            _action.ApplyStandardKeyGroup(value.Key);
             SyncFromAction();
         }
     }
@@ -42,12 +50,20 @@ public sealed class StandardKeyPickerViewModel : ObservableObject
         get => _selectedKey;
         set
         {
-            if (!SetProperty(ref _selectedKey, value) || _isSynchronizing)
+            if (_isSynchronizing)
+            {
+                SetProperty(ref _selectedKey, value);
+                return;
+            }
+
+            // Ignore transient null write-backs from ComboBox lifecycle; they are not a user
+            // request to erase the stored key.
+            if (value is null || !SetProperty(ref _selectedKey, value))
             {
                 return;
             }
 
-            _action.StandardKey = value?.Key ?? string.Empty;
+            _action.StandardKey = value.Key;
             SyncFromAction();
         }
     }

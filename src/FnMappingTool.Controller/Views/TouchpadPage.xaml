@@ -200,28 +200,17 @@
                     <Border
                         Grid.Column="1"
                         Style="{StaticResource InsetPanelCardStyle}">
-                        <StackPanel
-                            x:Name="TouchpadGuidancePanel"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            Spacing="8">
-                            <TextBlock
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="• 你可以为触控板的重按设置一个自定义动作。"
-                                TextWrapping="WrapWholeWords" />
-                            <TextBlock
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="• LT 和 RT 区域也可以分别设置重按和长按两种动作。"
-                                TextWrapping="WrapWholeWords" />
-                            <TextBlock
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="• LT 和 RT 区域的重按会覆盖全局的重按触发动作。"
-                                TextWrapping="WrapWholeWords" />
-                            <TextBlock
-                                Style="{StaticResource CardBodyTextBlockStyle}"
-                                Text="• 长按需要的触发时间可以在设置页面当中设置。"
-                                TextWrapping="WrapWholeWords" />
-                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Touchpad.GuidanceLines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        Style="{StaticResource CardBodyTextBlockStyle}"
+                                        Text="{Binding}"
+                                        TextWrapping="WrapWholeWords" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Border>
                 </Grid>
             </Border>

@@ -25,8 +25,6 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
     private int _deepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private int _longPressDurationMs = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
-    private int _surfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
-    private int _surfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
     private TouchpadRegionBoundsConfiguration _leftTopBounds = TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds;
     private TouchpadRegionBoundsConfiguration _rightTopBounds = TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds;
     private DateTimeOffset _lastFrameAt;
@@ -66,12 +64,6 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 configuration.LongPressDurationMs,
                 200,
                 3000);
-            _surfaceWidth = configuration.SurfaceWidth > 0
-                ? configuration.SurfaceWidth
-                : RuntimeDefaults.DefaultTouchpadSurfaceWidth;
-            _surfaceHeight = configuration.SurfaceHeight > 0
-                ? configuration.SurfaceHeight
-                : RuntimeDefaults.DefaultTouchpadSurfaceHeight;
             _leftTopBounds = CloneBounds(configuration.LeftTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds);
             _rightTopBounds = CloneBounds(configuration.RightTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds);
             _latestState.DeepPressThreshold = _deepPressThreshold;
@@ -661,17 +653,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
     private bool IsWithinCornerRegion(int x, int y, string regionId, TouchpadRegionBoundsConfiguration bounds)
     {
-        var radiusX = Math.Max(1d, Math.Abs(bounds.Right - bounds.Left));
-        var radiusY = Math.Max(1d, Math.Abs(bounds.Bottom - bounds.Top));
-
-        return regionId switch
-        {
-            TouchpadCornerRegionId.LeftTop =>
-                Math.Pow((x - bounds.Left) / radiusX, 2) + Math.Pow((y - bounds.Top) / radiusY, 2) <= 1d,
-            TouchpadCornerRegionId.RightTop =>
-                Math.Pow((bounds.Right - x) / radiusX, 2) + Math.Pow((y - bounds.Top) / radiusY, 2) <= 1d,
-            _ => false
-        };
+        return TouchpadCornerRegionMath.ContainsPoint(regionId, bounds, x, y);
     }
 
     private sealed class TouchpadTrackingContext

@@ -7,17 +7,13 @@ public sealed class TouchpadCornerRegionViewModel : ObservableObject
 {
     public TouchpadCornerRegionViewModel(
         string regionId,
-        TouchpadCornerRegionConfiguration? model,
-        int surfaceWidth,
-        int surfaceHeight)
+        TouchpadCornerRegionConfiguration? model)
     {
         model ??= regionId == TouchpadCornerRegionId.RightTop
             ? TouchpadCornerRegionConfiguration.CreateRightTopDefault()
             : TouchpadCornerRegionConfiguration.CreateLeftTopDefault();
 
         RegionId = regionId;
-        SurfaceWidth = surfaceWidth;
-        SurfaceHeight = surfaceHeight;
         Bounds = model.Bounds ?? new TouchpadRegionBoundsConfiguration();
 
         var isRightTop = string.Equals(regionId, TouchpadCornerRegionId.RightTop, StringComparison.OrdinalIgnoreCase);
@@ -30,9 +26,6 @@ public sealed class TouchpadCornerRegionViewModel : ObservableObject
         Description = LocalizedText.Pick(
             "A touch that starts inside this corner can run its own deep-press or long-press action.",
             "从这个角落开始的触控可以运行独立的重按或长按动作。");
-        PriorityHint = LocalizedText.Pick(
-            "Corner deep press should override the global deep press action.",
-            "角落重按应优先覆盖全局重按动作。");
 
         DeepPress = new TouchpadTriggerActionEditorViewModel(
             string.Format(
@@ -80,43 +73,19 @@ public sealed class TouchpadCornerRegionViewModel : ObservableObject
                     "所需的按住时长可以随时在设置页面中调整。")
             ],
             model.LongPressAction);
-
-        TriggerEditors = [DeepPress, LongPress];
     }
 
     public string RegionId { get; }
 
-    public int SurfaceWidth { get; }
-
-    public int SurfaceHeight { get; }
-
     public string Title { get; }
 
     public string Description { get; }
-
-    public string PriorityHint { get; }
 
     public TouchpadRegionBoundsConfiguration Bounds { get; }
 
     public TouchpadTriggerActionEditorViewModel DeepPress { get; }
 
     public TouchpadTriggerActionEditorViewModel LongPress { get; }
-
-    public IReadOnlyList<TouchpadTriggerActionEditorViewModel> TriggerEditors { get; }
-
-    public string BoundsSummary => string.Format(
-        CultureInfo.CurrentCulture,
-        LocalizedText.Pick("X {0}-{1} · Y {2}-{3}", "X {0}-{1} · Y {2}-{3}"),
-        Bounds.Left,
-        Bounds.Right,
-        Bounds.Top,
-        Bounds.Bottom);
-
-    public string CoverageSummary => string.Format(
-        CultureInfo.CurrentCulture,
-        LocalizedText.Pick("Surface {0} × {1}", "表面 {0} × {1}"),
-        SurfaceWidth,
-        SurfaceHeight);
 
     public TouchpadCornerRegionConfiguration ToConfiguration()
     {

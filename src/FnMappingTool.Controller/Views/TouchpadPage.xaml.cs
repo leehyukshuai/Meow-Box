@@ -12,6 +12,7 @@ using FnMappingTool.Controller.ViewModels;
 using FnMappingTool.Core.Models;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using ShapePath = Microsoft.UI.Xaml.Shapes.Path;
 
 namespace FnMappingTool.Controller.Views;
 
@@ -302,41 +303,40 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        var availablePadWidth = layoutWidth;
-        var availablePadHeight = layoutHeight;
-        var targetAspect = Controller.Touchpad.SurfaceWidth / (double)Math.Max(1, Controller.Touchpad.SurfaceHeight);
+        var preview = TouchpadPreviewCoordinateSpace.Create(
+            layoutWidth,
+            layoutHeight,
+            Controller.Touchpad.SurfaceWidth,
+            Controller.Touchpad.SurfaceHeight);
+        if (preview is null)
+        {
+            return;
+        }
 
-        var padWidth = Math.Min(availablePadWidth, availablePadHeight * targetAspect);
-        var padHeight = padWidth / targetAspect;
-        var padCornerRadius = GetPadCornerRadius(padWidth, padHeight);
+        TouchpadCanvas.Width = preview.PadWidth;
+        TouchpadCanvas.Height = preview.PadHeight;
 
-        TouchpadCanvas.Width = padWidth;
-        TouchpadCanvas.Height = padHeight;
-
-        var padLeft = Math.Max(0d, (layoutWidth - padWidth) / 2d);
-        var padTop = Math.Max(0d, (layoutHeight - padHeight) / 2d);
         var displayPressure = GetDisplayedPressure(state);
-        var touchColor = GetPressureColor(displayPressure);
 
         var padBorder = new Border
         {
-            Width = padWidth,
-            Height = padHeight,
-            CornerRadius = new CornerRadius(padCornerRadius),
+            Width = preview.PadWidth,
+            Height = preview.PadHeight,
+            CornerRadius = new CornerRadius(preview.PadCornerRadius),
             Background = new SolidColorBrush(ColorHelper.FromArgb(255, 34, 39, 48)),
             BorderThickness = new Thickness(1),
             BorderBrush = new SolidColorBrush(ColorHelper.FromArgb(255, 88, 98, 116))
         };
         TouchpadCanvas.Children.Add(padBorder);
-        Canvas.SetLeft(padBorder, padLeft);
-        Canvas.SetTop(padBorder, padTop);
+        Canvas.SetLeft(padBorder, preview.PadLeft);
+        Canvas.SetTop(padBorder, preview.PadTop);
 
-        AddCornerOverlays(padLeft, padTop, padWidth, padHeight, padCornerRadius);
-        AddGridLines(padLeft, padTop, padWidth, padHeight);
-        AddContacts(displayPressure, padLeft, padTop, padWidth, padHeight);
+        AddCornerOverlays(preview);
+        AddGridLines(preview);
+        AddContacts(displayPressure, preview);
     }
 
-    private void AddCornerOverlays(double padLeft, double padTop, double padWidth, double padHeight, double padCornerRadius)
+    private void AddCornerOverlays(TouchpadPreviewCoordinateSpace preview)
     {
         var regions = new[]
         {
@@ -344,23 +344,12 @@ public sealed partial class TouchpadPage : Page
             (ViewModel: Controller.Touchpad.RightTopCorner, Label: "RT")
         };
 
-        var surfaceWidth = Math.Max(1d, Controller.Touchpad.SurfaceWidth);
-        var surfaceHeight = Math.Max(1d, Controller.Touchpad.SurfaceHeight);
-
         foreach (var region in regions)
         {
-            var isRightTop = string.Equals(region.ViewModel.RegionId, TouchpadCornerRegionId.RightTop, StringComparison.OrdinalIgnoreCase);
-            var bounds = region.ViewModel.Bounds;
-            var left = padLeft + ((bounds.Left / surfaceWidth) * padWidth);
-            var top = padTop + ((bounds.Top / surfaceHeight) * padHeight);
-            var right = padLeft + ((bounds.Right / surfaceWidth) * padWidth);
-            var bottom = padTop + ((bounds.Bottom / surfaceHeight) * padHeight);
-            var radiusX = Math.Max(1d, right - left);
-            var radiusY = Math.Max(1d, bottom - top);
-            var geometry = CreateCornerRegionGeometry(left, top, right, bottom, isRightTop);
-            var overlay = new Microsoft.UI.Xaml.Shapes.Path
+            var overlayInfo = preview.DescribeCorner(region.ViewModel.RegionId, region.ViewModel.Bounds);
+            var overlay = new ShapePath
             {
-                Data = geometry,
+                Data = overlayInfo.Geometry,
                 Fill = new SolidColorBrush(ColorHelper.FromArgb(34, 255, 255, 255)),
                 Stroke = new SolidColorBrush(ColorHelper.FromArgb(76, 255, 255, 255)),
                 StrokeThickness = 1.2
@@ -377,93 +366,21 @@ public sealed partial class TouchpadPage : Page
             TouchpadCanvas.Children.Add(label);
             label.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            var labelX = isRightTop
-                ? right - Math.Max(padCornerRadius + 12, radiusX * 0.48) - (label.DesiredSize.Width / 2)
-                : left + Math.Max(padCornerRadius + 12, radiusX * 0.48) - (label.DesiredSize.Width / 2);
-            var labelY = top + Math.Max(padCornerRadius + 10, radiusY * 0.48) - (label.DesiredSize.Height / 2);
-            Canvas.SetLeft(label, labelX);
-            Canvas.SetTop(label, labelY);
+            Canvas.SetLeft(label, overlayInfo.LabelCenter.X - (label.DesiredSize.Width / 2));
+            Canvas.SetTop(label, overlayInfo.LabelCenter.Y - (label.DesiredSize.Height / 2));
         }
     }
 
-    private static Geometry CreateCornerRegionGeometry(double left, double top, double right, double bottom, bool isRightTop)
-    {
-        var radiusX = Math.Max(1d, right - left);
-        var radiusY = Math.Max(1d, bottom - top);
-        if (isRightTop)
-        {
-            var startPoint = new Windows.Foundation.Point(left, top);
-            var rightEdgeEnd = new Windows.Foundation.Point(right, bottom);
-            return new PathGeometry
-            {
-                Figures =
-                [
-                    new PathFigure
-                    {
-                        StartPoint = startPoint,
-                        IsClosed = true,
-                        Segments =
-                        [
-                            new LineSegment
-                            {
-                                Point = new Windows.Foundation.Point(right, top)
-                            },
-                            new LineSegment
-                            {
-                                Point = rightEdgeEnd
-                            },
-                            new ArcSegment
-                            {
-                                Point = startPoint,
-                                Size = new Windows.Foundation.Size(radiusX, radiusY),
-                                SweepDirection = SweepDirection.Clockwise
-                            }
-                        ]
-                    }
-                ]
-            };
-        }
-
-        return new PathGeometry
-        {
-            Figures =
-            [
-                new PathFigure
-                {
-                    StartPoint = new Windows.Foundation.Point(right, top),
-                    IsClosed = true,
-                    Segments =
-                    [
-                        new LineSegment
-                        {
-                            Point = new Windows.Foundation.Point(left, top)
-                        },
-                        new LineSegment
-                        {
-                            Point = new Windows.Foundation.Point(left, bottom)
-                        },
-                        new ArcSegment
-                        {
-                            Point = new Windows.Foundation.Point(right, top),
-                            Size = new Windows.Foundation.Size(radiusX, radiusY),
-                            SweepDirection = SweepDirection.Counterclockwise
-                        }
-                    ]
-                }
-            ]
-        };
-    }
-
-    private void AddGridLines(double padLeft, double padTop, double padWidth, double padHeight)
+    private void AddGridLines(TouchpadPreviewCoordinateSpace preview)
     {
         for (var index = 1; index < 4; index++)
         {
             var vertical = new Line
             {
-                X1 = padLeft + (padWidth * index / 4d),
-                Y1 = padTop + 14,
-                X2 = padLeft + (padWidth * index / 4d),
-                Y2 = padTop + padHeight - 14,
+                X1 = preview.PadLeft + (preview.PadWidth * index / 4d),
+                Y1 = preview.PadTop + 14,
+                X2 = preview.PadLeft + (preview.PadWidth * index / 4d),
+                Y2 = preview.PadTop + preview.PadHeight - 14,
                 Stroke = new SolidColorBrush(ColorHelper.FromArgb(255, 54, 61, 74)),
                 StrokeThickness = 1
             };
@@ -471,10 +388,10 @@ public sealed partial class TouchpadPage : Page
 
             var horizontal = new Line
             {
-                X1 = padLeft + 14,
-                Y1 = padTop + (padHeight * index / 4d),
-                X2 = padLeft + padWidth - 14,
-                Y2 = padTop + (padHeight * index / 4d),
+                X1 = preview.PadLeft + 14,
+                Y1 = preview.PadTop + (preview.PadHeight * index / 4d),
+                X2 = preview.PadLeft + preview.PadWidth - 14,
+                Y2 = preview.PadTop + (preview.PadHeight * index / 4d),
                 Stroke = new SolidColorBrush(ColorHelper.FromArgb(255, 54, 61, 74)),
                 StrokeThickness = 1
             };
@@ -482,16 +399,13 @@ public sealed partial class TouchpadPage : Page
         }
     }
 
-    private void AddContacts(double displayPressure, double padLeft, double padTop, double padWidth, double padHeight)
+    private void AddContacts(double displayPressure, TouchpadPreviewCoordinateSpace preview)
     {
         var showHalo = displayPressure >= LightPressThreshold;
         var color = GetPressureColor(displayPressure);
-        var surfaceWidth = Math.Max(1d, Controller.Touchpad.SurfaceWidth);
-        var surfaceHeight = Math.Max(1d, Controller.Touchpad.SurfaceHeight);
         foreach (var contact in VisibleContacts)
         {
-            var x = padLeft + ((contact.X / surfaceWidth) * (padWidth - 24)) + 12;
-            var y = padTop + ((contact.Y / surfaceHeight) * (padHeight - 24)) + 12;
+            var point = preview.MapContact(contact.X, contact.Y);
             var ratio = Math.Clamp(contact.Pressure / PressureScaleMax, 0d, 1d);
             var radius = 9 + (ratio * 12);
 
@@ -504,8 +418,8 @@ public sealed partial class TouchpadPage : Page
                     Fill = new SolidColorBrush(ColorHelper.FromArgb(52, color.R, color.G, color.B))
                 };
                 TouchpadCanvas.Children.Add(halo);
-                Canvas.SetLeft(halo, x - (halo.Width / 2));
-                Canvas.SetTop(halo, y - (halo.Height / 2));
+                Canvas.SetLeft(halo, point.X - (halo.Width / 2));
+                Canvas.SetTop(halo, point.Y - (halo.Height / 2));
             }
 
             var circle = new Ellipse
@@ -517,8 +431,8 @@ public sealed partial class TouchpadPage : Page
                 StrokeThickness = 1.5
             };
             TouchpadCanvas.Children.Add(circle);
-            Canvas.SetLeft(circle, x - radius);
-            Canvas.SetTop(circle, y - radius);
+            Canvas.SetLeft(circle, point.X - radius);
+            Canvas.SetTop(circle, point.Y - radius);
 
             var label = new TextBlock
             {
@@ -529,8 +443,8 @@ public sealed partial class TouchpadPage : Page
             };
             TouchpadCanvas.Children.Add(label);
             label.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
-            Canvas.SetLeft(label, x - (label.DesiredSize.Width / 2));
-            Canvas.SetTop(label, y - (label.DesiredSize.Height / 2));
+            Canvas.SetLeft(label, point.X - (label.DesiredSize.Width / 2));
+            Canvas.SetTop(label, point.Y - (label.DesiredSize.Height / 2));
         }
     }
 
@@ -635,12 +549,6 @@ public sealed partial class TouchpadPage : Page
         {
             await ShowMessageAsync(Localizer.GetString("Mappings.Messages.SaveFailed.Title"), exception.Message);
         }
-    }
-
-    private static double GetPadCornerRadius(double padWidth, double padHeight)
-    {
-        var radius = Math.Min(padWidth, padHeight) * 0.03;
-        return Math.Clamp(radius, 10d, 16d);
     }
 
     private async Task<string?> PickFileAsync(IEnumerable<string> types)
