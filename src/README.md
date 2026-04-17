@@ -18,4 +18,4 @@ Architecture notes:
 
 Portable output:
 
-- `..\portable\MeowBox\`
+- `..\artifacts\MeowBox\`
