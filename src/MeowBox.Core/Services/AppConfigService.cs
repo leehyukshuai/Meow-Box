@@ -301,7 +301,6 @@ public sealed class AppConfigService
         var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd, baseDirectory);
         if (forceOsdOnly)
         {
-            normalizedOsd.Enabled = true;
             if (string.IsNullOrWhiteSpace(normalizedOsd.Title))
             {
                 normalizedOsd.Title = template.Osd?.Title;
