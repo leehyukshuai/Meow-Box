@@ -144,16 +144,47 @@
                                                 <TextBox x:Uid="ArgumentsTextBox" Header="Arguments" LostFocus="OnMappingEditorLostFocus" PlaceholderText="Optional launch arguments" Text="{Binding SelectedMapping.Action.Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding SelectedMapping.Action.ArgumentsVisibility}" />
                                             </StackPanel>
 
-                                            <StackPanel Visibility="{Binding SelectedMapping.Action.StandardKeyEditorVisibility}" Spacing="12">
-                                                <TextBlock x:Uid="StandardKeyTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Standard key" />
-                                                <TextBlock x:Uid="StandardKeyDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Choose the standard keyboard key this OEM key should emit." TextWrapping="WrapWholeWords" />
-                                                <Grid ColumnSpacing="12">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="220" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{Binding SelectedMapping.Action.StandardKeyPicker.Groups, Mode=OneWay}" SelectedItem="{Binding SelectedMapping.Action.StandardKeyPicker.SelectedGroup, Mode=TwoWay}" />
-                                                    <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{Binding SelectedMapping.Action.StandardKeyPicker.FilteredKeys, Mode=OneWay}" SelectedItem="{Binding SelectedMapping.Action.StandardKeyPicker.SelectedKey, Mode=TwoWay}" />
+                                            <StackPanel Visibility="{Binding SelectedMapping.Action.KeyChordEditorVisibility}" Spacing="12">
+                                                <Grid RowSpacing="12">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+
+                                                    <StackPanel Spacing="8">
+                                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding SelectedMapping.Action.KeyChordEditor.ModifiersHeader}" />
+                                                        <Grid ColumnSpacing="12" RowSpacing="4">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                            </Grid.RowDefinitions>
+
+                                                            <CheckBox Content="{Binding SelectedMapping.Action.KeyChordEditor.ControlModifier.Label}" IsChecked="{Binding SelectedMapping.Action.KeyChordEditor.ControlModifier.IsSelected, Mode=TwoWay}" />
+                                                            <CheckBox Grid.Column="1" Content="{Binding SelectedMapping.Action.KeyChordEditor.ShiftModifier.Label}" IsChecked="{Binding SelectedMapping.Action.KeyChordEditor.ShiftModifier.IsSelected, Mode=TwoWay}" />
+                                                            <CheckBox Grid.Row="1" Content="{Binding SelectedMapping.Action.KeyChordEditor.AltModifier.Label}" IsChecked="{Binding SelectedMapping.Action.KeyChordEditor.AltModifier.IsSelected, Mode=TwoWay}" />
+                                                            <CheckBox Grid.Row="1" Grid.Column="1" Content="{Binding SelectedMapping.Action.KeyChordEditor.WindowsModifier.Label}" IsChecked="{Binding SelectedMapping.Action.KeyChordEditor.WindowsModifier.IsSelected, Mode=TwoWay}" />
+                                                        </Grid>
+                                                    </StackPanel>
+
+                                                    <Grid Grid.Row="1" ColumnSpacing="12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Primary key group" ItemsSource="{Binding SelectedMapping.Action.KeyChordEditor.Groups, Mode=OneWay}" SelectedItem="{Binding SelectedMapping.Action.KeyChordEditor.SelectedGroup, Mode=TwoWay}" />
+                                                        <ComboBox Grid.Column="1" x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" DisplayMemberPath="Label" Header="Primary key" ItemsSource="{Binding SelectedMapping.Action.KeyChordEditor.FilteredPrimaryKeys, Mode=OneWay}" SelectedItem="{Binding SelectedMapping.Action.KeyChordEditor.SelectedPrimaryKey, Mode=TwoWay}" />
+                                                    </Grid>
+
+                                                    <StackPanel Grid.Row="2" Spacing="4">
+                                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding SelectedMapping.Action.KeyChordEditor.PreviewHeader}" />
+                                                        <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" Text="{Binding SelectedMapping.Action.KeyChordDisplayText, Mode=OneWay}" TextWrapping="WrapWholeWords" />
+                                                    </StackPanel>
                                                 </Grid>
                                             </StackPanel>
                                         </StackPanel>

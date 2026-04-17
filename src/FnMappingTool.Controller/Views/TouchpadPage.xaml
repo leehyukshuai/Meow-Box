@@ -1,5 +1,6 @@
 <Page
     x:Class="FnMappingTool.Controller.Views.TouchpadPage"
+    x:Name="TouchpadPageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -245,17 +246,31 @@
                     <Border
                         Grid.Column="1"
                         Style="{StaticResource InsetPanelCardStyle}">
-                        <ItemsControl ItemsSource="{Binding Touchpad.GuidanceLines}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        Margin="0,0,0,8"
-                                        Style="{StaticResource CardBodyTextBlockStyle}"
-                                        Text="{Binding}"
-                                        TextWrapping="WrapWholeWords" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <Grid RowSpacing="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <ItemsControl ItemsSource="{Binding Touchpad.GuidanceLines}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Margin="0,0,0,8"
+                                            Style="{StaticResource CardBodyTextBlockStyle}"
+                                            Text="{Binding}"
+                                            TextWrapping="WrapWholeWords" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock
+                                x:Name="TouchpadPressureTextBlock"
+                                Grid.Row="1"
+                                Style="{StaticResource CardBodyTextBlockStyle}"
+                                Text="压力：0"
+                                TextWrapping="WrapWholeWords" />
+                        </Grid>
                     </Border>
                 </Grid>
             </Border>

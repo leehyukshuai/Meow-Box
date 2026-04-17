@@ -79,8 +79,9 @@ public sealed partial class MappingsPage : Page
             return;
         }
 
-        if (e.PropertyName is nameof(ActionDefinitionViewModel.StandardKey) or
-            nameof(ActionDefinitionViewModel.StandardKeyGroup))
+        if (e.PropertyName is nameof(ActionDefinitionViewModel.PrimaryKey) or
+            nameof(ActionDefinitionViewModel.PrimaryKeyGroup) or
+            nameof(ActionDefinitionViewModel.ModifierSelectionSignature))
         {
             TrySaveMappingAsync();
         }

@@ -26,7 +26,8 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
         _action.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(ActionDefinitionViewModel.Type) or
-                nameof(ActionDefinitionViewModel.StandardKey) or
+                nameof(ActionDefinitionViewModel.PrimaryKey) or
+                nameof(ActionDefinitionViewModel.ModifierSelectionSignature) or
                 nameof(ActionDefinitionViewModel.Target) or
                 nameof(ActionDefinitionViewModel.Arguments))
             {

@@ -1,4 +1,4 @@
-﻿namespace FnMappingTool.Core.Models;
+namespace FnMappingTool.Core.Models;
 
 public static class StandardKeyGroup
 {
@@ -13,11 +13,19 @@ public static class StandardKeyGroup
     public const string Browser = "Browser";
 }
 
+public static class KeyChordModifier
+{
+    public const string Control = "Control";
+    public const string Shift = "Shift";
+    public const string Alt = "Alt";
+    public const string Windows = "Windows";
+}
+
 public sealed record StandardKeyGroupOption(string Key, string Label);
 
 public sealed class StandardKeyOption
 {
-    public StandardKeyOption(string key, string label, int virtualKey, string group)
+    public StandardKeyOption(string key, string label, ushort virtualKey, string group)
     {
         Key = key;
         Label = label;
@@ -29,9 +37,28 @@ public sealed class StandardKeyOption
 
     public string Label { get; }
 
-    public int VirtualKey { get; }
+    public ushort VirtualKey { get; }
 
     public string Group { get; }
+}
+
+public sealed class KeyChordModifierOption
+{
+    public KeyChordModifierOption(string key, string label, ushort virtualKey, int sortOrder)
+    {
+        Key = key;
+        Label = label;
+        VirtualKey = virtualKey;
+        SortOrder = sortOrder;
+    }
+
+    public string Key { get; }
+
+    public string Label { get; }
+
+    public ushort VirtualKey { get; }
+
+    public int SortOrder { get; }
 }
 
 public static class StandardKeyCatalog
@@ -47,6 +74,14 @@ public static class StandardKeyCatalog
         new(StandardKeyGroup.Symbols, LocalizedText.Pick("Symbols", "符号")),
         new(StandardKeyGroup.Numpad, LocalizedText.Pick("Numpad", "数字小键盘")),
         new(StandardKeyGroup.Browser, LocalizedText.Pick("Browser", "浏览器"))
+    ];
+
+    public static IReadOnlyList<KeyChordModifierOption> ModifierOptions { get; } =
+    [
+        new(KeyChordModifier.Control, "Ctrl", 0x11, 0),
+        new(KeyChordModifier.Shift, "Shift", 0x10, 1),
+        new(KeyChordModifier.Alt, "Alt", 0x12, 2),
+        new(KeyChordModifier.Windows, LocalizedText.Pick("Win", "Win"), 0x5B, 3)
     ];
 
     public static IReadOnlyList<StandardKeyOption> All { get; } =
@@ -189,6 +224,16 @@ public static class StandardKeyCatalog
         return All.FirstOrDefault(option => string.Equals(option.Key, key.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
+    public static KeyChordModifierOption? GetModifierOption(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
+
+        return ModifierOptions.FirstOrDefault(option => string.Equals(option.Key, key.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
     public static string NormalizeKey(string? key)
     {
         return GetOption(key)?.Key ?? string.Empty;
@@ -196,7 +241,7 @@ public static class StandardKeyCatalog
 
     public static string GetLabel(string? key)
     {
-        return GetOption(key)?.Label ?? LocalizedText.Pick("Choose standard key", "选择标准按键");
+        return GetOption(key)?.Label ?? LocalizedText.Pick("Choose primary key", "选择主键");
     }
 
     public static string GetGroupLabel(string? key)
@@ -226,15 +271,99 @@ public static class StandardKeyCatalog
         return option is not null && MatchesGroup(option, group);
     }
 
-    public static bool TryGetVirtualKey(string? key, out byte virtualKey)
+    public static string NormalizeModifierKey(string? key)
     {
-        if (GetOption(key) is { VirtualKey: >= byte.MinValue and <= byte.MaxValue } option)
+        return GetModifierOption(key)?.Key ?? string.Empty;
+    }
+
+    public static IReadOnlyList<string> NormalizeModifierKeys(IEnumerable<string>? keys)
+    {
+        if (keys is null)
         {
-            virtualKey = (byte)option.VirtualKey;
+            return [];
+        }
+
+        return keys
+            .Select(NormalizeModifierKey)
+            .Where(static key => !string.IsNullOrWhiteSpace(key))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(GetModifierSortOrder)
+            .ToList();
+    }
+
+    public static string GetModifierLabel(string? key)
+    {
+        return GetModifierOption(key)?.Label ?? string.Empty;
+    }
+
+    public static bool HasPrimaryKey(KeyChordConfiguration? chord)
+    {
+        return !string.IsNullOrWhiteSpace(NormalizeKey(chord?.PrimaryKey));
+    }
+
+    public static string BuildKeyChordText(string? primaryKey, IEnumerable<string>? modifiers)
+    {
+        var parts = NormalizeModifierKeys(modifiers)
+            .Select(GetModifierLabel)
+            .Where(static label => !string.IsNullOrWhiteSpace(label))
+            .ToList();
+
+        var normalizedPrimaryKey = NormalizeKey(primaryKey);
+        if (!string.IsNullOrWhiteSpace(normalizedPrimaryKey))
+        {
+            parts.Add(GetLabel(normalizedPrimaryKey));
+        }
+
+        return string.Join(" + ", parts);
+    }
+
+    public static KeyChordConfiguration? NormalizeChord(KeyChordConfiguration? chord)
+    {
+        if (chord is null)
+        {
+            return null;
+        }
+
+        var normalizedPrimaryKey = NormalizeKey(chord.PrimaryKey);
+        var normalizedModifiers = NormalizeModifierKeys(chord.Modifiers);
+        if (string.IsNullOrWhiteSpace(normalizedPrimaryKey) && normalizedModifiers.Count == 0)
+        {
+            return null;
+        }
+
+        return new KeyChordConfiguration
+        {
+            PrimaryKey = string.IsNullOrWhiteSpace(normalizedPrimaryKey) ? null : normalizedPrimaryKey,
+            Modifiers = [.. normalizedModifiers]
+        };
+    }
+
+    public static bool TryGetVirtualKey(string? key, out ushort virtualKey)
+    {
+        if (GetOption(key) is { } option)
+        {
+            virtualKey = option.VirtualKey;
             return true;
         }
 
         virtualKey = 0;
         return false;
+    }
+
+    public static bool TryGetModifierVirtualKey(string? key, out ushort virtualKey)
+    {
+        if (GetModifierOption(key) is { } option)
+        {
+            virtualKey = option.VirtualKey;
+            return true;
+        }
+
+        virtualKey = 0;
+        return false;
+    }
+
+    private static int GetModifierSortOrder(string key)
+    {
+        return GetModifierOption(key)?.SortOrder ?? int.MaxValue;
     }
 }

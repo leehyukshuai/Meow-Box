@@ -9,7 +9,7 @@ public sealed class NativeActionService
 {
     public void OpenSettings()
     {
-        SendModifiedVirtualKey(VkLeftWindows, VkLetterI);
+        SendKeyChord(VkLetterI, [VkLeftWindows]);
     }
 
     public void OpenProjection()
@@ -22,14 +22,25 @@ public sealed class NativeActionService
         Launch("calc.exe");
     }
 
-    public void SendConfiguredStandardKey(string? standardKey)
+    public void SendConfiguredKeyChord(KeyChordConfiguration? keyChord)
     {
-        if (!StandardKeyCatalog.TryGetVirtualKey(standardKey, out var virtualKey))
+        var normalizedChord = StandardKeyCatalog.NormalizeChord(keyChord);
+        if (normalizedChord is null ||
+            !StandardKeyCatalog.TryGetVirtualKey(normalizedChord.PrimaryKey, out var primaryKey))
         {
             return;
         }
 
-        SendVirtualKey(virtualKey);
+        var modifiers = new List<ushort>();
+        foreach (var modifierKey in normalizedChord.Modifiers)
+        {
+            if (StandardKeyCatalog.TryGetModifierVirtualKey(modifierKey, out var modifierVirtualKey))
+            {
+                modifiers.Add(modifierVirtualKey);
+            }
+        }
+
+        SendKeyChord(primaryKey, modifiers);
     }
 
     public void VolumeUp()
@@ -189,32 +200,45 @@ public sealed class NativeActionService
         }
     }
 
-    private static void SendVirtualKey(byte key)
+    private static void SendVirtualKey(ushort key)
     {
-        keybd_event(key, 0, 0, 0);
-        keybd_event(key, 0, 2, 0);
+        SendKeyChord(key, []);
     }
 
-    private static void SendModifiedVirtualKey(byte modifier, byte key)
+    private static void SendKeyChord(ushort primaryKey, IReadOnlyList<ushort> modifiers)
     {
-        keybd_event(modifier, 0, 0, 0);
-        keybd_event(key, 0, 0, 0);
-        keybd_event(key, 0, 2, 0);
-        keybd_event(modifier, 0, 2, 0);
+        foreach (var modifier in modifiers)
+        {
+            keybd_event((byte)modifier, 0, 0, 0);
+        }
+
+        keybd_event((byte)primaryKey, 0, 0, 0);
+        keybd_event((byte)primaryKey, 0, KeyEventF.KeyUp, 0);
+
+        for (var index = modifiers.Count - 1; index >= 0; index--)
+        {
+            keybd_event((byte)modifiers[index], 0, KeyEventF.KeyUp, 0);
+        }
     }
 
-    private const byte VkLeftWindows = 0x5B;
-    private const byte VkLetterI = 0x49;
-    private const byte VkVolumeMute = 0xAD;
-    private const byte VkVolumeDown = 0xAE;
-    private const byte VkVolumeUp = 0xAF;
-    private const byte VkMediaNext = 0xB0;
-    private const byte VkMediaPrevious = 0xB1;
-    private const byte VkMediaPlayPause = 0xB3;
+    private const ushort VkLeftWindows = 0x5B;
+    private const ushort VkLetterI = 0x49;
+    private const ushort VkVolumeMute = 0xAD;
+    private const ushort VkVolumeDown = 0xAE;
+    private const ushort VkVolumeUp = 0xAF;
+    private const ushort VkMediaNext = 0xB0;
+    private const ushort VkMediaPrevious = 0xB1;
+    private const ushort VkMediaPlayPause = 0xB3;
 
     [DllImport("user32.dll")]
-    private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, nuint dwExtraInfo);
+    private static extern void keybd_event(byte bVk, byte bScan, KeyEventF dwFlags, nuint dwExtraInfo);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool LockWorkStation();
+
+    [Flags]
+    private enum KeyEventF : uint
+    {
+        KeyUp = 0x0002
+    }
 }

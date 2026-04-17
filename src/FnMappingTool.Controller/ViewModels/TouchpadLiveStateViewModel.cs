@@ -16,6 +16,7 @@ public sealed class TouchpadLiveStateViewModel : ObservableObject
     private bool _deepPressed;
     private int _pressure;
     private int _peakPressure;
+    private int _lightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
     private int _deepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private ushort _scanTime;
     private byte _contactCount;
@@ -135,6 +136,12 @@ public sealed class TouchpadLiveStateViewModel : ObservableObject
         private set => SetProperty(ref _peakPressure, value);
     }
 
+    public int LightPressThreshold
+    {
+        get => _lightPressThreshold;
+        private set => SetProperty(ref _lightPressThreshold, value);
+    }
+
     public int DeepPressThreshold
     {
         get => _deepPressThreshold;
@@ -183,6 +190,7 @@ public sealed class TouchpadLiveStateViewModel : ObservableObject
 
         snapshot ??= new TouchpadLiveStateSnapshot
         {
+            LightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold,
             DeepPressThreshold = fallbackThreshold
         };
 
@@ -196,6 +204,7 @@ public sealed class TouchpadLiveStateViewModel : ObservableObject
         DeepPressed = snapshot.DeepPressed;
         Pressure = snapshot.Pressure;
         PeakPressure = snapshot.PeakPressure;
+        LightPressThreshold = snapshot.LightPressThreshold > 0 ? snapshot.LightPressThreshold : RuntimeDefaults.DefaultTouchpadLightPressThreshold;
         DeepPressThreshold = snapshot.DeepPressThreshold > 0 ? snapshot.DeepPressThreshold : fallbackThreshold;
         ScanTime = snapshot.ScanTime;
         ContactCount = snapshot.ContactCount;

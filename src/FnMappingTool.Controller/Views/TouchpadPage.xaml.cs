@@ -18,13 +18,13 @@ namespace FnMappingTool.Controller.Views;
 
 public sealed partial class TouchpadPage : Page
 {
-    private const int LightPressThreshold = 120;
     private const double PressureScaleMax = 2500d;
-    private const double BluePressureThreshold = 120d;
-    private const double OrangePressureThreshold = 500d;
+    private const double DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private const double RedPressureThreshold = 800d;
     private double _displayPressure;
     private DateTimeOffset _lastDisplayPressureAt;
+    private double _pressureDescriptionValue;
+    private DateTimeOffset _lastPressureDescriptionAt;
     private bool _renderPending;
     private bool _touchpadStateRefreshPending;
     private readonly Dictionary<int, SmoothedContactState> _smoothedContacts = [];
@@ -188,15 +188,19 @@ public sealed partial class TouchpadPage : Page
 
     private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(FnMappingToolController.Touchpad))
+        if (e.PropertyName is not (nameof(FnMappingToolController.Touchpad) or nameof(FnMappingToolController.TouchpadLightPressThreshold)))
         {
             return;
         }
 
         DispatcherQueue.TryEnqueue(() =>
         {
-            UnsubscribeTouchpadActionEditors();
-            SubscribeTouchpadActionEditors();
+            if (e.PropertyName == nameof(FnMappingToolController.Touchpad))
+            {
+                UnsubscribeTouchpadActionEditors();
+                SubscribeTouchpadActionEditors();
+            }
+
             ScheduleTouchpadStateRefresh();
             RequestRender();
             XamlStringLocalizer.Apply(this);
@@ -301,6 +305,9 @@ public sealed partial class TouchpadPage : Page
         {
             _displayPressure = 0;
             _lastDisplayPressureAt = default;
+            _pressureDescriptionValue = 0;
+            _lastPressureDescriptionAt = default;
+            UpdatePressureDescriptionText(0);
             return;
         }
 
@@ -318,6 +325,7 @@ public sealed partial class TouchpadPage : Page
         TouchpadCanvas.Height = preview.PadHeight;
 
         var displayPressure = GetDisplayedPressure(state);
+        UpdatePressureDescriptionText(GetPressureDescriptionValue(state));
 
         var padBorder = new Border
         {
@@ -402,7 +410,7 @@ public sealed partial class TouchpadPage : Page
 
     private void AddContacts(double displayPressure, TouchpadPreviewCoordinateSpace preview)
     {
-        var showHalo = displayPressure >= LightPressThreshold;
+        var showHalo = displayPressure >= Controller.Touchpad.LightPressThreshold;
         var color = GetPressureColor(displayPressure);
         foreach (var contact in VisibleContacts)
         {
@@ -452,6 +460,13 @@ public sealed partial class TouchpadPage : Page
     private double GetDisplayedPressure(TouchpadLiveStateViewModel state)
     {
         var target = Math.Clamp(state.Pressure, 0d, PressureScaleMax);
+        if (!state.HasInteraction && !state.ButtonPressed && target <= 0d)
+        {
+            _displayPressure = 0d;
+            _lastDisplayPressureAt = state.Timestamp != default ? state.Timestamp : DateTimeOffset.UtcNow;
+            return 0d;
+        }
+
         var now = state.Timestamp != default ? state.Timestamp : DateTimeOffset.UtcNow;
         if (_lastDisplayPressureAt == default)
         {
@@ -474,28 +489,82 @@ public sealed partial class TouchpadPage : Page
         return _displayPressure;
     }
 
-    private static Windows.UI.Color GetPressureColor(double pressure)
+    private double GetPressureDescriptionValue(TouchpadLiveStateViewModel state)
+    {
+        var target = Math.Clamp(state.Pressure, 0d, PressureScaleMax);
+        if (!state.HasInteraction && !state.ButtonPressed && target <= 0d)
+        {
+            _pressureDescriptionValue = 0d;
+            _lastPressureDescriptionAt = state.Timestamp != default ? state.Timestamp : DateTimeOffset.UtcNow;
+            return 0d;
+        }
+
+        var now = state.Timestamp != default ? state.Timestamp : DateTimeOffset.UtcNow;
+        if (_lastPressureDescriptionAt == default)
+        {
+            _pressureDescriptionValue = target;
+            _lastPressureDescriptionAt = now;
+            return _pressureDescriptionValue;
+        }
+
+        var elapsedMs = Math.Max(16d, (now - _lastPressureDescriptionAt).TotalMilliseconds);
+        _lastPressureDescriptionAt = now;
+
+        var blend = Math.Clamp(elapsedMs / 220d, 0.08d, 0.18d);
+        _pressureDescriptionValue += (target - _pressureDescriptionValue) * blend;
+
+        if (Math.Abs(target - _pressureDescriptionValue) < 1.2d || (!state.HasInteraction && target <= 0d && _pressureDescriptionValue < 3d))
+        {
+            _pressureDescriptionValue = target;
+        }
+
+        return _pressureDescriptionValue;
+    }
+
+    private Windows.UI.Color GetPressureColor(double pressure)
     {
         pressure = Math.Clamp(pressure, 0d, PressureScaleMax);
+        var lightPressThreshold = Math.Clamp(Controller.Touchpad.LightPressThreshold, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1);
         var gray = ColorHelper.FromArgb(255, 132, 140, 156);
         var blue = ColorHelper.FromArgb(255, 79, 170, 255);
         var orange = ColorHelper.FromArgb(255, 255, 156, 84);
         var red = ColorHelper.FromArgb(255, 255, 96, 96);
 
-        return pressure switch
+        if (pressure <= 0d)
         {
-            <= 0d => gray,
-            <= BluePressureThreshold => LerpColor(gray, blue, pressure / BluePressureThreshold),
-            <= OrangePressureThreshold => LerpColor(
+            return gray;
+        }
+
+        if (pressure <= lightPressThreshold)
+        {
+            return LerpColor(gray, blue, pressure / lightPressThreshold);
+        }
+
+        if (pressure <= DeepPressThreshold)
+        {
+            return LerpColor(
                 blue,
                 orange,
-                (pressure - BluePressureThreshold) / (OrangePressureThreshold - BluePressureThreshold)),
-            <= RedPressureThreshold => LerpColor(
+                (pressure - lightPressThreshold) / (DeepPressThreshold - lightPressThreshold));
+        }
+
+        if (pressure <= RedPressureThreshold)
+        {
+            return LerpColor(
                 orange,
                 red,
-                (pressure - OrangePressureThreshold) / (RedPressureThreshold - OrangePressureThreshold)),
-            _ => red
-        };
+                (pressure - DeepPressThreshold) / (RedPressureThreshold - DeepPressThreshold));
+        }
+
+        return red;
+    }
+
+    private void UpdatePressureDescriptionText(double pressure)
+    {
+        TouchpadPressureTextBlock.Text = string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            LocalizedText.Pick("Pressure: {0}", "压力：{0}"),
+            (int)Math.Round(pressure));
     }
 
     private static Windows.UI.Color LerpColor(Windows.UI.Color from, Windows.UI.Color to, double t)

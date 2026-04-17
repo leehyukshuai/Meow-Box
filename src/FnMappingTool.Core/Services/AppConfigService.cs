@@ -315,8 +315,8 @@ public sealed class AppConfigService
     {
         action ??= new ActionDefinitionConfiguration();
         action.Type = NormalizeActionType(action.Type);
-        action.StandardKey = action.Type == HotkeyActionType.SendStandardKey
-            ? NormalizeOptional(StandardKeyCatalog.NormalizeKey(action.StandardKey))
+        action.KeyChord = action.Type == HotkeyActionType.SendStandardKey
+            ? StandardKeyCatalog.NormalizeChord(action.KeyChord)
             : null;
 
         var target = NormalizeOptional(action.Target);
@@ -335,10 +335,14 @@ public sealed class AppConfigService
         return new TouchpadConfiguration
         {
             Enabled = touchpad.Enabled,
+            LightPressThreshold = Math.Clamp(
+                touchpad.LightPressThreshold <= 0 ? RuntimeDefaults.DefaultTouchpadLightPressThreshold : touchpad.LightPressThreshold,
+                20,
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1),
             DeepPressThreshold = Math.Clamp(
-                touchpad.DeepPressThreshold <= 0 ? RuntimeDefaults.DefaultTouchpadDeepPressThreshold : touchpad.DeepPressThreshold,
-                100,
-                4000),
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold),
             LongPressDurationMs = Math.Clamp(
                 touchpad.LongPressDurationMs <= 0 ? RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs : touchpad.LongPressDurationMs,
                 200,

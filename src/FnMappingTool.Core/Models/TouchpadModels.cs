@@ -4,6 +4,8 @@ public sealed class TouchpadConfiguration
 {
     public bool Enabled { get; set; } = true;
 
+    public int LightPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
+
     public int DeepPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
 
     public int LongPressDurationMs { get; set; } = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
@@ -98,6 +100,8 @@ public sealed class TouchpadLiveStateSnapshot
     public int Pressure { get; set; }
 
     public int PeakPressure { get; set; }
+
+    public int LightPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
 
     public int DeepPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
 

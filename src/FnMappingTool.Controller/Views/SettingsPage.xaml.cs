@@ -41,6 +41,7 @@ public sealed partial class SettingsPage : Page
             nameof(FnMappingToolController.PriorityStartupBusy) or
             nameof(FnMappingToolController.LanguagePreference) or
             nameof(FnMappingToolController.TrayIconEnabled) or
+            nameof(FnMappingToolController.TouchpadLightPressThreshold) or
             nameof(FnMappingToolController.TouchpadLongPressDurationMs) or
             nameof(FnMappingToolController.OsdDurationMs) or
             nameof(FnMappingToolController.OsdDisplayMode) or
@@ -68,6 +69,7 @@ public sealed partial class SettingsPage : Page
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
+        TouchpadLightPressThresholdNumberBox.Value = Controller.TouchpadLightPressThreshold;
         TouchpadLongPressDurationNumberBox.Value = Controller.TouchpadLongPressDurationMs;
         OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
         ConfigPathTextBox.Text = Controller.ConfigPath;
@@ -141,7 +143,9 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        Controller.ApplyTouchpadPreferences((int)Math.Round(Math.Clamp(sender.Value, 200, 3000)));
+        Controller.ApplyTouchpadPreferences(
+            (int)Math.Round(Math.Clamp(TouchpadLightPressThresholdNumberBox.Value, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1)),
+            (int)Math.Round(Math.Clamp(TouchpadLongPressDurationNumberBox.Value, 200, 3000)));
     }
 
     private async void OnServiceStateChanged(object sender, RoutedEventArgs e)
@@ -228,6 +232,36 @@ public sealed partial class SettingsPage : Page
     private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
     {
         Controller.OpenConfigFolder();
+    }
+
+    private async void OnRestoreDefaultsClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = Localizer.GetString("Settings.Messages.RestoreDefaults.Title"),
+            Content = Localizer.GetString("Settings.Messages.RestoreDefaults.Body"),
+            PrimaryButtonText = Localizer.GetString("Dialog.RestoreDefaults"),
+            CloseButtonText = Localizer.GetString("Dialog.Cancel"),
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        try
+        {
+            Controller.RestoreDefaults();
+            SyncState();
+        }
+        catch (Exception exception)
+        {
+            await ShowMessageAsync(
+                Localizer.GetString("Settings.Messages.RestoreDefaultsFailed.Title"),
+                exception.Message);
+        }
     }
 
     private static void SelectComboItem(ComboBox comboBox, string value)

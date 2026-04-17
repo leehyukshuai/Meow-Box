@@ -253,16 +253,16 @@
     <value>Optional launch arguments</value>
   </data>
   <data name="StandardKeyTitleText.Text" xml:space="preserve">
-    <value>Standard key</value>
+    <value>Key or shortcut</value>
   </data>
   <data name="StandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>Choose the standard keyboard key this OEM key should emit.</value>
+    <value>Choose the modifiers and primary key this OEM key should emit.</value>
   </data>
   <data name="StandardKeyGroupComboBox.Header" xml:space="preserve">
-    <value>Group</value>
+    <value>Primary key group</value>
   </data>
   <data name="StandardKeyComboBox.Header" xml:space="preserve">
-    <value>Key</value>
+    <value>Primary key</value>
   </data>
   <data name="OsdTitleBlock.Text" xml:space="preserve">
     <value>OSD</value>
@@ -439,7 +439,7 @@
     <value>Language changes apply after restarting the app.</value>
   </data>
   <data name="ConfigsCardTitleText.Text" xml:space="preserve">
-    <value>Configs</value>
+    <value>Details</value>
   </data>
   <data name="OsdDisplayModeComboBox.Header" xml:space="preserve">
     <value>OSD content</value>
@@ -526,7 +526,7 @@
     <value>Clear action</value>
   </data>
   <data name="DeviceCardTitleText.Text" xml:space="preserve">
-    <value>Device</value>
+    <value>Configuration</value>
   </data>
   <data name="SupportedDeviceTitleText.Text" xml:space="preserve">
     <value>Supported device</value>
@@ -622,15 +622,42 @@
     <value>Optional launch arguments</value>
   </data>
   <data name="TouchpadStandardKeyTitleText.Text" xml:space="preserve">
-    <value>Standard key</value>
+    <value>Key or shortcut</value>
   </data>
   <data name="TouchpadStandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>Choose the standard keyboard or media key that should be emitted.</value>
+    <value>Choose the modifiers and primary key that should be emitted.</value>
   </data>
   <data name="TouchpadStandardKeyGroupComboBox.Header" xml:space="preserve">
-    <value>Group</value>
+    <value>Primary key group</value>
   </data>
   <data name="TouchpadStandardKeyComboBox.Header" xml:space="preserve">
-    <value>Key</value>
+    <value>Primary key</value>
+  </data>
+  <data name="OsdSettingsTitleText.Text" xml:space="preserve">
+    <value>OSD</value>
+  </data>
+  <data name="TouchpadSettingsTitleText.Text" xml:space="preserve">
+    <value>Touchpad</value>
+  </data>
+  <data name="TouchpadLightPressThresholdNumberBox.Header" xml:space="preserve">
+    <value>Touchpad light press</value>
+  </data>
+  <data name="TouchpadLightPressThresholdDescriptionText.Text" xml:space="preserve">
+    <value>Only affects this app's light-press threshold and is unrelated to vibration feedback. Adjust it until it just reaches the force that triggers your computer's light-press vibration feedback (usually 105, 125, or 150).</value>
+  </data>
+  <data name="Dialog.RestoreDefaults" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+  <data name="RestoreDefaultsButton.Content" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+  <data name="Settings.Messages.RestoreDefaults.Title" xml:space="preserve">
+    <value>Restore defaults?</value>
+  </data>
+  <data name="Settings.Messages.RestoreDefaults.Body" xml:space="preserve">
+    <value>This will replace the current configuration with the default settings.</value>
+  </data>
+  <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
+    <value>Could not restore defaults</value>
   </data>
 </root>

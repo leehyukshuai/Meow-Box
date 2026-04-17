@@ -5,6 +5,7 @@ namespace FnMappingTool.Controller.ViewModels;
 public sealed class TouchpadConfigurationViewModel : ObservableObject
 {
     private bool _enabled;
+    private int _lightPressThreshold;
     private int _deepPressThreshold;
     private int _longPressDurationMs;
     private TouchpadTriggerActionEditorViewModel? _selectedActionEditor;
@@ -13,6 +14,9 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
     {
         model ??= new TouchpadConfiguration();
         _enabled = model.Enabled;
+        _lightPressThreshold = model.LightPressThreshold <= 0
+            ? RuntimeDefaults.DefaultTouchpadLightPressThreshold
+            : model.LightPressThreshold;
         _deepPressThreshold = model.DeepPressThreshold <= 0
             ? RuntimeDefaults.DefaultTouchpadDeepPressThreshold
             : model.DeepPressThreshold;
@@ -88,6 +92,12 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
         set => SetProperty(ref _deepPressThreshold, Math.Clamp(value, 100, 4000));
     }
 
+    public int LightPressThreshold
+    {
+        get => _lightPressThreshold;
+        set => SetProperty(ref _lightPressThreshold, Math.Clamp(value, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1));
+    }
+
     public int LongPressDurationMs
     {
         get => _longPressDurationMs;
@@ -125,6 +135,7 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
         return new TouchpadConfiguration
         {
             Enabled = HasAnyAssignedAction,
+            LightPressThreshold = LightPressThreshold,
             DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
             LongPressDurationMs = LongPressDurationMs,
             SurfaceWidth = SurfaceWidth,

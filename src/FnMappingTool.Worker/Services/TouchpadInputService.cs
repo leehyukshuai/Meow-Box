@@ -9,8 +9,6 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 {
     private static readonly TimeSpan StaleInteractionTimeout = TimeSpan.FromMilliseconds(140);
     private static readonly TimeSpan SessionResetThreshold = TimeSpan.FromMilliseconds(350);
-    private const int LongPressPressureThreshold = 120;
-    private const int GestureRearmPressureThreshold = 100;
 
     private readonly object _sync = new();
     private readonly Dictionary<nint, RawInputDeviceSnapshot> _deviceCache = [];
@@ -20,9 +18,11 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
     private TouchpadTrackingContext _context = new();
     private TouchpadLiveStateSnapshot _latestState = new()
     {
+        LightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold,
         DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold
     };
 
+    private int _lightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
     private int _deepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private int _longPressDurationMs = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
     private TouchpadRegionBoundsConfiguration _leftTopBounds = TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds;
@@ -56,16 +56,21 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
         lock (_sync)
         {
+            _lightPressThreshold = Math.Clamp(
+                configuration.LightPressThreshold,
+                20,
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1);
             _deepPressThreshold = Math.Clamp(
                 configuration.DeepPressThreshold,
-                100,
-                4000);
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
+                RuntimeDefaults.DefaultTouchpadDeepPressThreshold);
             _longPressDurationMs = Math.Clamp(
                 configuration.LongPressDurationMs,
                 200,
                 3000);
             _leftTopBounds = CloneBounds(configuration.LeftTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds);
             _rightTopBounds = CloneBounds(configuration.RightTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds);
+            _latestState.LightPressThreshold = _lightPressThreshold;
             _latestState.DeepPressThreshold = _deepPressThreshold;
         }
 
@@ -218,6 +223,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                         DeepPressed = false,
                         Pressure = 0,
                         PeakPressure = _context.PeakPressure,
+                        LightPressThreshold = _lightPressThreshold,
                         DeepPressThreshold = _deepPressThreshold,
                         Contacts = []
                     };
@@ -252,12 +258,14 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             var primaryContact = GetPrimaryContact(parsed.Contacts);
             var currentRegionId = ResolveRegionId(primaryContact);
             var threshold = _deepPressThreshold;
+            var lightPressThreshold = _lightPressThreshold;
+            var gestureRearmPressureThreshold = Math.Max(20, lightPressThreshold - 20);
             if (hasInteraction && (!_context.HasInteraction || timestamp - _context.LastActiveAt > SessionResetThreshold))
             {
                 _context = CreateTrackingContext(timestamp);
             }
 
-            var shouldRearm = !hasInteraction || !parsed.Button1 || pressure <= GestureRearmPressureThreshold;
+            var shouldRearm = !hasInteraction || !parsed.Button1 || pressure <= gestureRearmPressureThreshold;
             if (shouldRearm)
             {
                 ResetGestureCycle(timestamp, pressure);
@@ -299,7 +307,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                         pressure);
                 }
 
-                var releaseFloor = Math.Max(GestureRearmPressureThreshold, threshold - 40);
+                var releaseFloor = Math.Max(gestureRearmPressureThreshold, threshold - 40);
                 if (_context.DeepPressed &&
                     (!parsed.Button1 || !hasInteraction || pressure <= releaseFloor || pressureDelta <= -25))
                 {
@@ -311,7 +319,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                     !string.IsNullOrWhiteSpace(_context.SessionRegionId))
                 {
                     if (_context.LongPressStartedAt == default &&
-                        pressure >= LongPressPressureThreshold)
+                        pressure >= lightPressThreshold)
                     {
                         _context.LongPressStartedAt = timestamp;
                     }
@@ -355,6 +363,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 DeepPressed = _context.DeepPressed,
                 Pressure = pressure,
                 PeakPressure = _context.PeakPressure,
+                LightPressThreshold = lightPressThreshold,
                 DeepPressThreshold = threshold,
                 ScanTime = parsed.ScanTime,
                 ContactCount = parsed.ContactCount,
@@ -415,6 +424,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 DeepPressed = false,
                 Pressure = 0,
                 PeakPressure = 0,
+                LightPressThreshold = _lightPressThreshold,
                 DeepPressThreshold = _deepPressThreshold,
                 ScanTime = 0,
                 ContactCount = 0,
@@ -499,6 +509,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             DeepPressed = source.DeepPressed,
             Pressure = source.Pressure,
             PeakPressure = source.PeakPressure,
+            LightPressThreshold = source.LightPressThreshold,
             DeepPressThreshold = source.DeepPressThreshold,
             ScanTime = source.ScanTime,
             ContactCount = source.ContactCount,

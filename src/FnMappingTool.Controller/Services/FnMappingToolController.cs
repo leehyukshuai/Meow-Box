@@ -39,6 +39,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
     private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
+    private int _touchpadLightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
     private int _touchpadLongPressDurationMs = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
 
     public ObservableCollection<KeyDefinitionViewModel> KeyItems { get; } = [];
@@ -185,6 +186,12 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
     {
         get => _touchpadLongPressDurationMs;
         private set => SetProperty(ref _touchpadLongPressDurationMs, value);
+    }
+
+    public int TouchpadLightPressThreshold
+    {
+        get => _touchpadLightPressThreshold;
+        private set => SetProperty(ref _touchpadLightPressThreshold, value);
     }
 
     public void Initialize(Window window)
@@ -430,10 +437,14 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
-    public void ApplyTouchpadPreferences(int longPressDurationMs)
+    public void ApplyTouchpadPreferences(int lightPressThreshold, int longPressDurationMs)
     {
+        var normalizedLightPressThreshold = Math.Clamp(lightPressThreshold, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1);
         var normalizedValue = Math.Clamp(longPressDurationMs, 200, 3000);
+        _configuration.Touchpad.LightPressThreshold = normalizedLightPressThreshold;
         _configuration.Touchpad.LongPressDurationMs = normalizedValue;
+        Touchpad.LightPressThreshold = normalizedLightPressThreshold;
+        TouchpadLightPressThreshold = normalizedLightPressThreshold;
         Touchpad.LongPressDurationMs = normalizedValue;
         TouchpadLongPressDurationMs = normalizedValue;
         SaveConfiguration();
@@ -449,6 +460,16 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
         }
 
         return await StartWorkerServiceAsync();
+    }
+
+    public void RestoreDefaults()
+    {
+        _configuration = AppConfiguration.CreateDefault();
+        App.ThemeService.ApplyPreference(_configuration.Theme);
+        SaveConfiguration();
+        ReloadCollectionsFromConfiguration();
+        OnPropertyChanged(nameof(ThemePreference));
+        _ = ReloadWorkerAsync();
     }
 
     public void RefreshMappingReferences()
@@ -552,6 +573,7 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
             LanguagePreference = _configuration.Preferences.Language;
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
             Touchpad = new TouchpadConfigurationViewModel(_configuration.Touchpad);
+            TouchpadLightPressThreshold = Touchpad.LightPressThreshold;
             TouchpadLongPressDurationMs = Touchpad.LongPressDurationMs;
             SyncOsdPreferenceState();
             RefreshMappingReferences();

@@ -60,13 +60,21 @@ public sealed class ActionDefinitionConfiguration
     public string Type { get; set; } = HotkeyActionType.None;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? StandardKey { get; set; }
+    public KeyChordConfiguration? KeyChord { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Target { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Arguments { get; set; }
+}
+
+public sealed class KeyChordConfiguration
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? PrimaryKey { get; set; }
+
+    public List<string> Modifiers { get; set; } = [];
 }
 
 public sealed class MappingOsdConfiguration
@@ -268,12 +276,13 @@ public static class RuntimeDefaults
     public const int DefaultOsdDurationMs = 800;
     public const int DefaultOsdBackgroundOpacityPercent = 20;
     public const int DefaultOsdScalePercent = 75;
+    public const int DefaultTouchpadLightPressThreshold = 125;
     public const int DefaultTouchpadDeepPressThreshold = 500;
     public const int DefaultTouchpadSurfaceWidth = 3282;
     public const int DefaultTouchpadSurfaceHeight = 2124;
     public const int DefaultTouchpadCornerWidth = 400;
     public const int DefaultTouchpadCornerHeight = 400;
-    public const int DefaultTouchpadCornerLongPressDurationMs = 1000;
+    public const int DefaultTouchpadCornerLongPressDurationMs = 750;
     public const int MaxOsdTitleLength = 32;
 }
 
@@ -378,7 +387,7 @@ public static class ActionCatalog
 
     public static IReadOnlyList<ActionOption> All { get; } = new[]
     {
-        new ActionOption(HotkeyActionType.SendStandardKey, LocalizedText.Pick("Send standard key", "发送标准按键"), LocalizedText.Pick("Sends a standard keyboard or media key that you choose.", "发送你选择的标准键盘按键或媒体按键。"), "", ActionTag.Keyboard, ActionTag.System),
+        new ActionOption(HotkeyActionType.SendStandardKey, LocalizedText.Pick("Send key or shortcut", "发送按键或快捷键"), LocalizedText.Pick("Sends the keyboard key or modifier shortcut that you configure.", "发送你配置的键盘按键或修饰键快捷键。"), "", ActionTag.Keyboard, ActionTag.System),
         new ActionOption(HotkeyActionType.OpenSettings, LocalizedText.Pick("Open Windows Settings", "打开 Windows 设置"), LocalizedText.Pick("Launches the native Settings app.", "启动系统设置应用。"), "", ActionTag.System),
         new ActionOption(HotkeyActionType.OpenProjection, LocalizedText.Pick("Open projection switcher", "打开投影切换器"), LocalizedText.Pick("Launches the native projection overlay.", "打开系统投影切换界面。"), "", ActionTag.System, ActionTag.Display),
         new ActionOption(HotkeyActionType.MicrophoneMuteOn, LocalizedText.Pick("Mute microphone input", "麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device off.", "关闭默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),

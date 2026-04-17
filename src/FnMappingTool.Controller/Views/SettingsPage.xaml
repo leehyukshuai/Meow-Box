@@ -143,51 +143,70 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock x:Uid="ConfigsCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configs" />
+                        <TextBlock x:Uid="ConfigsCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Details" />
 
                         <Border Grid.Row="1" Style="{StaticResource InsetPanelCardStyle}">
-                            <Grid ColumnSpacing="16" RowSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
+                            <Grid RowSpacing="12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                            <ComboBox x:Uid="OsdDisplayModeComboBox" x:Name="OsdDisplayModeComboBox" Header="OSD content" SelectionChanged="OnOsdSettingChanged">
-                                <ComboBoxItem x:Uid="OsdDisplayIconAndTitleItem" Content="Icon + title" Tag="IconAndText" />
-                                <ComboBoxItem x:Uid="OsdDisplayIconOnlyItem" Content="Icon only" Tag="IconOnly" />
-                                <ComboBoxItem x:Uid="OsdDisplayTitleOnlyItem" Content="Title only" Tag="TextOnly" />
-                            </ComboBox>
+                                <TextBlock x:Uid="OsdSettingsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
 
-                            <NumberBox x:Uid="OsdDurationNumberBox" x:Name="OsdDurationNumberBox" Grid.Column="1" Header="OSD duration (ms)" Minimum="500" Maximum="10000" SmallChange="100" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
-                            <NumberBox x:Uid="OsdBackgroundOpacityNumberBox" x:Name="OsdBackgroundOpacityNumberBox" Grid.Row="1" Header="Background opacity (%)" Minimum="0" Maximum="100" SmallChange="5" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
-                            <NumberBox x:Uid="OsdScaleNumberBox" x:Name="OsdScaleNumberBox" Grid.Row="1" Grid.Column="1" Header="OSD size (%)" Minimum="60" Maximum="200" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
-                            <NumberBox x:Uid="TouchpadLongPressDurationNumberBox" x:Name="TouchpadLongPressDurationNumberBox" Grid.Row="2" Grid.ColumnSpan="2" Header="Touchpad long press (ms)" Minimum="200" Maximum="3000" SmallChange="50" SpinButtonPlacementMode="Inline" ValueChanged="OnTouchpadNumberValueChanged" />
-                            <TextBox x:Uid="OsdIconFolderTextBox" x:Name="OsdIconFolderTextBox" Grid.Row="3" Grid.ColumnSpan="2" Header="OSD icon folder" IsReadOnly="True" />
+                                <Grid Grid.Row="1" ColumnSpacing="16" RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Spacing="10">
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <Button x:Uid="OpenOsdIconFolderButton" Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
-                                    <Button x:Uid="RefreshOsdIconFolderButton" Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />
+                                    <ComboBox x:Uid="OsdDisplayModeComboBox" x:Name="OsdDisplayModeComboBox" Header="OSD content" SelectionChanged="OnOsdSettingChanged">
+                                        <ComboBoxItem x:Uid="OsdDisplayIconAndTitleItem" Content="Icon + title" Tag="IconAndText" />
+                                        <ComboBoxItem x:Uid="OsdDisplayIconOnlyItem" Content="Icon only" Tag="IconOnly" />
+                                        <ComboBoxItem x:Uid="OsdDisplayTitleOnlyItem" Content="Title only" Tag="TextOnly" />
+                                    </ComboBox>
+
+                                    <NumberBox x:Uid="OsdDurationNumberBox" x:Name="OsdDurationNumberBox" Grid.Column="1" Header="OSD duration (ms)" Minimum="500" Maximum="10000" SmallChange="100" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                                    <NumberBox x:Uid="OsdBackgroundOpacityNumberBox" x:Name="OsdBackgroundOpacityNumberBox" Grid.Row="1" Header="Background opacity (%)" Minimum="0" Maximum="100" SmallChange="5" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                                    <NumberBox x:Uid="OsdScaleNumberBox" x:Name="OsdScaleNumberBox" Grid.Row="1" Grid.Column="1" Header="OSD size (%)" Minimum="60" Maximum="200" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                                    <TextBox x:Uid="OsdIconFolderTextBox" x:Name="OsdIconFolderTextBox" Grid.Row="2" Grid.ColumnSpan="2" Header="OSD icon folder" IsReadOnly="True" />
+                                </Grid>
+
+                                <StackPanel Grid.Row="2" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Button x:Uid="OpenOsdIconFolderButton" Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
+                                        <Button x:Uid="RefreshOsdIconFolderButton" Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />
+                                    </StackPanel>
+                                    <TextBlock x:Uid="OsdIconSpecText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Icon spec: transparent PNG, square canvas, 256×256 recommended, single-color glyph, and leave some padding near the edge." TextWrapping="WrapWholeWords" />
                                 </StackPanel>
-                                <TextBlock x:Uid="OsdIconSpecText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Icon spec: transparent PNG, square canvas, 256×256 recommended, single-color glyph, and leave some padding near the edge." TextWrapping="WrapWholeWords" />
-                            </StackPanel>
                             </Grid>
+                        </Border>
+
+                        <Border Grid.Row="2" Style="{StaticResource InsetPanelCardStyle}">
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Uid="TouchpadSettingsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Touchpad" />
+
+                                <NumberBox x:Uid="TouchpadLightPressThresholdNumberBox" x:Name="TouchpadLightPressThresholdNumberBox" Header="Touchpad light press" Minimum="20" Maximum="499" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnTouchpadNumberValueChanged" />
+                                <TextBlock x:Uid="TouchpadLightPressThresholdDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Only affects this app's light-press threshold and is unrelated to vibration feedback." TextWrapping="WrapWholeWords" />
+                                <NumberBox x:Uid="TouchpadLongPressDurationNumberBox" x:Name="TouchpadLongPressDurationNumberBox" Header="Touchpad long press (ms)" Minimum="200" Maximum="3000" SmallChange="50" SpinButtonPlacementMode="Inline" ValueChanged="OnTouchpadNumberValueChanged" />
+                            </StackPanel>
                         </Border>
                     </Grid>
                 </Border>
 
                 <Border x:Name="DeviceCard" Grid.Row="3" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
                     <StackPanel Spacing="14">
-                        <TextBlock x:Uid="DeviceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Device" />
+                        <TextBlock x:Uid="DeviceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configuration" />
 
                         <Border Style="{StaticResource SubtlePanelCardStyle}">
                             <StackPanel Spacing="6">
@@ -201,6 +220,7 @@
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button x:Uid="OpenConfigFolderButton" Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource AccentButtonStyle}" />
+                            <Button x:Uid="RestoreDefaultsButton" Click="OnRestoreDefaultsClick" Content="Restore defaults" Style="{StaticResource DangerButtonStyle}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>

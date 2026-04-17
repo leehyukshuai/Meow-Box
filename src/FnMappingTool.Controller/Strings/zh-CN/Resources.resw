@@ -250,16 +250,16 @@
     <value>可选的启动参数</value>
   </data>
   <data name="StandardKeyTitleText.Text" xml:space="preserve">
-    <value>标准按键</value>
+    <value>按键或快捷键</value>
   </data>
   <data name="StandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>选择这个 OEM 按键要发送的标准键盘按键。</value>
+    <value>选择这个 OEM 按键应发送的修饰键和主键。</value>
   </data>
   <data name="StandardKeyGroupComboBox.Header" xml:space="preserve">
-    <value>分组</value>
+    <value>主键分组</value>
   </data>
   <data name="StandardKeyComboBox.Header" xml:space="preserve">
-    <value>按键</value>
+    <value>主键</value>
   </data>
   <data name="OsdTitleBlock.Text" xml:space="preserve">
     <value>OSD</value>
@@ -421,7 +421,7 @@
     <value>语言更改需要在重启应用后生效。</value>
   </data>
   <data name="ConfigsCardTitleText.Text" xml:space="preserve">
-    <value>配置</value>
+    <value>细节</value>
   </data>
   <data name="OsdDisplayModeComboBox.Header" xml:space="preserve">
     <value>OSD 内容</value>
@@ -526,7 +526,7 @@
     <value>清空动作</value>
   </data>
   <data name="DeviceCardTitleText.Text" xml:space="preserve">
-    <value>机型</value>
+    <value>配置</value>
   </data>
   <data name="SupportedDeviceTitleText.Text" xml:space="preserve">
     <value>支持机型</value>
@@ -622,15 +622,42 @@
     <value>可选的启动参数</value>
   </data>
   <data name="TouchpadStandardKeyTitleText.Text" xml:space="preserve">
-    <value>标准按键</value>
+    <value>按键或快捷键</value>
   </data>
   <data name="TouchpadStandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>选择需要发送的标准键盘按键或媒体按键。</value>
+    <value>选择需要发送的修饰键和主键。</value>
   </data>
   <data name="TouchpadStandardKeyGroupComboBox.Header" xml:space="preserve">
-    <value>分组</value>
+    <value>主键分组</value>
   </data>
   <data name="TouchpadStandardKeyComboBox.Header" xml:space="preserve">
-    <value>按键</value>
+    <value>主键</value>
+  </data>
+  <data name="OsdSettingsTitleText.Text" xml:space="preserve">
+    <value>OSD</value>
+  </data>
+  <data name="TouchpadSettingsTitleText.Text" xml:space="preserve">
+    <value>触控板</value>
+  </data>
+  <data name="TouchpadLightPressThresholdNumberBox.Header" xml:space="preserve">
+    <value>触控板轻按力度</value>
+  </data>
+  <data name="TouchpadLightPressThresholdDescriptionText.Text" xml:space="preserve">
+    <value>仅仅影响本软件对于轻按的判定阈值，和震动反馈无关。调整直到它刚好达到能够触发你的电脑上轻按振动的力度（一般是105、125或者150）。</value>
+  </data>
+  <data name="Dialog.RestoreDefaults" xml:space="preserve">
+    <value>恢复默认</value>
+  </data>
+  <data name="RestoreDefaultsButton.Content" xml:space="preserve">
+    <value>恢复默认</value>
+  </data>
+  <data name="Settings.Messages.RestoreDefaults.Title" xml:space="preserve">
+    <value>恢复默认？</value>
+  </data>
+  <data name="Settings.Messages.RestoreDefaults.Body" xml:space="preserve">
+    <value>这会用默认设置替换当前配置。</value>
+  </data>
+  <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
+    <value>无法恢复默认设置</value>
   </data>
 </root>

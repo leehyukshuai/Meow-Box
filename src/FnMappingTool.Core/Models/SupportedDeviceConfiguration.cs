@@ -26,6 +26,7 @@ public static class SupportedDeviceConfiguration
             Touchpad = new TouchpadConfiguration
             {
                 Enabled = true,
+                LightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold,
                 DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
                 SurfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth,
                 SurfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight,

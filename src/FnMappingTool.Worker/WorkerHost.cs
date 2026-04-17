@@ -306,7 +306,7 @@ internal sealed class WorkerHost : IDisposable
             case HotkeyActionType.None:
                 return;
             case HotkeyActionType.SendStandardKey:
-                _nativeActionService.SendConfiguredStandardKey(action.StandardKey);
+                _nativeActionService.SendConfiguredKeyChord(action.KeyChord);
                 break;
             case HotkeyActionType.OpenSettings:
                 _nativeActionService.OpenSettings();
