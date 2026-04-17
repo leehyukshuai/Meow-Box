@@ -12,7 +12,9 @@
 
     <SummaryInformation Description="Meow Box installer" Manufacturer="Meow Box" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Meow Box is already installed." />
+    <MajorUpgrade
+      AllowSameVersionUpgrades="yes"
+      DowngradeErrorMessage="A newer version of Meow Box is already installed." />
 
     <Icon Id="AppIcon.ico" SourceFile="..\..\assets\app\app.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
