@@ -8,6 +8,7 @@ internal sealed class TouchpadPreviewCoordinateSpace
 {
     public const double ContactVisualInset = 12d;
     public static readonly double CornerOverlayRadiusCompensation = ContactVisualInset * Math.Sqrt(2d);
+    private const double CornerOverlayVisualInset = 0.5d;
 
     private readonly double _surfaceWidth;
     private readonly double _surfaceHeight;
@@ -79,8 +80,10 @@ internal sealed class TouchpadPreviewCoordinateSpace
         var region = TouchpadCornerRegionMath.Describe(regionId, bounds);
         var radiusX = ScaleToPadWidth(region.RadiusX) + CornerOverlayRadiusCompensation;
         var radiusY = ScaleToPadHeight(region.RadiusY) + CornerOverlayRadiusCompensation;
-        var originX = region.IsRightTop ? PadLeft + PadWidth : PadLeft;
-        var originY = PadTop;
+        var originX = region.IsRightTop
+            ? (PadLeft + PadWidth) - CornerOverlayVisualInset
+            : PadLeft + CornerOverlayVisualInset;
+        var originY = PadTop + CornerOverlayVisualInset;
         var left = region.IsRightTop ? originX - radiusX : originX;
         var right = region.IsRightTop ? originX : originX + radiusX;
         var bottom = originY + radiusY;

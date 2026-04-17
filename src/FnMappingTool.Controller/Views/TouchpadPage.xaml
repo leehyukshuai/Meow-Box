@@ -112,30 +112,75 @@
 
                             <StackPanel
                                 Spacing="12"
-                                Visibility="{Binding Action.StandardKeyEditorVisibility}">
-                                <TextBlock
-                                    Style="{StaticResource CardTitleTextBlockStyle}"
-                                    Text="Standard key" />
-                                <TextBlock
-                                    Style="{StaticResource CardBodyTextBlockStyle}"
-                                    Text="Choose the standard keyboard or media key that should be emitted."
-                                    TextWrapping="WrapWholeWords" />
-                                <Grid ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="220" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <ComboBox
-                                        DisplayMemberPath="Label"
-                                        Header="Group"
-                                        ItemsSource="{Binding Action.StandardKeyPicker.Groups}"
-                                        SelectedItem="{Binding Action.StandardKeyPicker.SelectedGroup, Mode=TwoWay}" />
-                                    <ComboBox
-                                        Grid.Column="1"
-                                        DisplayMemberPath="Label"
-                                        Header="Key"
-                                        ItemsSource="{Binding Action.StandardKeyPicker.FilteredKeys}"
-                                        SelectedItem="{Binding Action.StandardKeyPicker.SelectedKey, Mode=TwoWay}" />
+                                Visibility="{Binding Action.KeyChordEditorVisibility}">
+                                <Grid RowSpacing="12">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Spacing="8">
+                                        <TextBlock
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding Action.KeyChordEditor.ModifiersHeader}" />
+                                        <Grid ColumnSpacing="12" RowSpacing="4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <CheckBox
+                                                Content="{Binding Action.KeyChordEditor.ControlModifier.Label}"
+                                                IsChecked="{Binding Action.KeyChordEditor.ControlModifier.IsSelected, Mode=TwoWay}" />
+                                            <CheckBox
+                                                Grid.Column="1"
+                                                Content="{Binding Action.KeyChordEditor.ShiftModifier.Label}"
+                                                IsChecked="{Binding Action.KeyChordEditor.ShiftModifier.IsSelected, Mode=TwoWay}" />
+                                            <CheckBox
+                                                Grid.Row="1"
+                                                Content="{Binding Action.KeyChordEditor.AltModifier.Label}"
+                                                IsChecked="{Binding Action.KeyChordEditor.AltModifier.IsSelected, Mode=TwoWay}" />
+                                            <CheckBox
+                                                Grid.Row="1"
+                                                Grid.Column="1"
+                                                Content="{Binding Action.KeyChordEditor.WindowsModifier.Label}"
+                                                IsChecked="{Binding Action.KeyChordEditor.WindowsModifier.IsSelected, Mode=TwoWay}" />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <Grid Grid.Row="1" ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <ComboBox
+                                            DisplayMemberPath="Label"
+                                            Header="Primary key group"
+                                            ItemsSource="{Binding Action.KeyChordEditor.Groups}"
+                                            SelectedItem="{Binding Action.KeyChordEditor.SelectedGroup, Mode=TwoWay}" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            DisplayMemberPath="Label"
+                                            Header="Primary key"
+                                            ItemsSource="{Binding Action.KeyChordEditor.FilteredPrimaryKeys}"
+                                            SelectedItem="{Binding Action.KeyChordEditor.SelectedPrimaryKey, Mode=TwoWay}" />
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="2" Spacing="4">
+                                        <TextBlock
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding Action.KeyChordEditor.PreviewHeader}" />
+                                        <TextBlock
+                                            Style="{StaticResource CardBodyTextBlockStyle}"
+                                            Text="{Binding Action.KeyChordDisplayText}"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
@@ -224,6 +269,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Border
+                    x:Name="TouchpadActionListCard"
                     Grid.Column="0"
                     Style="{StaticResource PanelCardStyle}">
                     <ListView
@@ -256,8 +302,12 @@
 
                 <Border
                     Grid.Column="1"
+                    Height="{Binding ActualHeight, ElementName=TouchpadActionListCard}"
+                    VerticalAlignment="Top"
                     Style="{StaticResource PanelCardStyle}">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
                         <ContentControl
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Stretch"

@@ -93,8 +93,9 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        if (e.PropertyName is nameof(ActionDefinitionViewModel.StandardKey) or
-            nameof(ActionDefinitionViewModel.StandardKeyGroup))
+        if (e.PropertyName is nameof(ActionDefinitionViewModel.PrimaryKey) or
+            nameof(ActionDefinitionViewModel.PrimaryKeyGroup) or
+            nameof(ActionDefinitionViewModel.ModifierSelectionSignature))
         {
             TrySaveTouchpadConfigurationAsync();
         }
@@ -351,7 +352,7 @@ public sealed partial class TouchpadPage : Page
             {
                 Data = overlayInfo.Geometry,
                 Fill = new SolidColorBrush(ColorHelper.FromArgb(34, 255, 255, 255)),
-                Stroke = new SolidColorBrush(ColorHelper.FromArgb(76, 255, 255, 255)),
+                Stroke = new SolidColorBrush(ColorHelper.FromArgb(255, 88, 98, 116)),
                 StrokeThickness = 1.2
             };
             TouchpadCanvas.Children.Add(overlay);
