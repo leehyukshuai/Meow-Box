@@ -464,9 +464,8 @@ public sealed class FnMappingToolController : ObservableObject, IDisposable
 
     public void RestoreDefaults()
     {
-        _configuration = AppConfiguration.CreateDefault();
+        _configuration = _configService.RestoreDefaultFile();
         App.ThemeService.ApplyPreference(_configuration.Theme);
-        SaveConfiguration();
         ReloadCollectionsFromConfiguration();
         OnPropertyChanged(nameof(ThemePreference));
         _ = ReloadWorkerAsync();

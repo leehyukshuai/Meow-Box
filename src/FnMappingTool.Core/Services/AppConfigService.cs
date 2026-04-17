@@ -91,6 +91,21 @@ public sealed class AppConfigService
         WriteConfiguration(ConfigPath, json + Environment.NewLine);
     }
 
+    public AppConfiguration RestoreDefaultFile()
+    {
+        Directory.CreateDirectory(ConfigDirectory);
+
+        ExecuteWithRetries(() =>
+        {
+            if (File.Exists(ConfigPath))
+            {
+                File.Delete(ConfigPath);
+            }
+        });
+
+        return Load();
+    }
+
     private static AppConfiguration ReadConfiguration(string path)
     {
         var json = ExecuteWithRetries(() =>
@@ -299,12 +314,14 @@ public sealed class AppConfigService
         }
 
         var hasAssignedAction = !string.IsNullOrWhiteSpace(normalizedAction.Type);
+        var allowEnabledWithoutAssignedAction = SupportedDeviceConfiguration.ShouldRemainEnabledWithoutAssignedAction(template.KeyId);
+        var shouldEnable = mapping?.Enabled ?? template.Enabled;
 
         return new KeyActionMappingConfiguration
         {
             Id = template.Id,
             Name = template.Name,
-            Enabled = hasAssignedAction && (mapping?.Enabled ?? template.Enabled),
+            Enabled = shouldEnable && (hasAssignedAction || allowEnabledWithoutAssignedAction),
             KeyId = template.KeyId,
             Action = normalizedAction,
             Osd = normalizedOsd

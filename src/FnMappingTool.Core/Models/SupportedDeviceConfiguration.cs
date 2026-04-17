@@ -68,7 +68,7 @@ public static class SupportedDeviceConfiguration
         return
         [
             CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.MediaPlayPause),
-            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None, enabled: false),
+            CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None),
             CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
             CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection),
             CreateMapping("mapping-fn-lock-on", DefaultKeyIds.FnLockOn, "Fn Lock On", HotkeyActionType.None, CreateOsd("Fn lock on", "fn-lock.png"), enabled: false),
@@ -132,6 +132,11 @@ public static class SupportedDeviceConfiguration
                string.Equals(keyId, DefaultKeyIds.BacklightLevel1, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(keyId, DefaultKeyIds.BacklightLevel2, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(keyId, DefaultKeyIds.BacklightAuto, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool ShouldRemainEnabledWithoutAssignedAction(string keyId)
+    {
+        return string.Equals(keyId, DefaultKeyIds.XiaoAiPress, StringComparison.OrdinalIgnoreCase);
     }
 
     private static MappingOsdConfiguration CreateOsd(string title, string? iconPath = null)
