@@ -128,20 +128,14 @@
                                     <ComboBox
                                         DisplayMemberPath="Label"
                                         Header="Group"
-                                        Loaded="OnTouchpadStandardKeyGroupComboBoxLoaded"
-                                        Unloaded="OnTouchpadStandardKeyComboBoxUnloaded"
-                                        ItemsSource="{Binding StandardKeyGroups}"
-                                        SelectedValuePath="Key"
-                                        SelectionChanged="OnTouchpadStandardKeyGroupSelectionChanged" />
+                                        ItemsSource="{Binding Action.StandardKeyPicker.Groups}"
+                                        SelectedItem="{Binding Action.StandardKeyPicker.SelectedGroup, Mode=TwoWay}" />
                                     <ComboBox
                                         Grid.Column="1"
                                         DisplayMemberPath="Label"
                                         Header="Key"
-                                        Loaded="OnTouchpadStandardKeyComboBoxLoaded"
-                                        Unloaded="OnTouchpadStandardKeyComboBoxUnloaded"
-                                        ItemsSource="{Binding FilteredStandardKeys}"
-                                        SelectedValuePath="Key"
-                                        SelectionChanged="OnTouchpadActionSelectionChanged" />
+                                        ItemsSource="{Binding Action.StandardKeyPicker.FilteredKeys}"
+                                        SelectedItem="{Binding Action.StandardKeyPicker.SelectedKey, Mode=TwoWay}" />
                                 </Grid>
                             </StackPanel>
                         </StackPanel>

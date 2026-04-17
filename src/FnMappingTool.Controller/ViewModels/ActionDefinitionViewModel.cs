@@ -21,6 +21,7 @@ public sealed class ActionDefinitionViewModel : ObservableObject
         _standardKeyGroup = StandardKeyCatalog.GetPreferredGroupKey(_standardKey);
         _target = model.Target ?? string.Empty;
         _arguments = model.Arguments ?? string.Empty;
+        StandardKeyPicker = new StandardKeyPickerViewModel(this);
     }
 
     public string Type
@@ -101,6 +102,8 @@ public sealed class ActionDefinitionViewModel : ObservableObject
     public string ActionTagsText => ActionCatalog.GetTagsText(Type);
 
     public string StandardKeyLabel => StandardKeyCatalog.GetLabel(StandardKey);
+
+    public StandardKeyPickerViewModel StandardKeyPicker { get; }
 
     public bool HasAssignedAction => !string.IsNullOrWhiteSpace(Type);
 

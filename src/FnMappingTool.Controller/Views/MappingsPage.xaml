@@ -152,8 +152,8 @@
                                                         <ColumnDefinition Width="220" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-                                                    <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{x:Bind StandardKeyGroups, Mode=OneTime}" Loaded="OnStandardKeyGroupComboBoxLoaded" Unloaded="OnStandardKeyComboBoxUnloaded" SelectedValuePath="Key" SelectionChanged="OnStandardKeyGroupSelectionChanged" />
-                                                    <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{x:Bind FilteredStandardKeys, Mode=OneTime}" Loaded="OnStandardKeyComboBoxLoaded" Unloaded="OnStandardKeyComboBoxUnloaded" SelectedValuePath="Key" SelectionChanged="OnMappingEditorSelectionChanged" />
+                                                    <ComboBox x:Uid="StandardKeyGroupComboBox" x:Name="StandardKeyGroupComboBox" DisplayMemberPath="Label" Header="Group" ItemsSource="{Binding SelectedMapping.Action.StandardKeyPicker.Groups, Mode=OneWay}" SelectedItem="{Binding SelectedMapping.Action.StandardKeyPicker.SelectedGroup, Mode=TwoWay}" />
+                                                    <ComboBox x:Uid="StandardKeyComboBox" x:Name="StandardKeyComboBox" Grid.Column="1" DisplayMemberPath="Label" Header="Key" ItemsSource="{Binding SelectedMapping.Action.StandardKeyPicker.FilteredKeys, Mode=OneWay}" SelectedItem="{Binding SelectedMapping.Action.StandardKeyPicker.SelectedKey, Mode=TwoWay}" />
                                                 </Grid>
                                             </StackPanel>
                                         </StackPanel>

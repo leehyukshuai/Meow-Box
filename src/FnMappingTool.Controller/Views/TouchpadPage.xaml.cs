@@ -22,13 +22,10 @@ public sealed partial class TouchpadPage : Page
     private const double BluePressureThreshold = 120d;
     private const double OrangePressureThreshold = 500d;
     private const double RedPressureThreshold = 800d;
-    private ComboBox? _touchpadStandardKeyGroupComboBox;
-    private ComboBox? _touchpadStandardKeyComboBox;
     private double _displayPressure;
     private DateTimeOffset _lastDisplayPressureAt;
     private bool _renderPending;
     private bool _touchpadStateRefreshPending;
-    private bool _isRefreshingTouchpadStandardKeyChoices;
     private readonly Dictionary<int, SmoothedContactState> _smoothedContacts = [];
 
     public FnMappingToolController Controller => App.Controller;
@@ -48,6 +45,7 @@ public sealed partial class TouchpadPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SubscribeTouchpadState();
+        SubscribeTouchpadActionEditors();
         ScheduleTouchpadStateRefresh();
         DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
@@ -56,6 +54,7 @@ public sealed partial class TouchpadPage : Page
     {
         Controller.PropertyChanged -= OnControllerPropertyChanged;
         UnsubscribeTouchpadState();
+        UnsubscribeTouchpadActionEditors();
     }
 
     private void SubscribeTouchpadState()
@@ -68,6 +67,36 @@ public sealed partial class TouchpadPage : Page
     {
         Controller.TouchpadLive.PropertyChanged -= OnTouchpadLivePropertyChanged;
         Controller.TouchpadLive.Contacts.CollectionChanged -= OnTouchpadContactsChanged;
+    }
+
+    private void SubscribeTouchpadActionEditors()
+    {
+        foreach (var editor in Controller.Touchpad.AllActionEditors)
+        {
+            editor.Action.PropertyChanged += OnTouchpadActionPropertyChanged;
+        }
+    }
+
+    private void UnsubscribeTouchpadActionEditors()
+    {
+        foreach (var editor in Controller.Touchpad.AllActionEditors)
+        {
+            editor.Action.PropertyChanged -= OnTouchpadActionPropertyChanged;
+        }
+    }
+
+    private void OnTouchpadActionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        if (e.PropertyName is nameof(ActionDefinitionViewModel.StandardKey) or
+            nameof(ActionDefinitionViewModel.StandardKeyGroup))
+        {
+            TrySaveTouchpadConfigurationAsync();
+        }
     }
 
     private async void OnChooseTouchpadActionClick(object sender, RoutedEventArgs e)
@@ -89,7 +118,6 @@ public sealed partial class TouchpadPage : Page
         }
 
         editor.Action.Type = dialog.SelectedAction.Key;
-        RefreshTouchpadStandardKeyChoices(editor);
         TrySaveTouchpadConfigurationAsync();
     }
 
@@ -102,7 +130,6 @@ public sealed partial class TouchpadPage : Page
         }
 
         editor.Action.ClearAssignment();
-        RefreshTouchpadStandardKeyChoices(editor);
         TrySaveTouchpadConfigurationAsync();
     }
 
@@ -111,88 +138,6 @@ public sealed partial class TouchpadPage : Page
         if (!Controller.IsReloadingConfiguration)
         {
             TrySaveTouchpadConfigurationAsync();
-        }
-    }
-
-    private void OnTouchpadActionSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (Controller.IsReloadingConfiguration)
-        {
-            return;
-        }
-
-        if (_isRefreshingTouchpadStandardKeyChoices)
-        {
-            return;
-        }
-
-        var editor = GetActionEditor(sender);
-        if (editor is null || editor.IsRefreshingStandardKeys)
-        {
-            return;
-        }
-
-        if (sender is ComboBox comboBox)
-        {
-            var selectedOption = e.AddedItems.OfType<StandardKeyOption>().FirstOrDefault()
-                ?? comboBox.SelectedItem as StandardKeyOption;
-            editor.Action.StandardKey = selectedOption?.Key ?? string.Empty;
-        }
-
-        TrySaveTouchpadConfigurationAsync();
-    }
-
-    private void OnTouchpadStandardKeyGroupSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (Controller.IsReloadingConfiguration)
-        {
-            return;
-        }
-
-        if (_isRefreshingTouchpadStandardKeyChoices)
-        {
-            return;
-        }
-
-        var editor = GetActionEditor(sender);
-        if (editor is null)
-        {
-            return;
-        }
-
-        if (sender is ComboBox comboBox)
-        {
-            var selectedGroup = e.AddedItems.OfType<StandardKeyGroupOption>().FirstOrDefault()
-                ?? comboBox.SelectedItem as StandardKeyGroupOption;
-            editor.Action.ApplyStandardKeyGroup(selectedGroup?.Key);
-        }
-
-        RefreshTouchpadStandardKeyChoices(editor);
-        TrySaveTouchpadConfigurationAsync();
-    }
-
-    private void OnTouchpadStandardKeyGroupComboBoxLoaded(object sender, RoutedEventArgs e)
-    {
-        _touchpadStandardKeyGroupComboBox = sender as ComboBox;
-        SyncVisibleTouchpadStandardKeyChoices(GetActionEditor(sender));
-    }
-
-    private void OnTouchpadStandardKeyComboBoxLoaded(object sender, RoutedEventArgs e)
-    {
-        _touchpadStandardKeyComboBox = sender as ComboBox;
-        SyncVisibleTouchpadStandardKeyChoices(GetActionEditor(sender));
-    }
-
-    private void OnTouchpadStandardKeyComboBoxUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (ReferenceEquals(sender, _touchpadStandardKeyGroupComboBox))
-        {
-            _touchpadStandardKeyGroupComboBox = null;
-        }
-
-        if (ReferenceEquals(sender, _touchpadStandardKeyComboBox))
-        {
-            _touchpadStandardKeyComboBox = null;
         }
     }
 
@@ -248,6 +193,8 @@ public sealed partial class TouchpadPage : Page
 
         DispatcherQueue.TryEnqueue(() =>
         {
+            UnsubscribeTouchpadActionEditors();
+            SubscribeTouchpadActionEditors();
             ScheduleTouchpadStateRefresh();
             RequestRender();
             XamlStringLocalizer.Apply(this);
@@ -694,55 +641,6 @@ public sealed partial class TouchpadPage : Page
     {
         var radius = Math.Min(padWidth, padHeight) * 0.03;
         return Math.Clamp(radius, 10d, 16d);
-    }
-
-    private void RefreshTouchpadStandardKeyChoices(TouchpadTriggerActionEditorViewModel? editor = null)
-    {
-        editor ??= Controller.Touchpad.SelectedActionEditor;
-        if (editor is null)
-        {
-            return;
-        }
-
-        _isRefreshingTouchpadStandardKeyChoices = true;
-        try
-        {
-            var selectedGroup = editor.Action.GetEffectiveStandardKeyGroup();
-            if (!string.Equals(editor.Action.StandardKeyGroup, selectedGroup, StringComparison.OrdinalIgnoreCase))
-            {
-                editor.Action.StandardKeyGroup = selectedGroup;
-            }
-
-            editor.RefreshStandardKeys();
-            SyncVisibleTouchpadStandardKeyChoices(editor);
-        }
-        finally
-        {
-            _isRefreshingTouchpadStandardKeyChoices = false;
-        }
-    }
-
-    private void SyncVisibleTouchpadStandardKeyChoices(TouchpadTriggerActionEditorViewModel? editor)
-    {
-        if (editor is null)
-        {
-            return;
-        }
-
-        if (_touchpadStandardKeyGroupComboBox is not null &&
-            ReferenceEquals(_touchpadStandardKeyGroupComboBox.DataContext, editor))
-        {
-            _touchpadStandardKeyGroupComboBox.SelectedValue = editor.Action.StandardKeyGroup;
-        }
-
-        if (_touchpadStandardKeyComboBox is not null &&
-            ReferenceEquals(_touchpadStandardKeyComboBox.DataContext, editor))
-        {
-            var selectedKey = editor.Action.StandardKey;
-            _touchpadStandardKeyComboBox.SelectedItem = editor.FilteredStandardKeys.FirstOrDefault(item =>
-                string.Equals(item.Key, selectedKey, StringComparison.OrdinalIgnoreCase));
-            _touchpadStandardKeyComboBox.SelectedValue = selectedKey;
-        }
     }
 
     private async Task<string?> PickFileAsync(IEnumerable<string> types)
