@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MeowBox.Controller</AssemblyName>
+    <RootNamespace>MeowBox.Controller</RootNamespace>
+    <OutputPath>..\..\build\bin\MeowBox.Controller\</OutputPath>
+    <OutputType>WinExe</OutputType>
+    <ApplicationIcon>..\..\assets\app\app.ico</ApplicationIcon>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_Vs2022BuildToolsAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022BuildToolsAppxMSBuildToolsPath>
+    <_Vs2022CommunityAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022CommunityAppxMSBuildToolsPath>
+    <_Vs2022ProfessionalAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\Professional\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022ProfessionalAppxMSBuildToolsPath>
+    <_Vs2022EnterpriseAppxMSBuildToolsPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_Vs2022EnterpriseAppxMSBuildToolsPath>
+
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022BuildToolsAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022BuildToolsAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022CommunityAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022CommunityAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022ProfessionalAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022ProfessionalAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_Vs2022EnterpriseAppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_Vs2022EnterpriseAppxMSBuildToolsPath)</AppxMSBuildToolsPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\\MeowBox.Core\\MeowBox.Core.csproj" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.260224002" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\assets\**\*">
+      <Link>assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="CopyLooseLocalizationFilesToBuild" AfterTargets="Build">
+    <ItemGroup>
+      <_LooseLocalizationFiles Include="$(MSBuildProjectDirectory)\Strings\**\*.resw" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_LooseLocalizationFiles)"
+      DestinationFiles="@(_LooseLocalizationFiles->'$(TargetDir)Strings\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyLooseLocalizationFilesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_PublishedLocalizationFiles Include="$(MSBuildProjectDirectory)\Strings\**\*.resw" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_PublishedLocalizationFiles)"
+      DestinationFiles="@(_PublishedLocalizationFiles->'$(PublishDir)Strings\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyLooseWinUiResourcesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_PublishedLooseWinUiFiles Include="$(TargetDir)**\*.xbf" />
+      <_PublishedLooseWinUiFiles Include="$(TargetDir)$(AssemblyName).pri" Condition="Exists('$(TargetDir)$(AssemblyName).pri')" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_PublishedLooseWinUiFiles)"
+      DestinationFiles="@(_PublishedLooseWinUiFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>

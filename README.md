@@ -1,4 +1,4 @@
-# Fn Mapping Tool
+# Meow Box
 
 > Xiaomi Book Pro 14 2026 edition
 
@@ -12,7 +12,7 @@
 
 ### ✨ 功能介绍
 
-Fn Mapping Tool 现在已经不再是一个泛用的 OEM / 厂商特殊按键映射工具，而是**特化为仅适用于 Xiaomi Book Pro 14 2026** 的定制版本。
+Meow Box 现在已经不再是一个泛用的 OEM / 厂商特殊按键映射工具，而是**特化为仅适用于 Xiaomi Book Pro 14 2026** 的定制版本。
 
 它的目标是把这台机器上的 OEM 特殊按键和触控板压感动作，重新变成可自定义、可观察、可长期运行的功能。
 
@@ -36,10 +36,10 @@ Fn Mapping Tool 现在已经不再是一个泛用的 OEM / 厂商特殊按键映
 ### 📦 最新版本
 
 - 当前版本：**v0.2.0**
-- Release：https://github.com/leehyukshuai/Fn-Mapping-Tool/releases/tag/v0.2.0
+- Release：https://github.com/leehyukshuai/MeowBox/releases/tag/v0.2.0
 - 下载：
-  - Portable：`FnMappingTool-portable-v0.2.0.zip`
-  - MSI：`FnMappingTool-setup-v0.2.0.msi`
+  - Portable：`MeowBox-portable-v0.2.0.zip`
+  - MSI：`MeowBox-setup-v0.2.0.msi`
 
 ### 🆕 当前分支新增内容
 
@@ -126,7 +126,7 @@ Fn Mapping Tool 现在已经不再是一个泛用的 OEM / 厂商特殊按键映
 
 默认只会生成一个便于直接调试的便携目录：
 
-- `artifacts/FnMappingTool/`
+- `artifacts/MeowBox/`
 
 可选参数：
 
@@ -140,17 +140,17 @@ Fn Mapping Tool 现在已经不再是一个泛用的 OEM / 厂商特殊按键映
 
 输出文件：
 
-- 默认：`artifacts/FnMappingTool/`
-- `-Zip`：`artifacts/FnMappingTool-portable-v<version>.zip`
-- `-Msi`：`artifacts/FnMappingTool-setup-v<version>.msi`
+- 默认：`artifacts/MeowBox/`
+- `-Zip`：`artifacts/MeowBox-portable-v<version>.zip`
+- `-Msi`：`artifacts/MeowBox-setup-v<version>.msi`
 - `-PackageAll`：同时生成 zip 和 msi
 
 ### 🗂️ 项目结构
 
-- `src/FnMappingTool.Controller/` — WinUI 3 控制器
-- `src/FnMappingTool.Worker/` — 后台 Worker
-- `src/FnMappingTool.Core/` — 共享模型、服务、IPC
-- `src/FnMappingTool.Setup/` — WiX 安装包工程
+- `src/MeowBox.Controller/` — WinUI 3 控制器
+- `src/MeowBox.Worker/` — 后台 Worker
+- `src/MeowBox.Core/` — 共享模型、服务、IPC
+- `src/MeowBox.Setup/` — WiX 安装包工程
 - `assets/` — 应用资源
 - `build/` — 中间产物
 - `artifacts/` — 最终发布产物
@@ -164,7 +164,7 @@ Fn Mapping Tool 现在已经不再是一个泛用的 OEM / 厂商特殊按键映
 ### 📄 作者与协议
 
 - 作者：https://github.com/leehyukshuai
-- 仓库：https://github.com/leehyukshuai/Fn-Mapping-Tool
+- 仓库：https://github.com/leehyukshuai/MeowBox
 - 协议：**GPL-3.0**（见 `LICENSE`）
 
 ---
@@ -173,7 +173,7 @@ Fn Mapping Tool 现在已经不再是一个泛用的 OEM / 厂商特殊按键映
 
 ### ✨ Feature overview
 
-Fn Mapping Tool is no longer a general-purpose OEM / vendor-key remapping utility. It is now a **device-specific build for Xiaomi Book Pro 14 2026 only**.
+Meow Box is no longer a general-purpose OEM / vendor-key remapping utility. It is now a **device-specific build for Xiaomi Book Pro 14 2026 only**.
 
 The goal is to turn this machine's OEM keys and pressure-based touchpad gestures into configurable actions that can be edited, observed, and kept running reliably in the background.
 
@@ -197,10 +197,10 @@ The implementation is fairly direct: the Worker listens for OEM events exposed t
 ### 📦 Latest release
 
 - Current version: **v0.2.0**
-- Release: https://github.com/leehyukshuai/Fn-Mapping-Tool/releases/tag/v0.2.0
+- Release: https://github.com/leehyukshuai/MeowBox/releases/tag/v0.2.0
 - Downloads:
-  - Portable: `FnMappingTool-portable-v0.2.0.zip`
-  - MSI: `FnMappingTool-setup-v0.2.0.msi`
+  - Portable: `MeowBox-portable-v0.2.0.zip`
+  - MSI: `MeowBox-setup-v0.2.0.msi`
 
 ### 🆕 What's new on the current branch
 
@@ -287,7 +287,7 @@ Default build:
 
 By default this now creates only a portable folder for quick local testing:
 
-- `artifacts/FnMappingTool/`
+- `artifacts/MeowBox/`
 
 Optional arguments:
 
@@ -301,17 +301,17 @@ Optional arguments:
 
 Outputs:
 
-- Default: `artifacts/FnMappingTool/`
-- `-Zip`: `artifacts/FnMappingTool-portable-v<version>.zip`
-- `-Msi`: `artifacts/FnMappingTool-setup-v<version>.msi`
+- Default: `artifacts/MeowBox/`
+- `-Zip`: `artifacts/MeowBox-portable-v<version>.zip`
+- `-Msi`: `artifacts/MeowBox-setup-v<version>.msi`
 - `-PackageAll`: builds both zip and msi
 
 ### 🗂️ Project layout
 
-- `src/FnMappingTool.Controller/` — WinUI 3 controller app
-- `src/FnMappingTool.Worker/` — background worker
-- `src/FnMappingTool.Core/` — shared models, services, IPC
-- `src/FnMappingTool.Setup/` — WiX installer project
+- `src/MeowBox.Controller/` — WinUI 3 controller app
+- `src/MeowBox.Worker/` — background worker
+- `src/MeowBox.Core/` — shared models, services, IPC
+- `src/MeowBox.Setup/` — WiX installer project
 - `assets/` — app assets
 - `build/` — intermediate outputs
 - `artifacts/` — final distributables
@@ -325,5 +325,5 @@ The application icon comes from:
 ### 📄 Author and license
 
 - Author: https://github.com/leehyukshuai
-- Repository: https://github.com/leehyukshuai/Fn-Mapping-Tool
+- Repository: https://github.com/leehyukshuai/MeowBox
 - License: **GPL-3.0** (see `LICENSE`)

@@ -1,0 +1,47 @@
+﻿using MeowBox.Core.Models;
+
+namespace MeowBox.Controller.ViewModels;
+
+public sealed class KeyDefinitionViewModel : ObservableObject
+{
+    private readonly EventMatcherConfiguration _trigger;
+    private string _name;
+
+    public KeyDefinitionViewModel(KeyDefinitionConfiguration model)
+    {
+        Id = string.IsNullOrWhiteSpace(model.Id) ? Guid.NewGuid().ToString("N") : model.Id;
+        _name = model.Name ?? string.Empty;
+        _trigger = model.Trigger ?? new EventMatcherConfiguration();
+    }
+
+    public string Id { get; }
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (SetProperty(ref _name, value))
+            {
+                OnPropertyChanged(nameof(ListTitle));
+                OnPropertyChanged(nameof(Description));
+            }
+        }
+    }
+
+    public string ListTitle => HardwareKeyCatalog.GetLabel(Id, Name);
+
+    public string Description => HardwareKeyCatalog.GetDescription(Id);
+
+    public string TriggerDetails => _trigger.ToDisplayText();
+
+    public KeyDefinitionConfiguration ToConfiguration()
+    {
+        return new KeyDefinitionConfiguration
+        {
+            Id = Id,
+            Name = ListTitle,
+            Trigger = _trigger
+        };
+    }
+}

@@ -2,9 +2,9 @@
 
 Active projects:
 
-- `FnMappingTool.Core`
-- `FnMappingTool.Worker`
-- `FnMappingTool.Controller`
+- `MeowBox.Core`
+- `MeowBox.Worker`
+- `MeowBox.Controller`
 
 Use the repo-root build script:
 
@@ -18,4 +18,4 @@ Architecture notes:
 
 Portable output:
 
-- `..\portable\FnMappingTool\`
+- `..\portable\MeowBox\`

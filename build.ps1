@@ -203,23 +203,23 @@ $srcRoot = Join-Path $root 'src'
 $buildRoot = Join-Path $root 'build'
 $packageRoot = Join-Path $buildRoot 'package'
 $publishRoot = Join-Path $buildRoot 'publish'
-$packageAppRoot = Join-Path $packageRoot 'FnMappingTool'
+$packageAppRoot = Join-Path $packageRoot 'MeowBox'
 $packageWorkerRoot = Join-Path $packageAppRoot 'runtime\worker'
 $legacyPortableRoot = Join-Path $root 'portable'
 $artifactsRoot = Join-Path $root 'artifacts'
-$artifactPortableRoot = Join-Path $artifactsRoot 'FnMappingTool'
-$controllerProject = Join-Path $srcRoot 'FnMappingTool.Controller\FnMappingTool.Controller.csproj'
-$workerProject = Join-Path $srcRoot 'FnMappingTool.Worker\FnMappingTool.Worker.csproj'
-$installerProject = Join-Path $srcRoot 'FnMappingTool.Setup\FnMappingTool.Setup.wixproj'
-$generatedInstallerSource = Join-Path $srcRoot 'FnMappingTool.Setup\PortableFiles.wxs'
-$coreBuildRoot = Join-Path $buildRoot 'bin\FnMappingTool.Core'
-$controllerBuildRoot = Join-Path $buildRoot 'bin\FnMappingTool.Controller'
-$workerBuildRoot = Join-Path $buildRoot 'bin\FnMappingTool.Worker'
+$artifactPortableRoot = Join-Path $artifactsRoot 'MeowBox'
+$controllerProject = Join-Path $srcRoot 'MeowBox.Controller\MeowBox.Controller.csproj'
+$workerProject = Join-Path $srcRoot 'MeowBox.Worker\MeowBox.Worker.csproj'
+$installerProject = Join-Path $srcRoot 'MeowBox.Setup\MeowBox.Setup.wixproj'
+$generatedInstallerSource = Join-Path $srcRoot 'MeowBox.Setup\PortableFiles.wxs'
+$coreBuildRoot = Join-Path $buildRoot 'bin\MeowBox.Core'
+$controllerBuildRoot = Join-Path $buildRoot 'bin\MeowBox.Controller'
+$workerBuildRoot = Join-Path $buildRoot 'bin\MeowBox.Worker'
 $controllerPublishOutput = Join-Path $publishRoot 'controller'
 $workerPublishOutput = Join-Path $publishRoot 'worker'
-$installerOutputRoot = Join-Path $buildRoot 'bin\FnMappingTool.Setup'
-$portableZipPath = Join-Path $artifactsRoot ("FnMappingTool-portable-v{0}.zip" -f $Version)
-$msiPath = Join-Path $artifactsRoot ("FnMappingTool-setup-v{0}.msi" -f $Version)
+$installerOutputRoot = Join-Path $buildRoot 'bin\MeowBox.Setup'
+$portableZipPath = Join-Path $artifactsRoot ("MeowBox-portable-v{0}.zip" -f $Version)
+$msiPath = Join-Path $artifactsRoot ("MeowBox-setup-v{0}.msi" -f $Version)
 
 $legacyPackagingRequested = $PackageAll -or $SkipZip -or $SkipMsi
 $buildZip = $PackageAll -or $Zip -or ($legacyPackagingRequested -and -not $SkipZip)
@@ -231,8 +231,8 @@ if (-not (Test-Path $controllerProject) -or -not (Test-Path $workerProject)) {
 
 $msbuild = Get-MsBuildPath
 
-Get-Process FnMappingTool.Controller -ErrorAction SilentlyContinue | Stop-Process -Force
-Get-Process FnMappingTool.Worker -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process MeowBox.Controller -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process MeowBox.Worker -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Milliseconds 500
 
 Remove-PathIfExists $packageAppRoot
@@ -319,17 +319,17 @@ if ($buildMsi) {
     Copy-Item -LiteralPath $builtMsi.FullName -Destination $msiPath -Force
 }
 
-Remove-PathIfExists (Join-Path $srcRoot 'FnMappingTool.Controller\obj')
-Remove-PathIfExists (Join-Path $srcRoot 'FnMappingTool.Core\obj')
-Remove-PathIfExists (Join-Path $srcRoot 'FnMappingTool.Worker\obj')
-Remove-PathIfExists (Join-Path $srcRoot 'FnMappingTool.Setup\obj')
+Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Controller\obj')
+Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Core\obj')
+Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Worker\obj')
+Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Setup\obj')
 Remove-PathIfExists $generatedInstallerSource
 
 Write-Host 'Packaging mode:' ($(if ($SelfContained) { 'self-contained win-x64' } else { 'framework-dependent win-x64' }))
 Write-Host 'Package staging folder:' $packageAppRoot
 Write-Host 'Portable folder:' $artifactPortableRoot
-Write-Host 'Launcher:' (Join-Path $artifactPortableRoot 'FnMappingTool.Controller.exe')
-Write-Host 'Internal worker:' (Join-Path $artifactPortableRoot 'runtime\worker\FnMappingTool.Worker.exe')
+Write-Host 'Launcher:' (Join-Path $artifactPortableRoot 'MeowBox.Controller.exe')
+Write-Host 'Internal worker:' (Join-Path $artifactPortableRoot 'runtime\worker\MeowBox.Worker.exe')
 if ($buildZip) {
     Write-Host 'Portable zip:' $portableZipPath
 }

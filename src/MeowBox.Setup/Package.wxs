@@ -1,0 +1,70 @@
+<Wix
+  xmlns="http://wixtoolset.org/schemas/v4/wxs"
+  xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package
+    Name="Meow Box"
+    Manufacturer="Meow Box"
+    Version="$(var.ProductVersion)"
+    UpgradeCode="D69D1A6E-0297-4C76-89FB-C871BD03F540"
+    Scope="perMachine"
+    InstallerVersion="500"
+    Language="1033">
+
+    <SummaryInformation Description="Meow Box installer" Manufacturer="Meow Box" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Meow Box is already installed." />
+
+    <Icon Id="AppIcon.ico" SourceFile="..\..\assets\app\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="MeowBox" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuDir" Name="Meow Box" />
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="Meow Box" Level="1">
+      <ComponentGroupRef Id="PortableFiles" />
+      <ComponentGroupRef Id="StartMenuShortcuts" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <DirectoryRef Id="ProgramMenuDir">
+      <Component Id="StartMenuShortcutsComponent" Guid="5907B71A-2427-4619-8B8A-55F5C14F881F">
+        <Shortcut
+          Id="StartMenuAppShortcut"
+          Name="Meow Box"
+          Description="Open Meow Box"
+          Target="[INSTALLFOLDER]MeowBox.Controller.exe"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="AppIcon.ico" />
+        <Shortcut
+          Id="StartMenuUninstallShortcut"
+          Name="Uninstall Meow Box"
+          Description="Remove Meow Box"
+          Target="[System64Folder]msiexec.exe"
+          Arguments="/x [ProductCode]"
+          Icon="AppIcon.ico" />
+        <RemoveFolder Id="RemoveProgramMenuDir" On="uninstall" />
+        <RegistryValue
+          Root="HKLM"
+          Key="Software\MeowBox"
+          Name="StartMenuShortcuts"
+          Type="integer"
+          Value="1"
+          KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="StartMenuShortcuts">
+      <ComponentRef Id="StartMenuShortcutsComponent" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

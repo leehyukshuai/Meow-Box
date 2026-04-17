@@ -23,8 +23,6 @@
 *.temp
 *.cache
 *.pid
-src/FnMappingTool.Setup/PortableFiles.wxs
-assets/osd/SVG/
 
 # OS files
 Thumbs.db

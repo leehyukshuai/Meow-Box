@@ -15,20 +15,20 @@ The Worker performs runtime behavior.
 
 ## Repo layout
 
-- `src/FnMappingTool.Controller/`
+- `src/MeowBox.Controller/`
   WinUI 3 control panel
-- `src/FnMappingTool.Worker/`
+- `src/MeowBox.Worker/`
   background worker, tray, OSD, IPC host
-- `src/FnMappingTool.Core/`
+- `src/MeowBox.Core/`
   shared models, IPC contracts, config, native/system services
-- `src/FnMappingTool.Setup/`
+- `src/MeowBox.Setup/`
   WiX MSI installer project
 - `assets/`
   packaged assets and default config templates
 - `build/`
   all intermediate outputs and package staging
 - `artifacts/`
-  final distributables (`FnMappingTool/`, optional `.zip`, `.msi`)
+  final distributables (`MeowBox/`, optional `.zip`, `.msi`)
 
 Do not introduce new top-level output folders unless truly necessary.
 
@@ -50,23 +50,23 @@ The app should feel like a compact desktop utility, not an admin console.
 ### Controller
 
 Main coordinator:
-- `src/FnMappingTool.Controller/Services/FnMappingToolController.cs`
+- `src/MeowBox.Controller/Services/MeowBoxController.cs`
 
 Worker process startup:
-- `src/FnMappingTool.Controller/Services/WorkerProcessService.cs`
+- `src/MeowBox.Controller/Services/WorkerProcessService.cs`
 
 IPC client:
-- `src/FnMappingTool.Controller/Services/WorkerPipeClient.cs`
+- `src/MeowBox.Controller/Services/WorkerPipeClient.cs`
 
 ### Worker
 
 Main host:
-- `src/FnMappingTool.Worker/WorkerHost.cs`
+- `src/MeowBox.Worker/WorkerHost.cs`
 
 Support services:
-- `src/FnMappingTool.Worker/Services/WorkerPipeServer.cs`
-- `src/FnMappingTool.Worker/Services/TrayIconService.cs`
-- `src/FnMappingTool.Worker/Services/WorkerOsdService.cs`
+- `src/MeowBox.Worker/Services/WorkerPipeServer.cs`
+- `src/MeowBox.Worker/Services/TrayIconService.cs`
+- `src/MeowBox.Worker/Services/WorkerOsdService.cs`
 
 Worker execution flow:
 1. receive `InputEvent`
@@ -79,13 +79,13 @@ Worker execution flow:
 ## Config model
 
 Runtime config path:
-- `%LocalAppData%\FnMappingTool\config.json`
+- `%LocalAppData%\MeowBox\config.json`
 
 Primary model:
-- `src/FnMappingTool.Core/Models/AppConfiguration.cs`
+- `src/MeowBox.Core/Models/AppConfiguration.cs`
 
 Config service:
-- `src/FnMappingTool.Core/Services/AppConfigService.cs`
+- `src/MeowBox.Core/Services/AppConfigService.cs`
 
 Current schema centers on:
 - `Theme`
@@ -119,13 +119,13 @@ Rule:
 ## IPC / identity
 
 Named pipe:
-- `FnMappingTool.WorkerPipe`
+- `MeowBox.WorkerPipe`
 
 Autostart entry:
-- `FnMappingToolWorker`
+- `MeowBoxWorker`
 
 Single-instance mutex:
-- `FnMappingTool.Worker.SingleInstance`
+- `MeowBox.Worker.SingleInstance`
 
 ---
 
@@ -160,10 +160,10 @@ Current packaging targets:
 - optional MSI installer
 
 Packaging rules:
-- user-visible entry point is `FnMappingTool.Controller.exe`
+- user-visible entry point is `MeowBox.Controller.exe`
 - `Worker` is internal runtime payload and may be staged under a subdirectory
 - package from MSBuild `Publish` outputs
-- default `.\build.ps1` should emit `artifacts/FnMappingTool/` for fast local debugging
+- default `.\build.ps1` should emit `artifacts/MeowBox/` for fast local debugging
 - default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
 - use self-contained publish only when explicitly needed for a copy-and-run distribution
 - the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup
@@ -177,11 +177,11 @@ If you change packaging paths, update:
 
 ## Important services
 
-- `src/FnMappingTool.Core/Services/WmiEventMonitor.cs`
-- `src/FnMappingTool.Core/Services/NativeActionService.cs`
-- `src/FnMappingTool.Core/Services/AudioEndpointController.cs`
-- `src/FnMappingTool.Core/Services/InstalledAppService.cs`
-- `src/FnMappingTool.Core/Services/AutostartService.cs`
+- `src/MeowBox.Core/Services/WmiEventMonitor.cs`
+- `src/MeowBox.Core/Services/NativeActionService.cs`
+- `src/MeowBox.Core/Services/AudioEndpointController.cs`
+- `src/MeowBox.Core/Services/InstalledAppService.cs`
+- `src/MeowBox.Core/Services/AutostartService.cs`
 
 ---
 

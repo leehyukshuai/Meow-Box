@@ -1,0 +1,158 @@
+<Window
+    x:Class="MeowBox.Controller.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Meow Box">
+
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid
+            x:Name="AppTitleBar"
+            Grid.Row="0"
+            Background="{ThemeResource LayerFillColorAltBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Margin="16,0,0,0"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Border
+                    Width="38"
+                    Height="38"
+                    Background="{StaticResource ShellAccentSoftBrush}"
+                    CornerRadius="10">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe Fluent Icons"
+                        FontSize="18"
+                        Glyph="&#xE765;" />
+                </Border>
+
+                <StackPanel Spacing="0">
+                    <TextBlock
+                        x:Uid="AppTitleTextBlock"
+                        x:Name="AppTitleTextBlock"
+                        Style="{StaticResource TitleBarTitleTextBlockStyle}"
+                        Text="Meow Box" />
+                    <TextBlock
+                        x:Name="PageContextTextBlock"
+                        Style="{StaticResource TitleBarSubtitleTextBlockStyle}"
+                        Text="Keyboard" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel
+                Grid.Column="1"
+                Margin="0,0,16,0"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Border
+                    x:Name="ServiceStatusBadge"
+                    Style="{StaticResource BadgeBorderStyle}">
+                    <StackPanel
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <Grid
+                            Width="16"
+                            Height="16"
+                            VerticalAlignment="Center">
+                            <Ellipse
+                                x:Name="ServiceStatusGlow"
+                                Width="16"
+                                Height="16"
+                                Fill="#00000000" />
+                            <Ellipse
+                                x:Name="ServiceStatusHalo"
+                                Width="10"
+                                Height="10"
+                                Fill="#FF4A4A4A" />
+                            <Ellipse
+                                x:Name="ServiceStatusCore"
+                                Width="6"
+                                Height="6"
+                                Fill="#FF707070" />
+                        </Grid>
+                        <TextBlock
+                            x:Name="ServiceStatusTextBlock"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="Service stopped" />
+                    </StackPanel>
+                </Border>
+
+                <Button
+                    x:Name="QuickServiceButton"
+                    Click="OnQuickServiceButtonClick"
+                    Style="{StaticResource AccentButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE768;" />
+                        <TextBlock x:Name="QuickServiceButtonTextBlock" Text="Start service" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <Border
+                Grid.ColumnSpan="2"
+                VerticalAlignment="Bottom"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1" />
+        </Grid>
+
+        <NavigationView
+            x:Name="ShellNavigationView"
+            Grid.Row="1"
+            AlwaysShowHeader="False"
+            CompactModeThresholdWidth="900"
+            CompactPaneLength="48"
+            ExpandedModeThresholdWidth="1240"
+            IsBackButtonVisible="Collapsed"
+            IsPaneVisible="True"
+            IsPaneToggleButtonVisible="True"
+            IsSettingsVisible="False"
+            OpenPaneLength="200"
+            PaneDisplayMode="Left"
+            SelectionChanged="OnNavigationSelectionChanged">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    x:Uid="MappingsItem"
+                    x:Name="MappingsItem"
+                    Content="Keyboard"
+                    Tag="keyboard">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE765;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="TouchpadItem"
+                    Content="Touchpad"
+                    Tag="touchpad">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xEFA5;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="SettingsItem"
+                    Content="Settings"
+                    Icon="Setting"
+                    Tag="settings" />
+            </NavigationView.MenuItems>
+
+            <Frame x:Name="ContentFrame" />
+        </NavigationView>
+    </Grid>
+</Window>
