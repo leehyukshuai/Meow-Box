@@ -1,3 +1,5 @@
+using MeowBox.Core.Services;
+
 namespace MeowBox.Core.Models;
 
 public sealed class BatteryControlState
@@ -53,12 +55,12 @@ public static class BatteryControlCatalog
     {
         return modeKey.ToLowerInvariant() switch
         {
-            Battery => LocalizedText.Pick("Battery saver", "省电"),
-            Silent => LocalizedText.Pick("Silent", "静谧"),
-            Smart => LocalizedText.Pick("Smart", "智能"),
-            Turbo => LocalizedText.Pick("Turbo", "极速"),
-            Beast => LocalizedText.Pick("Beast", "狂暴"),
-            _ => LocalizedText.Pick("Unknown", "未知")
+            Battery => ResourceStringService.GetString("Osd.Title.PerformanceBatterySaver", "Battery saver"),
+            Silent => ResourceStringService.GetString("Osd.Title.PerformanceSilent", "Silent"),
+            Smart => ResourceStringService.GetString("Osd.Title.PerformanceSmart", "Smart"),
+            Turbo => ResourceStringService.GetString("Osd.Title.PerformanceTurbo", "Turbo"),
+            Beast => ResourceStringService.GetString("Osd.Title.PerformanceBeast", "Beast"),
+            _ => ResourceStringService.GetString("Osd.Title.PerformanceUnknown", "Unknown")
         };
     }
 

@@ -43,11 +43,11 @@ public partial class App : Application
         try
         {
             var storedPreference = new AppConfigService().GetStoredLanguagePreference();
-            AppLanguageService.Apply(storedPreference);
+            Services.AppLanguageService.Apply(storedPreference);
         }
         catch
         {
-            AppLanguageService.Apply(null);
+            Services.AppLanguageService.Apply(null);
         }
     }
 

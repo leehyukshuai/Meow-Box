@@ -276,6 +276,63 @@
   <data name="OsdTitleBlock.Text" xml:space="preserve">
     <value>OSD</value>
   </data>
+  <data name="Osd.Title.FnLockOn" xml:space="preserve">
+    <value>Fn lock on</value>
+  </data>
+  <data name="Osd.Title.FnLockOff" xml:space="preserve">
+    <value>Fn lock off</value>
+  </data>
+  <data name="Osd.Title.FnLock" xml:space="preserve">
+    <value>Fn lock</value>
+  </data>
+  <data name="Osd.Title.CapsLockOn" xml:space="preserve">
+    <value>Caps lock on</value>
+  </data>
+  <data name="Osd.Title.CapsLockOff" xml:space="preserve">
+    <value>Caps lock off</value>
+  </data>
+  <data name="Osd.Title.CapsLock" xml:space="preserve">
+    <value>Caps lock</value>
+  </data>
+  <data name="Osd.Title.MicrophoneOff" xml:space="preserve">
+    <value>Microphone off</value>
+  </data>
+  <data name="Osd.Title.MicrophoneOn" xml:space="preserve">
+    <value>Microphone on</value>
+  </data>
+  <data name="Osd.Title.BacklightOff" xml:space="preserve">
+    <value>Backlight off</value>
+  </data>
+  <data name="Osd.Title.BacklightLow" xml:space="preserve">
+    <value>Backlight low</value>
+  </data>
+  <data name="Osd.Title.BacklightHigh" xml:space="preserve">
+    <value>Backlight high</value>
+  </data>
+  <data name="Osd.Title.BacklightAuto" xml:space="preserve">
+    <value>Backlight auto</value>
+  </data>
+  <data name="Osd.Title.KeyboardBacklight" xml:space="preserve">
+    <value>Keyboard backlight</value>
+  </data>
+  <data name="Osd.Title.PerformanceBatterySaver" xml:space="preserve">
+    <value>Battery-saver Mode</value>
+  </data>
+  <data name="Osd.Title.PerformanceSilent" xml:space="preserve">
+    <value>Silent Mode</value>
+  </data>
+  <data name="Osd.Title.PerformanceSmart" xml:space="preserve">
+    <value>Smart Mode</value>
+  </data>
+  <data name="Osd.Title.PerformanceTurbo" xml:space="preserve">
+    <value>Turbo Mode</value>
+  </data>
+  <data name="Osd.Title.PerformanceBeast" xml:space="preserve">
+    <value>Beast Mode</value>
+  </data>
+  <data name="Osd.Title.PerformanceUnknown" xml:space="preserve">
+    <value>Unknown Mode</value>
+  </data>
   <data name="OsdDescriptionText.Text" xml:space="preserve">
     <value>Optionally show an OSD when this mapping runs.</value>
   </data>

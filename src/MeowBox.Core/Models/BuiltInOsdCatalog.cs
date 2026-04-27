@@ -1,3 +1,5 @@
+using MeowBox.Core.Services;
+
 namespace MeowBox.Core.Models;
 
 public readonly record struct BuiltInOsdDefinition(string Title, string? AssetKey);
@@ -28,8 +30,8 @@ public static class BuiltInOsdCatalog
         {
             DefaultKeyIds.FnLockToggle => ResolveFnLock(reportHex),
             DefaultKeyIds.CapsLockToggle => ResolveCapsLock(reportHex),
-            DefaultKeyIds.MicrophoneMuteOn => new BuiltInOsdDefinition(LocalizedText.Pick("Microphone off", "麦克风已关闭"), BuiltInOsdAsset.MicrophoneMute),
-            DefaultKeyIds.MicrophoneMuteOff => new BuiltInOsdDefinition(LocalizedText.Pick("Microphone on", "麦克风已开启"), BuiltInOsdAsset.MicrophoneOn),
+            DefaultKeyIds.MicrophoneMuteOn => new BuiltInOsdDefinition(GetString("Osd.Title.MicrophoneOff", "Microphone off"), BuiltInOsdAsset.MicrophoneMute),
+            DefaultKeyIds.MicrophoneMuteOff => new BuiltInOsdDefinition(GetString("Osd.Title.MicrophoneOn", "Microphone on"), BuiltInOsdAsset.MicrophoneOn),
             DefaultKeyIds.BacklightCycle => ResolveBacklight(reportHex),
             _ => null
         };
@@ -40,10 +42,10 @@ public static class BuiltInOsdCatalog
         return NormalizeHex(reportHex) switch
         {
             var value when value.StartsWith("010701", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Fn lock on", "Fn 锁定已开启"), BuiltInOsdAsset.FnLock),
+                => new BuiltInOsdDefinition(GetString("Osd.Title.FnLockOn", "Fn lock on"), BuiltInOsdAsset.FnLock),
             var value when value.StartsWith("010700", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Fn lock off", "Fn 锁定已关闭"), BuiltInOsdAsset.FnUnlock),
-            _ => new BuiltInOsdDefinition(LocalizedText.Pick("Fn lock", "Fn 锁定"), BuiltInOsdAsset.FnLock)
+                => new BuiltInOsdDefinition(GetString("Osd.Title.FnLockOff", "Fn lock off"), BuiltInOsdAsset.FnUnlock),
+            _ => new BuiltInOsdDefinition(GetString("Osd.Title.FnLock", "Fn lock"), BuiltInOsdAsset.FnLock)
         };
     }
 
@@ -52,10 +54,10 @@ public static class BuiltInOsdCatalog
         return NormalizeHex(reportHex) switch
         {
             var value when value.StartsWith("010901", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Caps lock on", "大写锁定已开启"), BuiltInOsdAsset.CapsLock),
+                => new BuiltInOsdDefinition(GetString("Osd.Title.CapsLockOn", "Caps lock on"), BuiltInOsdAsset.CapsLock),
             var value when value.StartsWith("010900", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Caps lock off", "大写锁定已关闭"), BuiltInOsdAsset.CapsUnlock),
-            _ => new BuiltInOsdDefinition(LocalizedText.Pick("Caps lock", "大写锁定"), BuiltInOsdAsset.CapsLock)
+                => new BuiltInOsdDefinition(GetString("Osd.Title.CapsLockOff", "Caps lock off"), BuiltInOsdAsset.CapsUnlock),
+            _ => new BuiltInOsdDefinition(GetString("Osd.Title.CapsLock", "Caps lock"), BuiltInOsdAsset.CapsLock)
         };
     }
 
@@ -64,15 +66,20 @@ public static class BuiltInOsdCatalog
         return NormalizeHex(reportHex) switch
         {
             var value when value.StartsWith("010500", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Backlight off", "键盘背光已关闭"), BuiltInOsdAsset.BacklightOff),
+                => new BuiltInOsdDefinition(GetString("Osd.Title.BacklightOff", "Backlight off"), BuiltInOsdAsset.BacklightOff),
             var value when value.StartsWith("010505", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Backlight low", "键盘背光低档"), BuiltInOsdAsset.BacklightLow),
+                => new BuiltInOsdDefinition(GetString("Osd.Title.BacklightLow", "Backlight low"), BuiltInOsdAsset.BacklightLow),
             var value when value.StartsWith("01050A", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Backlight high", "键盘背光高档"), BuiltInOsdAsset.BacklightHigh),
+                => new BuiltInOsdDefinition(GetString("Osd.Title.BacklightHigh", "Backlight high"), BuiltInOsdAsset.BacklightHigh),
             var value when value.StartsWith("010580", StringComparison.OrdinalIgnoreCase)
-                => new BuiltInOsdDefinition(LocalizedText.Pick("Backlight auto", "键盘背光自动"), BuiltInOsdAsset.BacklightAuto),
-            _ => new BuiltInOsdDefinition(LocalizedText.Pick("Keyboard backlight", "键盘背光"), BuiltInOsdAsset.BacklightAuto)
+                => new BuiltInOsdDefinition(GetString("Osd.Title.BacklightAuto", "Backlight auto"), BuiltInOsdAsset.BacklightAuto),
+            _ => new BuiltInOsdDefinition(GetString("Osd.Title.KeyboardBacklight", "Keyboard backlight"), BuiltInOsdAsset.BacklightAuto)
         };
+    }
+
+    private static string GetString(string key, string fallback)
+    {
+        return ResourceStringService.GetString(key, fallback);
     }
 
     private static string NormalizeHex(string? value)

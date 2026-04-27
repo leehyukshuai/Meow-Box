@@ -273,6 +273,63 @@
   <data name="OsdTitleBlock.Text" xml:space="preserve">
     <value>OSD</value>
   </data>
+  <data name="Osd.Title.FnLockOn" xml:space="preserve">
+    <value>Fn锁定</value>
+  </data>
+  <data name="Osd.Title.FnLockOff" xml:space="preserve">
+    <value>Fn解锁</value>
+  </data>
+  <data name="Osd.Title.FnLock" xml:space="preserve">
+    <value>Fn 锁定</value>
+  </data>
+  <data name="Osd.Title.CapsLockOn" xml:space="preserve">
+    <value>大写输入</value>
+  </data>
+  <data name="Osd.Title.CapsLockOff" xml:space="preserve">
+    <value>小写输入</value>
+  </data>
+  <data name="Osd.Title.CapsLock" xml:space="preserve">
+    <value>大写锁定</value>
+  </data>
+  <data name="Osd.Title.MicrophoneOff" xml:space="preserve">
+    <value>麦克风静音</value>
+  </data>
+  <data name="Osd.Title.MicrophoneOn" xml:space="preserve">
+    <value>麦克风开启</value>
+  </data>
+  <data name="Osd.Title.BacklightOff" xml:space="preserve">
+    <value>关闭背光</value>
+  </data>
+  <data name="Osd.Title.BacklightLow" xml:space="preserve">
+    <value>较弱背光</value>
+  </data>
+  <data name="Osd.Title.BacklightHigh" xml:space="preserve">
+    <value>较强背光</value>
+  </data>
+  <data name="Osd.Title.BacklightAuto" xml:space="preserve">
+    <value>自动背光</value>
+  </data>
+  <data name="Osd.Title.KeyboardBacklight" xml:space="preserve">
+    <value>键盘背光</value>
+  </data>
+  <data name="Osd.Title.PerformanceBatterySaver" xml:space="preserve">
+    <value>省电模式</value>
+  </data>
+  <data name="Osd.Title.PerformanceSilent" xml:space="preserve">
+    <value>静谧模式</value>
+  </data>
+  <data name="Osd.Title.PerformanceSmart" xml:space="preserve">
+    <value>智能模式</value>
+  </data>
+  <data name="Osd.Title.PerformanceTurbo" xml:space="preserve">
+    <value>极速模式</value>
+  </data>
+  <data name="Osd.Title.PerformanceBeast" xml:space="preserve">
+    <value>狂暴模式</value>
+  </data>
+  <data name="Osd.Title.PerformanceUnknown" xml:space="preserve">
+    <value>未知模式</value>
+  </data>
   <data name="OsdDescriptionText.Text" xml:space="preserve">
     <value>可选：在此映射运行时显示 OSD。</value>
   </data>

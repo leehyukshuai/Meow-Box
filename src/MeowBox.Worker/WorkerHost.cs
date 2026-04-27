@@ -319,6 +319,7 @@ internal sealed class WorkerHost : IDisposable
     private void LoadConfiguration()
     {
         _configuration = _configService.Load();
+        AppLanguageService.Apply(_configuration.Preferences.Language);
         RebuildRuntimeMappings();
         _nativeActionService.ReleaseBrightnessAdjustment();
         _touchpadInputService.UpdateConfiguration(_configuration.Touchpad);
