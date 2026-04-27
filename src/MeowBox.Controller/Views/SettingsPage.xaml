@@ -83,7 +83,7 @@
                         <TextBlock x:Uid="AppearanceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
 
                         <ComboBox x:Uid="ThemeComboBox" x:Name="ThemeComboBox" Header="Theme" SelectionChanged="OnThemeSelectionChanged">
-                            <ComboBoxItem x:Uid="ThemeSystemItem" Content="System" Tag="System" />
+                            <ComboBoxItem x:Uid="ThemeSystemItem" Content="Use system theme" Tag="System" />
                             <ComboBoxItem x:Uid="ThemeLightItem" Content="Light" Tag="Light" />
                             <ComboBoxItem x:Uid="ThemeDarkItem" Content="Dark" Tag="Dark" />
                         </ComboBox>
