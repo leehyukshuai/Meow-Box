@@ -24,7 +24,11 @@ public sealed partial class SettingsPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SyncState();
-        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            XamlStringLocalizer.Apply(this);
+            ApplyExplicitLocalizedLabels();
+        });
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -50,6 +54,7 @@ public sealed partial class SettingsPage : Page
     private void SyncState()
     {
         _isLoading = true;
+        ApplyExplicitLocalizedLabels();
         SelectComboItem(ThemeComboBox, Controller.ThemePreference);
         SelectComboItem(LanguageComboBox, Controller.LanguagePreference);
         SelectComboItem(OsdDisplayModeComboBox, Controller.OsdDisplayMode);
@@ -62,6 +67,12 @@ public sealed partial class SettingsPage : Page
         ConfigPathTextBox.Text = Controller.ConfigPath;
         SupportedDeviceNameTextBlock.Text = Controller.SupportedDeviceName;
         _isLoading = false;
+    }
+
+    private void ApplyExplicitLocalizedLabels()
+    {
+        ThemeSystemItem.Content = LocalizedText.Pick("Use system theme", "跟随系统");
+        LanguageSystemItem.Content = LocalizedText.Pick("Use system language", "跟随系统");
     }
 
     private void ApplyOsdSettingsFromControls()

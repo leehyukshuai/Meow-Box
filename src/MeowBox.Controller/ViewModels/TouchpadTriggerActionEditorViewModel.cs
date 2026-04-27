@@ -77,7 +77,7 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
                 return;
             }
 
-            Action.ClearAssignment();
+            Action.Type = HotkeyActionType.None;
         }
     }
 
@@ -91,7 +91,6 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
                 return;
             }
 
-            Action.ClearAssignment();
             Action.Type = HotkeyActionType.VolumeUp;
         }
     }
@@ -106,10 +105,15 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
                 return;
             }
 
-            Action.ClearAssignment();
             Action.Type = HotkeyActionType.BrightnessUp;
         }
     }
+
+    public string EdgeSlideMappingOffLabel => LocalizedText.Pick("Disable mapping", "关闭映射");
+
+    public string EdgeSlideMappingVolumeLabel => LocalizedText.Pick("Adjust volume", "调节音量");
+
+    public string EdgeSlideMappingBrightnessLabel => LocalizedText.Pick("Adjust brightness", "调节亮度");
 
     private string GetEdgeSlideMappingLabel()
     {

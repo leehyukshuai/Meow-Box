@@ -54,9 +54,9 @@
                         <StackPanel
                             Spacing="10"
                             Visibility="{Binding SimpleEdgeSlideMappingVisibility}">
-                            <RadioButton Content="关闭映射" IsChecked="{Binding IsEdgeSlideMappingOff, Mode=TwoWay}" />
-                            <RadioButton Content="调节音量" IsChecked="{Binding IsEdgeSlideMappingVolume, Mode=TwoWay}" />
-                            <RadioButton Content="调节亮度" IsChecked="{Binding IsEdgeSlideMappingBrightness, Mode=TwoWay}" />
+                            <RadioButton Content="{Binding EdgeSlideMappingOffLabel}" IsChecked="{Binding IsEdgeSlideMappingOff, Mode=TwoWay}" />
+                            <RadioButton Content="{Binding EdgeSlideMappingVolumeLabel}" IsChecked="{Binding IsEdgeSlideMappingVolume, Mode=TwoWay}" />
+                            <RadioButton Content="{Binding EdgeSlideMappingBrightnessLabel}" IsChecked="{Binding IsEdgeSlideMappingBrightness, Mode=TwoWay}" />
                         </StackPanel>
                     </StackPanel>
 

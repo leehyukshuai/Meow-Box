@@ -83,14 +83,14 @@
                         <TextBlock x:Uid="AppearanceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
 
                         <ComboBox x:Uid="ThemeComboBox" x:Name="ThemeComboBox" Header="Theme" SelectionChanged="OnThemeSelectionChanged">
-                            <ComboBoxItem x:Uid="ThemeSystemItem" Content="Use system theme" Tag="System" />
+                            <ComboBoxItem x:Uid="ThemeSystemItem" x:Name="ThemeSystemItem" Content="Use system theme" Tag="System" />
                             <ComboBoxItem x:Uid="ThemeLightItem" Content="Light" Tag="Light" />
                             <ComboBoxItem x:Uid="ThemeDarkItem" Content="Dark" Tag="Dark" />
                         </ComboBox>
 
                         <StackPanel Spacing="4">
                             <ComboBox x:Uid="LanguageComboBox" x:Name="LanguageComboBox" Header="Language" SelectionChanged="OnLanguageSelectionChanged">
-                                <ComboBoxItem x:Uid="LanguageSystemItem" Content="Use system language" Tag="System" />
+                                <ComboBoxItem x:Uid="LanguageSystemItem" x:Name="LanguageSystemItem" Content="Use system language" Tag="System" />
                                 <ComboBoxItem x:Uid="LanguageEnglishItem" Content="English" Tag="English" />
                                 <ComboBoxItem x:Uid="LanguageChineseItem" Content="Chinese" Tag="Chinese" />
                             </ComboBox>
