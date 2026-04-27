@@ -194,7 +194,13 @@ Single-instance mutex:
 
 ## Build and packaging
 
-Primary command:
+Primary local debug command:
+
+```powershell
+dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
+```
+
+Packaging / scripted build command:
 
 ```powershell
 .\build.ps1
@@ -202,11 +208,14 @@ Primary command:
 
 Expected outputs:
 - local runnable binaries under `build/bin/MeowBox/`
+- internal worker runtime under `build/bin/MeowBox/runtime/worker/`
+- hidden/shared intermediate outputs under `build/obj/`
 - packaging staging under `build/`
 - final distributables under `artifacts/` when packaging is requested
 
 Keep project files simple.
-Do not reintroduce `Directory.Build.props` just to relocate transient `obj/` folders; the packaging script already cleans those after a build.
+Keep all transient/intermediate outputs under `build/obj/` via `Directory.Build.props`.
+Do not let `src/*/obj` reappear.
 
 Current packaging targets:
 - portable folder
@@ -216,11 +225,20 @@ Current packaging targets:
 Packaging rules:
 - user-visible entry point is `MeowBox.Controller.exe`
 - `Worker` is internal runtime payload and may be staged under a subdirectory
+- local runnable layout should stay unified:
+  - `build/bin/MeowBox/`
+  - `build/bin/MeowBox/runtime/worker/`
+- `MeowBox.Core` should not create a visible standalone app folder under `build/bin/`; keep its direct output hidden under `build/obj/`
 - package from MSBuild `Publish` outputs
 - normal local debugging should work directly from `build/bin/MeowBox/`
-- default `.\build.ps1` should refresh the local runnable build under `build/bin/MeowBox/`
+- `dotnet build` on `MeowBox.Controller` should also produce the local worker runtime payload
+- default `.\build.ps1` should refresh the local runnable Release build under `build/bin/MeowBox/`
 - only packaging modes should emit `artifacts/MeowBox/`, `.zip`, or `.msi`
 - default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
+- `build.ps1` only exposes these public switches:
+  - `-Version`
+  - `-Zip`
+  - `-Msi`
 - the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup
 
 If you change packaging paths, update:
