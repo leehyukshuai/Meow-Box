@@ -14,8 +14,6 @@ public static class ActionTag
     public const string Application = "application";
 }
 
-public sealed record ChoiceOption(string Key, string Label);
-
 public sealed record ActionTagOption(string Key, string Label);
 
 public sealed class ActionOption
@@ -40,22 +38,6 @@ public sealed class ActionOption
     public IReadOnlyList<string> Tags { get; }
 
     public string TagsText => string.Join(" · ", Tags.Select(ActionCatalog.GetTagLabel));
-}
-
-public sealed class IconAssetOption
-{
-    public IconAssetOption(string key, string label, string iconGlyph)
-    {
-        Key = key;
-        Label = label;
-        IconGlyph = iconGlyph;
-    }
-
-    public string Key { get; }
-
-    public string Label { get; }
-
-    public string IconGlyph { get; }
 }
 
 public static class ActionCatalog
@@ -204,14 +186,4 @@ public static class MappingDisplayCatalog
 
         return osdEnabled ? OsdIconGlyph : ActionCatalog.NoActionIconGlyph;
     }
-}
-
-public static class IconAssetCatalog
-{
-    public static IReadOnlyList<ChoiceOption> OsdDisplayModes { get; } =
-    [
-        new(OsdDisplayMode.IconAndText, ResourceStringService.GetString("OsdDisplayMode.IconAndTitle", "Icon + title")),
-        new(OsdDisplayMode.IconOnly, ResourceStringService.GetString("OsdDisplayMode.IconOnly", "Icon only")),
-        new(OsdDisplayMode.TextOnly, ResourceStringService.GetString("OsdDisplayMode.TextOnly", "Title only"))
-    ];
 }
