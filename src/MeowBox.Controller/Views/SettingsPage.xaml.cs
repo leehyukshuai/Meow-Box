@@ -15,7 +15,6 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
-        XamlStringLocalizer.Apply(this);
         DataContext = Controller;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -35,14 +34,10 @@ public sealed partial class SettingsPage : Page
 
     private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(MeowBoxController.ServiceRunning) or
-            nameof(MeowBoxController.AutostartEnabled) or
-            nameof(MeowBoxController.PriorityStartupEnabled) or
-            nameof(MeowBoxController.PriorityStartupBusy) or
+        if (e.PropertyName is nameof(MeowBoxController.ServiceState) or
+            nameof(MeowBoxController.ServiceRunning) or
             nameof(MeowBoxController.LanguagePreference) or
             nameof(MeowBoxController.TrayIconEnabled) or
-            nameof(MeowBoxController.TouchpadLightPressThreshold) or
-            nameof(MeowBoxController.TouchpadLongPressDurationMs) or
             nameof(MeowBoxController.OsdDurationMs) or
             nameof(MeowBoxController.OsdDisplayMode) or
             nameof(MeowBoxController.OsdBackgroundOpacityPercent) or
@@ -58,20 +53,12 @@ public sealed partial class SettingsPage : Page
         SelectComboItem(ThemeComboBox, Controller.ThemePreference);
         SelectComboItem(LanguageComboBox, Controller.LanguagePreference);
         SelectComboItem(OsdDisplayModeComboBox, Controller.OsdDisplayMode);
-        ServiceToggleSwitch.IsOn = Controller.ServiceRunning;
-        AutostartToggleSwitch.IsOn = Controller.AutostartEnabled;
-        AutostartToggleSwitch.IsEnabled = !Controller.PriorityStartupBusy;
-        PriorityStartupToggleSwitch.IsOn = Controller.PriorityStartupEnabled;
-        PriorityStartupToggleSwitch.IsEnabled = Controller.AutostartEnabled && !Controller.PriorityStartupBusy;
-        PriorityStartupProgressRing.IsActive = Controller.PriorityStartupBusy;
-        PriorityStartupBusyPanel.Visibility = Controller.PriorityStartupBusy ? Visibility.Visible : Visibility.Collapsed;
+        ServiceToggleSwitch.IsOn = Controller.ServiceState is WorkerServiceState.Running or WorkerServiceState.Starting or WorkerServiceState.Stopping;
+        ServiceToggleSwitch.IsEnabled = Controller.ServiceState is not WorkerServiceState.Starting and not WorkerServiceState.Stopping;
         TrayIconToggleSwitch.IsOn = Controller.TrayIconEnabled;
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
-        TouchpadLightPressThresholdNumberBox.Value = Controller.TouchpadLightPressThreshold;
-        TouchpadLongPressDurationNumberBox.Value = Controller.TouchpadLongPressDurationMs;
-        OsdIconFolderTextBox.Text = Controller.OsdIconDirectory;
         ConfigPathTextBox.Text = Controller.ConfigPath;
         SupportedDeviceNameTextBlock.Text = Controller.SupportedDeviceName;
         _isLoading = false;
@@ -136,18 +123,6 @@ public sealed partial class SettingsPage : Page
         ApplyOsdSettingsFromControls();
     }
 
-    private void OnTouchpadNumberValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-    {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        Controller.ApplyTouchpadPreferences(
-            (int)Math.Round(Math.Clamp(TouchpadLightPressThresholdNumberBox.Value, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1)),
-            (int)Math.Round(Math.Clamp(TouchpadLongPressDurationNumberBox.Value, 200, 3000)));
-    }
-
     private async void OnServiceStateChanged(object sender, RoutedEventArgs e)
     {
         if (_isLoading)
@@ -172,42 +147,6 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private async void OnAutostartChanged(object sender, RoutedEventArgs e)
-    {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        try
-        {
-            Controller.SetAutostart(AutostartToggleSwitch.IsOn);
-        }
-        catch (Exception exception)
-        {
-            await ShowMessageAsync(Localizer.GetString("Settings.Messages.AutostartFailed.Title"), exception.Message);
-            SyncState();
-        }
-    }
-
-    private async void OnPriorityStartupChanged(object sender, RoutedEventArgs e)
-    {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        try
-        {
-            await Controller.SetPriorityStartupEnabledAsync(PriorityStartupToggleSwitch.IsOn);
-        }
-        catch (Exception exception)
-        {
-            await ShowMessageAsync(Localizer.GetString("Settings.Messages.PriorityFailed.Title"), exception.Message);
-            SyncState();
-        }
-    }
-
     private void OnTrayIconChanged(object sender, RoutedEventArgs e)
     {
         if (_isLoading)
@@ -216,17 +155,6 @@ public sealed partial class SettingsPage : Page
         }
 
         Controller.SetTrayIconEnabled(TrayIconToggleSwitch.IsOn);
-    }
-
-    private void OnOpenOsdIconFolderClick(object sender, RoutedEventArgs e)
-    {
-        Controller.OpenOsdIconFolder();
-    }
-
-    private void OnRefreshOsdIconFolderClick(object sender, RoutedEventArgs e)
-    {
-        Controller.RefreshOsdIconCatalog();
-        SyncState();
     }
 
     private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)

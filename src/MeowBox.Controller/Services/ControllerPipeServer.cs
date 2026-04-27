@@ -1,21 +1,21 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
 using System.Text.Json;
 using MeowBox.Core.Contracts;
 
-namespace MeowBox.Worker.Services;
+namespace MeowBox.Controller.Services;
 
-internal sealed class WorkerPipeServer : IDisposable
+internal sealed class ControllerPipeServer : IDisposable
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    private readonly Func<WorkerRequest, Task<WorkerResponse>> _handler;
+    private readonly Func<WorkerNotification, Task> _handler;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly List<Task> _connections = new();
+    private readonly List<Task> _connections = [];
 
-    public WorkerPipeServer(Func<WorkerRequest, Task<WorkerResponse>> handler)
+    public ControllerPipeServer(Func<WorkerNotification, Task> handler)
     {
         _handler = handler;
         _ = AcceptLoopAsync(_cancellationTokenSource.Token);
@@ -38,14 +38,14 @@ internal sealed class WorkerPipeServer : IDisposable
         while (!cancellationToken.IsCancellationRequested)
         {
             var server = NamedPipeServerStreamAcl.Create(
-                WorkerPipeConstants.PipeName,
+                ControllerPipeConstants.PipeName,
                 PipeDirection.InOut,
                 NamedPipeServerStream.MaxAllowedServerInstances,
                 PipeTransmissionMode.Byte,
                 PipeOptions.Asynchronous,
                 0,
                 0,
-                PipeSecurityFactory.Create());
+                ControllerPipeSecurityFactory.Create());
 
             try
             {
@@ -72,28 +72,24 @@ internal sealed class WorkerPipeServer : IDisposable
         using var reader = new StreamReader(stream);
         await using var writer = new StreamWriter(stream) { AutoFlush = true };
 
-        var requestJson = await reader.ReadLineAsync(cancellationToken);
-        if (string.IsNullOrWhiteSpace(requestJson))
+        var payload = await reader.ReadLineAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(payload))
         {
             return;
         }
 
-        WorkerResponse response;
+        var ack = new WorkerNotificationAck { Success = true };
         try
         {
-            var request = JsonSerializer.Deserialize<WorkerRequest>(requestJson, JsonOptions) ?? new WorkerRequest();
-            response = await _handler(request);
+            var notification = JsonSerializer.Deserialize<WorkerNotification>(payload, JsonOptions) ?? new WorkerNotification();
+            await _handler(notification);
         }
-        catch (Exception exception)
+        catch
         {
-            response = new WorkerResponse
-            {
-                Success = false,
-                Error = exception.Message
-            };
+            ack.Success = false;
         }
 
-        var responseJson = JsonSerializer.Serialize(response, JsonOptions);
-        await writer.WriteLineAsync(responseJson);
+        var response = JsonSerializer.Serialize(ack, JsonOptions);
+        await writer.WriteLineAsync(response);
     }
 }

@@ -1,9 +1,7 @@
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using MeowBox.Controller.Models;
 using MeowBox.Controller.Services;
 using MeowBox.Controller.ViewModels;
 using MeowBox.Core.Models;
@@ -14,17 +12,13 @@ namespace MeowBox.Controller.Views;
 
 public sealed partial class MappingsPage : Page
 {
-    private bool _isRefreshingOsdIcons;
     private ActionDefinitionViewModel? _subscribedAction;
 
     public MeowBoxController Controller => App.Controller;
 
-    public ObservableCollection<OsdIconFileEntry> OsdIconFiles { get; } = [];
-
     public MappingsPage()
     {
         InitializeComponent();
-        XamlStringLocalizer.Apply(this);
         DataContext = Controller;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -35,7 +29,6 @@ public sealed partial class MappingsPage : Page
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Controller.MappingItems.CollectionChanged += OnMappingItemsCollectionChanged;
         SubscribeToSelectedMappingAction();
-        RefreshOsdIcons();
         UpdateEmptyStates();
         DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
@@ -84,47 +77,6 @@ public sealed partial class MappingsPage : Page
             nameof(ActionDefinitionViewModel.ModifierSelectionSignature))
         {
             TrySaveMappingAsync();
-        }
-    }
-
-    private void RefreshOsdIcons()
-    {
-        _isRefreshingOsdIcons = true;
-        try
-        {
-            Controller.RefreshOsdIconCatalog();
-            var selectedPath = Controller.SelectedMapping?.Osd.IconPath;
-
-            OsdIconFiles.Clear();
-            OsdIconFiles.Add(new OsdIconFileEntry
-            {
-                DisplayName = Localizer.GetString("Mappings.NoIcon"),
-                RelativePath = string.Empty
-            });
-
-            Directory.CreateDirectory(Controller.OsdIconDirectory);
-            foreach (var file in Directory.GetFiles(Controller.OsdIconDirectory, "*.png", SearchOption.AllDirectories)
-                         .OrderBy(static file => Path.GetRelativePath(App.Controller.OsdIconDirectory, file), StringComparer.OrdinalIgnoreCase))
-            {
-                var relativePath = Path.GetRelativePath(Controller.OsdIconDirectory, file);
-                OsdIconFiles.Add(new OsdIconFileEntry
-                {
-                    DisplayName = Path.ChangeExtension(relativePath, null) ?? relativePath,
-                    RelativePath = relativePath
-                });
-            }
-
-            OsdIconComboBox.ItemsSource = OsdIconFiles;
-
-            var matchedItem = OsdIconFiles.FirstOrDefault(item =>
-                string.Equals(item.RelativePath, selectedPath, StringComparison.OrdinalIgnoreCase));
-            OsdIconComboBox.SelectedItem = matchedItem
-                ?? OsdIconFiles.FirstOrDefault(item => string.IsNullOrWhiteSpace(item.RelativePath))
-                ?? OsdIconFiles.FirstOrDefault();
-        }
-        finally
-        {
-            _isRefreshingOsdIcons = false;
         }
     }
 
@@ -231,26 +183,6 @@ public sealed partial class MappingsPage : Page
         TrySaveMappingAsync();
     }
 
-    private void OnMappingEditorSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (Controller.IsReloadingConfiguration)
-        {
-            return;
-        }
-
-        if (!ReferenceEquals(sender, OsdIconComboBox) || _isRefreshingOsdIcons)
-        {
-            return;
-        }
-
-        if (Controller.SelectedMapping is not null)
-        {
-            Controller.SelectedMapping.Osd.IconPath = (OsdIconComboBox.SelectedItem as OsdIconFileEntry)?.RelativePath ?? string.Empty;
-        }
-
-        TrySaveMappingAsync();
-    }
-
     private void OnMappingEnabledChanged(object sender, RoutedEventArgs e)
     {
         if (Controller.IsReloadingConfiguration || Controller.SelectedMapping is null)
@@ -268,15 +200,6 @@ public sealed partial class MappingsPage : Page
             return;
         }
 
-        if (Controller.SelectedMapping.Osd.Enabled)
-        {
-            var fallbackTitle = Controller.SelectedMapping.Action.HasAssignedAction
-                ? Controller.SelectedMapping.Action.ActionLabel
-                : MappingDisplayCatalog.ShowOsdLabel;
-            Controller.SelectedMapping.Osd.EnsureDefaultTitle(fallbackTitle);
-        }
-
-        RefreshOsdIcons();
         TrySaveMappingAsync();
     }
 
@@ -304,7 +227,6 @@ public sealed partial class MappingsPage : Page
             DispatcherQueue.TryEnqueue(() =>
             {
                 SubscribeToSelectedMappingAction();
-                RefreshOsdIcons();
                 UpdateEmptyStates();
                 XamlStringLocalizer.Apply(this);
             });

@@ -202,7 +202,8 @@ public sealed class AppConfigService
     private static AppConfiguration NormalizeConfiguration(AppConfiguration? configuration, string? baseDirectory)
     {
         configuration ??= new AppConfiguration();
-        var supported = SupportedDeviceConfiguration.CreateDefault();
+        var supportedKeys = SupportedDeviceConfiguration.CreateCustomizableKeys();
+        var supportedMappings = SupportedDeviceConfiguration.CreateCustomizableMappings();
 
         configuration.Theme = configuration.Theme switch
         {
@@ -218,6 +219,10 @@ public sealed class AppConfigService
             AppLanguagePreference.Chinese => AppLanguagePreference.Chinese,
             _ => AppLanguagePreference.System
         };
+        configuration.Preferences.PreferredPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(
+            configuration.Preferences.PreferredPerformanceModeKey);
+        configuration.Preferences.PreferredChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(
+            configuration.Preferences.PreferredChargeLimitPercent);
         configuration.Preferences.Osd ??= new OsdPreferences();
         configuration.Preferences.Osd.DisplayMode = configuration.Preferences.Osd.DisplayMode switch
         {
@@ -239,7 +244,7 @@ public sealed class AppConfigService
             200);
         configuration.Touchpad = NormalizeTouchpadConfiguration(configuration.Touchpad, baseDirectory);
 
-        configuration.Keys = supported.Keys
+        configuration.Keys = supportedKeys
             .Select(CloneKey)
             .ToList();
 
@@ -265,12 +270,12 @@ public sealed class AppConfigService
             }
         }
 
-        configuration.Mappings = supported.Mappings
+        configuration.Mappings = supportedMappings
             .Select(template =>
             {
                 mappingByKeyId.TryGetValue(template.KeyId, out var mappingByKey);
                 mappingById.TryGetValue(template.Id, out var mappingByTemplateId);
-                return NormalizeFixedMapping(mappingByKey ?? mappingByTemplateId, template, baseDirectory);
+                return NormalizeFixedMapping(mappingByKey ?? mappingByTemplateId, template);
             })
             .ToList();
 
@@ -289,27 +294,14 @@ public sealed class AppConfigService
 
     private static KeyActionMappingConfiguration NormalizeFixedMapping(
         KeyActionMappingConfiguration? mapping,
-        KeyActionMappingConfiguration template,
-        string? baseDirectory)
+        KeyActionMappingConfiguration template)
     {
         var source = mapping ?? template;
-        var forceOsdOnly = SupportedDeviceConfiguration.ShouldUseOsdOnlyDefault(template.KeyId);
-        var normalizedAction = NormalizeAction(
-            forceOsdOnly
-            ? template.Action ?? new ActionDefinitionConfiguration()
-            : source.Action ?? template.Action ?? new ActionDefinitionConfiguration());
-        var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd, baseDirectory);
-        if (forceOsdOnly)
+        var normalizedAction = NormalizeAction(source.Action ?? template.Action ?? new ActionDefinitionConfiguration());
+        var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd);
+        if (SupportedDeviceConfiguration.ShouldAlwaysEnableOsd(template.KeyId))
         {
-            if (string.IsNullOrWhiteSpace(normalizedOsd.Title))
-            {
-                normalizedOsd.Title = template.Osd?.Title;
-            }
-
-            if (string.IsNullOrWhiteSpace(normalizedOsd.Icon.Path) && !string.IsNullOrWhiteSpace(template.Osd?.Icon?.Path))
-            {
-                normalizedOsd.Icon = NormalizeIcon(template.Osd.Icon, baseDirectory);
-            }
+            normalizedOsd.Enabled = true;
         }
 
         var hasAssignedAction = !string.IsNullOrWhiteSpace(normalizedAction.Type);
@@ -348,13 +340,35 @@ public sealed class AppConfigService
         touchpad ??= new TouchpadConfiguration();
         var surfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
         var surfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
+        var pressSensitivityLevel = touchpad.PressSensitivityLevel is >= TouchpadHardwareSettings.Low and <= TouchpadHardwareSettings.High
+            ? touchpad.PressSensitivityLevel
+            : TouchpadHardwareSettings.MapThresholdToPressSensitivityLevel(
+                touchpad.LightPressThreshold <= 0
+                    ? RuntimeDefaults.DefaultTouchpadLightPressThreshold
+                    : touchpad.LightPressThreshold);
+        var leftEdgeSlideAction = NormalizeAction(touchpad.LeftEdgeSlideAction);
+        var rightEdgeSlideAction = NormalizeAction(touchpad.RightEdgeSlideAction);
+        if (!HasAssignedAction(leftEdgeSlideAction) &&
+            !HasAssignedAction(rightEdgeSlideAction) &&
+            touchpad.EdgeSlideEnabled)
+        {
+            leftEdgeSlideAction = new ActionDefinitionConfiguration
+            {
+                Type = HotkeyActionType.BrightnessUp
+            };
+            rightEdgeSlideAction = new ActionDefinitionConfiguration
+            {
+                Type = HotkeyActionType.VolumeUp
+            };
+        }
+
+        var edgeSlideEnabled = HasAssignedAction(leftEdgeSlideAction) || HasAssignedAction(rightEdgeSlideAction);
+
         return new TouchpadConfiguration
         {
             Enabled = touchpad.Enabled,
-            LightPressThreshold = Math.Clamp(
-                touchpad.LightPressThreshold <= 0 ? RuntimeDefaults.DefaultTouchpadLightPressThreshold : touchpad.LightPressThreshold,
-                20,
-                RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1),
+            LightPressThreshold = TouchpadHardwareSettings.MapPressSensitivityLevelToThreshold(pressSensitivityLevel),
+            PressSensitivityLevel = pressSensitivityLevel,
             DeepPressThreshold = Math.Clamp(
                 RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
                 RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
@@ -363,9 +377,14 @@ public sealed class AppConfigService
                 touchpad.LongPressDurationMs <= 0 ? RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs : touchpad.LongPressDurationMs,
                 200,
                 3000),
+            FeedbackLevel = TouchpadHardwareSettings.NormalizeLevel(touchpad.FeedbackLevel),
+            DeepPressHapticsEnabled = touchpad.DeepPressHapticsEnabled,
+            EdgeSlideEnabled = edgeSlideEnabled,
             SurfaceWidth = surfaceWidth,
             SurfaceHeight = surfaceHeight,
             DeepPressAction = NormalizeAction(touchpad.DeepPressAction),
+            LeftEdgeSlideAction = leftEdgeSlideAction,
+            RightEdgeSlideAction = rightEdgeSlideAction,
             LeftTopCorner = NormalizeTouchpadCornerRegion(
                 touchpad.LeftTopCorner,
                 TouchpadCornerRegionConfiguration.CreateLeftTopDefault(),
@@ -423,37 +442,18 @@ public sealed class AppConfigService
         return normalized;
     }
 
-    private static MappingOsdConfiguration NormalizeMappingOsd(
-        MappingOsdConfiguration? osd,
-        string? baseDirectory)
+    private static bool HasAssignedAction(ActionDefinitionConfiguration? action)
+    {
+        return !string.IsNullOrWhiteSpace(action?.Type);
+    }
+
+    private static MappingOsdConfiguration NormalizeMappingOsd(MappingOsdConfiguration? osd)
     {
         osd ??= new MappingOsdConfiguration();
 
-        var title = NormalizeOptional(osd.Title);
-        if (!string.IsNullOrWhiteSpace(title) && title.Length > RuntimeDefaults.MaxOsdTitleLength)
-        {
-            title = title[..RuntimeDefaults.MaxOsdTitleLength];
-        }
-
-        var icon = NormalizeIcon(osd.Icon, baseDirectory);
-
         return new MappingOsdConfiguration
         {
-            Enabled = osd.Enabled,
-            Title = title,
-            Icon = icon
-        };
-    }
-
-    private static IconConfiguration NormalizeIcon(IconConfiguration? icon, string? baseDirectory)
-    {
-        var path = OsdIconPathResolver.NormalizeConfigPath(icon?.Path, baseDirectory);
-        var isPng = !string.IsNullOrWhiteSpace(path);
-
-        return new IconConfiguration
-        {
-            Mode = isPng ? IconSourceMode.CustomFile : IconSourceMode.None,
-            Path = isPng ? path : null
+            Enabled = osd.Enabled
         };
     }
 
@@ -479,7 +479,8 @@ public sealed class AppConfigService
             return HotkeyActionType.None;
         }
 
-        return ActionCatalog.All.FirstOrDefault(item => string.Equals(item.Key, value, StringComparison.OrdinalIgnoreCase))?.Key
-            ?? HotkeyActionType.None;
+        return ActionCatalog.IsKnownActionType(value)
+            ? value.Trim()
+            : HotkeyActionType.None;
     }
 }

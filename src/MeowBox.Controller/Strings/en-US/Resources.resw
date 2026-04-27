@@ -36,6 +36,15 @@
   <data name="ServiceStatus.Running" xml:space="preserve">
     <value>Service running</value>
   </data>
+  <data name="ServiceStatus.Starting" xml:space="preserve">
+    <value>Service starting</value>
+  </data>
+  <data name="ServiceStatus.Stopping" xml:space="preserve">
+    <value>Service stopping</value>
+  </data>
+  <data name="ServiceStatus.WorkerStopped" xml:space="preserve">
+    <value>Background worker stopped</value>
+  </data>
   <data name="ServiceStatus.Stopped" xml:space="preserve">
     <value>Service stopped</value>
   </data>
@@ -44,6 +53,12 @@
   </data>
   <data name="QuickService.Stop" xml:space="preserve">
     <value>Stop service</value>
+  </data>
+  <data name="QuickService.Starting" xml:space="preserve">
+    <value>Starting...</value>
+  </data>
+  <data name="QuickService.Stopping" xml:space="preserve">
+    <value>Stopping...</value>
   </data>
   <data name="Dialog.Close" xml:space="preserve">
     <value>Close</value>
@@ -68,12 +83,6 @@
   </data>
   <data name="Settings.Messages.StartServiceFailed.Body" xml:space="preserve">
     <value>The background worker could not be started or did not respond.</value>
-  </data>
-  <data name="Settings.Messages.AutostartFailed.Title" xml:space="preserve">
-    <value>Could not change startup behavior</value>
-  </data>
-  <data name="Settings.Messages.PriorityFailed.Title" xml:space="preserve">
-    <value>Could not change startup priority</value>
   </data>
   <data name="Settings.Messages.ImportFailed.Title" xml:space="preserve">
     <value>Could not import configuration</value>
@@ -393,18 +402,6 @@
   <data name="ServiceRunningText.Text" xml:space="preserve">
     <value>Running</value>
   </data>
-  <data name="AutostartText.Text" xml:space="preserve">
-    <value>Start with Windows</value>
-  </data>
-  <data name="PriorityStartupTitleText.Text" xml:space="preserve">
-    <value>Priority startup</value>
-  </data>
-  <data name="PriorityStartupDescriptionText.Text" xml:space="preserve">
-    <value>Uses a Windows scheduled task instead of the Startup folder so Worker starts earlier after sign-in.</value>
-  </data>
-  <data name="PriorityStartupBusyText.Text" xml:space="preserve">
-    <value>Applying...</value>
-  </data>
   <data name="TrayIconText.Text" xml:space="preserve">
     <value>Tray icon</value>
   </data>
@@ -541,13 +538,13 @@
     <value>Open config folder</value>
   </data>
   <data name="Navigation.Touchpad" xml:space="preserve">
-    <value>Touchpad</value>
+    <value>Touch</value>
   </data>
   <data name="PageTitle.Touchpad" xml:space="preserve">
-    <value>Touchpad</value>
+    <value>Touch</value>
   </data>
   <data name="TouchpadPageTitleText.Text" xml:space="preserve">
-    <value>Touchpad</value>
+    <value>Touch</value>
   </data>
   <data name="TouchpadStatusTitleText.Text" xml:space="preserve">
     <value>Live pressure</value>
@@ -637,7 +634,7 @@
     <value>OSD</value>
   </data>
   <data name="TouchpadSettingsTitleText.Text" xml:space="preserve">
-    <value>Touchpad</value>
+    <value>Touch</value>
   </data>
   <data name="TouchpadLightPressThresholdNumberBox.Header" xml:space="preserve">
     <value>Touchpad light press</value>
@@ -660,4 +657,4 @@
   <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
     <value>Could not restore defaults</value>
   </data>
-</root>
+<data name="Navigation.Battery" xml:space="preserve"><value>Battery</value></data><data name="PageTitle.Battery" xml:space="preserve"><value>Battery</value></data><data name="BatteryRefreshButton.Content" xml:space="preserve"><value>Refresh</value></data><data name="BatteryPerformanceTitleText.Text" xml:space="preserve"><value>Performance</value></data><data name="BatteryChargeTitleText.Text" xml:space="preserve"><value>Charge limit</value></data><data name="BatteryChargeInfoBar.Message" xml:space="preserve"><value>Keeping a lower charge limit can help extend battery lifespan; in hotter conditions, staying fully charged for long periods can accelerate battery aging.</value></data><data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve"><value>Press sensitivity</value></data><data name="TouchpadPressSensitivityLowItem.Content" xml:space="preserve"><value>Low</value></data><data name="TouchpadPressSensitivityMediumItem.Content" xml:space="preserve"><value>Medium</value></data><data name="TouchpadPressSensitivityHighItem.Content" xml:space="preserve"><value>High</value></data><data name="TouchpadFeedbackLabelText.Text" xml:space="preserve"><value>Vibration strength</value></data><data name="TouchpadFeedbackWeakItem.Content" xml:space="preserve"><value>Weak</value></data><data name="TouchpadFeedbackMediumItem.Content" xml:space="preserve"><value>Medium</value></data><data name="TouchpadFeedbackStrongItem.Content" xml:space="preserve"><value>Strong</value></data><data name="TouchpadDeepPressFeedbackLabelText.Text" xml:space="preserve"><value>Deep press haptics</value></data><data name="TouchpadDeepPressFeedbackOffItem.Content" xml:space="preserve"><value>Off</value></data><data name="TouchpadDeepPressFeedbackOnItem.Content" xml:space="preserve"><value>On</value></data><data name="TouchpadEdgeSlideLabelText.Text" xml:space="preserve"><value>Edge slide</value></data><data name="TouchpadEdgeSlideOffItem.Content" xml:space="preserve"><value>Off</value></data><data name="TouchpadEdgeSlideOnItem.Content" xml:space="preserve"><value>On</value></data><data name="TouchpadLongPressLabelText.Text" xml:space="preserve"><value>Long press duration</value></data><data name="TouchpadPressureTextBlock.Text" xml:space="preserve"><value>Pressure: 0</value></data></root>

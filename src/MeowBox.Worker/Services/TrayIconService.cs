@@ -104,6 +104,7 @@ internal sealed class TrayIconService : IDisposable
                     _openControllerCallback();
                     break;
                 case ExitServiceCommandId:
+                    _notifyIcon.Visible = false;
                     _exitServiceCallback();
                     break;
             }

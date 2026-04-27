@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Microsoft.UI.Xaml;
 using MeowBox.Core.Models;
 
 namespace MeowBox.Controller.ViewModels;
@@ -20,6 +21,10 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         _action.PropertyChanged += OnActionChanged;
         _osd = new MappingOsdViewModel(model.Osd);
         _osd.PropertyChanged += OnOsdChanged;
+        if (!SupportsConfigurableOsd && _osd.Enabled)
+        {
+            _osd.Enabled = false;
+        }
     }
 
     public string Id { get; }
@@ -73,6 +78,10 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     public string ActionIconGlyph => MappingDisplayCatalog.GetIconGlyph(Action.Type, Osd.Enabled);
 
+    public bool SupportsConfigurableOsd => BuiltInOsdCatalog.SupportsToggle(KeyId, Action.Type);
+
+    public Visibility OsdVisibility => SupportsConfigurableOsd ? Visibility.Visible : Visibility.Collapsed;
+
     public void UpdateDisplay(string keyDisplayName)
     {
         KeyDisplayName = keyDisplayName;
@@ -93,21 +102,17 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     private string BuildSummary()
     {
-        if (Osd.Enabled && Action.HasAssignedAction)
+        if (SupportsConfigurableOsd && Osd.Enabled && Action.HasAssignedAction)
         {
             return string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("{0} Also shows {1}.", "{0} 还会显示 {1}。"),
-                Action.ActionDescription,
-                BuildOsdSummaryLabel());
+                LocalizedText.Pick("{0} Also shows an OSD.", "{0} 还会显示 OSD。"),
+                Action.ActionDescription);
         }
 
-        if (Osd.Enabled)
+        if (SupportsConfigurableOsd && Osd.Enabled)
         {
-            return string.Format(
-                System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("Shows {0}.", "显示 {0}。"),
-                BuildOsdSummaryLabel());
+            return LocalizedText.Pick("Shows an OSD.", "显示 OSD。");
         }
 
         if (!Enabled)
@@ -118,20 +123,17 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         return Action.ActionDescription;
     }
 
-    private string BuildOsdSummaryLabel()
-    {
-        return string.IsNullOrWhiteSpace(Osd.Title)
-            ? MappingDisplayCatalog.ShowOsdLabel
-            : string.Format(
-                System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("OSD: {0}", "OSD：{0}"),
-                Osd.Title);
-    }
-
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (!SupportsConfigurableOsd && Osd.Enabled)
+        {
+            Osd.Enabled = false;
+        }
+
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(ActionIconGlyph));
+        OnPropertyChanged(nameof(SupportsConfigurableOsd));
+        OnPropertyChanged(nameof(OsdVisibility));
     }
 
     private void OnOsdChanged(object? sender, PropertyChangedEventArgs e)

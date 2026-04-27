@@ -5,6 +5,7 @@ using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using MeowBox.Controller.Services;
@@ -21,12 +22,21 @@ public sealed partial class TouchpadPage : Page
     private const double PressureScaleMax = 2500d;
     private const double DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private const double RedPressureThreshold = 800d;
+    private const double PreviewStrokeThickness = 1.15d;
+    private static readonly SolidColorBrush TouchpadOverlayFillBrush = new(ColorHelper.FromArgb(255, 46, 54, 66));
+    private static readonly SolidColorBrush TouchpadOverlayStrokeBrush = new(ColorHelper.FromArgb(255, 88, 98, 116));
+    private static readonly SolidColorBrush TouchpadPadFillBrush = new(ColorHelper.FromArgb(255, 34, 39, 48));
+    private static readonly SolidColorBrush TouchpadGridBrush = new(ColorHelper.FromArgb(255, 54, 61, 74));
     private double _displayPressure;
     private DateTimeOffset _lastDisplayPressureAt;
     private double _pressureDescriptionValue;
     private DateTimeOffset _lastPressureDescriptionAt;
     private bool _renderPending;
     private bool _touchpadStateRefreshPending;
+    private bool _touchpadPreferencesLoading;
+    private CancellationTokenSource? _pressSensitivityApplyCts;
+    private CancellationTokenSource? _feedbackApplyCts;
+    private readonly SemaphoreSlim _touchpadHardwareGate = new(1, 1);
     private readonly Dictionary<int, SmoothedContactState> _smoothedContacts = [];
 
     public MeowBoxController Controller => App.Controller;
@@ -36,7 +46,6 @@ public sealed partial class TouchpadPage : Page
     public TouchpadPage()
     {
         InitializeComponent();
-        XamlStringLocalizer.Apply(this);
         DataContext = Controller;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -47,6 +56,7 @@ public sealed partial class TouchpadPage : Page
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SubscribeTouchpadState();
         SubscribeTouchpadActionEditors();
+        SyncTouchpadPreferenceControls();
         ScheduleTouchpadStateRefresh();
         DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
@@ -56,6 +66,8 @@ public sealed partial class TouchpadPage : Page
         Controller.PropertyChanged -= OnControllerPropertyChanged;
         UnsubscribeTouchpadState();
         UnsubscribeTouchpadActionEditors();
+        _pressSensitivityApplyCts?.Cancel();
+        _feedbackApplyCts?.Cancel();
     }
 
     private void SubscribeTouchpadState()
@@ -93,9 +105,12 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        if (e.PropertyName is nameof(ActionDefinitionViewModel.PrimaryKey) or
+        if (e.PropertyName is nameof(ActionDefinitionViewModel.Type) or
+            nameof(ActionDefinitionViewModel.PrimaryKey) or
             nameof(ActionDefinitionViewModel.PrimaryKeyGroup) or
-            nameof(ActionDefinitionViewModel.ModifierSelectionSignature))
+            nameof(ActionDefinitionViewModel.ModifierSelectionSignature) or
+            nameof(ActionDefinitionViewModel.Target) or
+            nameof(ActionDefinitionViewModel.Arguments))
         {
             TrySaveTouchpadConfigurationAsync();
         }
@@ -186,9 +201,80 @@ public sealed partial class TouchpadPage : Page
         RequestRender();
     }
 
+    private void OnTouchpadLongPressSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_touchpadPreferencesLoading || Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        Controller.ApplyTouchpadPreferences(
+            Controller.TouchpadLightPressThreshold,
+            GetSelectedIntValue(TouchpadLongPressComboBox, 700));
+    }
+
+    private void OnTouchpadPressSensitivitySelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_touchpadPreferencesLoading || Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        var level = GetSelectedHardwareLevel(TouchpadPressSensitivityComboBox);
+        if (level == Controller.TouchpadPressSensitivityLevel)
+        {
+            return;
+        }
+
+        DebounceTouchpadHardwareAction(ref _pressSensitivityApplyCts, async () =>
+        {
+            await RunTouchpadHardwareActionAsync(() => Controller.SetTouchpadHardwarePressAsync(level));
+        });
+    }
+
+    private void OnTouchpadFeedbackSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_touchpadPreferencesLoading || Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        var level = GetSelectedHardwareLevel(TouchpadFeedbackComboBox);
+        if (level == Controller.TouchpadFeedbackLevel)
+        {
+            return;
+        }
+
+        DebounceTouchpadHardwareAction(ref _feedbackApplyCts, async () =>
+        {
+            await RunTouchpadHardwareActionAsync(() => Controller.SetTouchpadHardwareVibrationAsync(level));
+        });
+    }
+
+    private async void OnTouchpadDeepPressFeedbackSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_touchpadPreferencesLoading || Controller.IsReloadingConfiguration)
+        {
+            return;
+        }
+
+        var enabled = GetSelectedBooleanValue(TouchpadDeepPressFeedbackComboBox, Controller.TouchpadDeepPressHapticsEnabled);
+        if (enabled == Controller.TouchpadDeepPressHapticsEnabled)
+        {
+            return;
+        }
+
+        await RunTouchpadHardwareActionAsync(() => Controller.SetTouchpadHardwareHapticAsync(enabled));
+    }
+
     private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is not (nameof(MeowBoxController.Touchpad) or nameof(MeowBoxController.TouchpadLightPressThreshold)))
+        if (e.PropertyName is not (nameof(MeowBoxController.Touchpad) or
+                                   nameof(MeowBoxController.TouchpadLightPressThreshold) or
+                                   nameof(MeowBoxController.TouchpadLongPressDurationMs) or
+                                   nameof(MeowBoxController.TouchpadPressSensitivityLevel) or
+                                   nameof(MeowBoxController.TouchpadFeedbackLevel) or
+                                   nameof(MeowBoxController.TouchpadDeepPressHapticsEnabled)))
         {
             return;
         }
@@ -201,10 +287,188 @@ public sealed partial class TouchpadPage : Page
                 SubscribeTouchpadActionEditors();
             }
 
+            SyncTouchpadPreferenceControls();
             ScheduleTouchpadStateRefresh();
             RequestRender();
             XamlStringLocalizer.Apply(this);
         });
+    }
+
+    private void SyncTouchpadPreferenceControls()
+    {
+        _touchpadPreferencesLoading = true;
+        SetSelectedHardwareLevel(TouchpadPressSensitivityComboBox, Controller.TouchpadPressSensitivityLevel);
+        SetSelectedHardwareLevel(TouchpadFeedbackComboBox, Controller.TouchpadFeedbackLevel);
+        SetSelectedIntValue(TouchpadLongPressComboBox, Controller.TouchpadLongPressDurationMs);
+        SetSelectedBooleanValue(TouchpadDeepPressFeedbackComboBox, Controller.TouchpadDeepPressHapticsEnabled);
+        _touchpadPreferencesLoading = false;
+    }
+
+    private static int GetSelectedHardwareLevel(ComboBox comboBox)
+    {
+        if (comboBox.SelectedItem is ComboBoxItem item &&
+            int.TryParse(item.Tag?.ToString(), out var level))
+        {
+            return TouchpadHardwareSettings.NormalizeLevel(level);
+        }
+
+        return 1;
+    }
+
+    private static void SetSelectedHardwareLevel(ComboBox comboBox, int level)
+    {
+        level = TouchpadHardwareSettings.NormalizeLevel(level);
+        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (string.Equals(item.Tag?.ToString(), level.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal))
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+        }
+
+        comboBox.SelectedIndex = Math.Clamp(level - 1, 0, Math.Max(0, comboBox.Items.Count - 1));
+    }
+
+    private static int GetSelectedIntValue(ComboBox comboBox, int fallback)
+    {
+        if (comboBox.SelectedItem is ComboBoxItem item &&
+            int.TryParse(item.Tag?.ToString(), out var value))
+        {
+            return value;
+        }
+
+        return fallback;
+    }
+
+    private static bool GetSelectedBooleanValue(ComboBox comboBox, bool fallback)
+    {
+        if (comboBox.SelectedItem is ComboBoxItem item &&
+            bool.TryParse(item.Tag?.ToString(), out var value))
+        {
+            return value;
+        }
+
+        return fallback;
+    }
+
+    private static void SetSelectedIntValue(ComboBox comboBox, int value)
+    {
+        ComboBoxItem? closestItem = null;
+        var closestDistance = int.MaxValue;
+
+        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (!int.TryParse(item.Tag?.ToString(), out var itemValue))
+            {
+                continue;
+            }
+
+            var distance = Math.Abs(itemValue - value);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestItem = item;
+            }
+        }
+
+        if (closestItem is not null)
+        {
+            comboBox.SelectedItem = closestItem;
+        }
+    }
+
+    private static void SetSelectedBooleanValue(ComboBox comboBox, bool value)
+    {
+        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (bool.TryParse(item.Tag?.ToString(), out var itemValue) && itemValue == value)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+        }
+
+        comboBox.SelectedIndex = value ? 1 : 0;
+    }
+
+    private void DebounceTouchpadHardwareAction(ref CancellationTokenSource? cts, Func<Task> action)
+    {
+        cts?.Cancel();
+        cts = new CancellationTokenSource();
+        var token = cts.Token;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(180, token);
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                await InvokeOnUiThreadAsync(action);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        });
+    }
+
+    private async Task RunTouchpadHardwareActionAsync(Func<Task> action)
+    {
+        await _touchpadHardwareGate.WaitAsync();
+        try
+        {
+            TouchpadHardwareControlPanel.IsHitTestVisible = false;
+            await action();
+        }
+        catch (Exception exception)
+        {
+            SyncTouchpadPreferenceControls();
+            await ShowTouchpadErrorAsync(exception.Message);
+        }
+        finally
+        {
+            TouchpadHardwareControlPanel.IsHitTestVisible = true;
+            _touchpadHardwareGate.Release();
+        }
+    }
+
+    private Task InvokeOnUiThreadAsync(Func<Task> action)
+    {
+        var completionSource = new TaskCompletionSource<object?>();
+        if (!DispatcherQueue.TryEnqueue(async () =>
+            {
+                try
+                {
+                    await action();
+                    completionSource.TrySetResult(null);
+                }
+                catch (Exception exception)
+                {
+                    completionSource.TrySetException(exception);
+                }
+            }))
+        {
+            completionSource.TrySetException(new InvalidOperationException(LocalizedText.Pick("Could not switch to the UI thread.", "无法切换到 UI 线程。")));
+        }
+
+        return completionSource.Task;
+    }
+
+    private async Task ShowTouchpadErrorAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = LocalizedText.Pick("Touchpad settings failed", "触控板设置失败"),
+            Content = message,
+            CloseButtonText = Localizer.GetString("Dialog.Close"),
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        await dialog.ShowAsync();
     }
 
     private void OnTouchpadLivePropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -327,20 +591,24 @@ public sealed partial class TouchpadPage : Page
         var displayPressure = GetDisplayedPressure(state);
         UpdatePressureDescriptionText(GetPressureDescriptionValue(state));
 
-        var padBorder = new Border
+        var padShape = new ShapePath
         {
-            Width = preview.PadWidth,
-            Height = preview.PadHeight,
-            CornerRadius = new CornerRadius(preview.PadCornerRadius),
-            Background = new SolidColorBrush(ColorHelper.FromArgb(255, 34, 39, 48)),
-            BorderThickness = new Thickness(1),
-            BorderBrush = new SolidColorBrush(ColorHelper.FromArgb(255, 88, 98, 116))
+            Data = preview.CreatePadClipGeometry(),
+            Fill = TouchpadPadFillBrush
         };
-        TouchpadCanvas.Children.Add(padBorder);
-        Canvas.SetLeft(padBorder, preview.PadLeft);
-        Canvas.SetTop(padBorder, preview.PadTop);
+        TouchpadCanvas.Children.Add(padShape);
 
+        AddEdgeSlideOverlays(preview);
         AddCornerOverlays(preview);
+
+        var padOutline = new ShapePath
+        {
+            Data = preview.CreatePadClipGeometry(),
+            Stroke = TouchpadOverlayStrokeBrush,
+            StrokeThickness = PreviewStrokeThickness
+        };
+        TouchpadCanvas.Children.Add(padOutline);
+
         AddGridLines(preview);
         AddContacts(displayPressure, preview);
     }
@@ -359,11 +627,17 @@ public sealed partial class TouchpadPage : Page
             var overlay = new ShapePath
             {
                 Data = overlayInfo.Geometry,
-                Fill = new SolidColorBrush(ColorHelper.FromArgb(34, 255, 255, 255)),
-                Stroke = new SolidColorBrush(ColorHelper.FromArgb(255, 88, 98, 116)),
-                StrokeThickness = 1.2
+                Fill = TouchpadOverlayFillBrush
             };
             TouchpadCanvas.Children.Add(overlay);
+
+            var stroke = new ShapePath
+            {
+                Data = overlayInfo.StrokeGeometry,
+                Stroke = TouchpadOverlayStrokeBrush,
+                StrokeThickness = PreviewStrokeThickness
+            };
+            TouchpadCanvas.Children.Add(stroke);
 
             var label = new TextBlock
             {
@@ -380,8 +654,59 @@ public sealed partial class TouchpadPage : Page
         }
     }
 
+    private void AddEdgeSlideOverlays(TouchpadPreviewCoordinateSpace preview)
+    {
+        var leftOverlay = preview.DescribeEdge(
+            leftSide: true,
+            Controller.Touchpad.LeftTopCorner.RegionId,
+            Controller.Touchpad.LeftTopCorner.Bounds);
+        AddEdgeOverlay(leftOverlay, "L");
+
+        var rightOverlay = preview.DescribeEdge(
+            leftSide: false,
+            Controller.Touchpad.RightTopCorner.RegionId,
+            Controller.Touchpad.RightTopCorner.Bounds);
+        AddEdgeOverlay(rightOverlay, "R");
+    }
+
+    private void AddEdgeOverlay(TouchpadPreviewEdgeOverlay overlay, string labelText)
+    {
+        if (overlay.Height <= 1d || overlay.Width <= 1d)
+        {
+            return;
+        }
+
+        var shape = new ShapePath
+        {
+            Data = overlay.Geometry,
+            Fill = TouchpadOverlayFillBrush
+        };
+        TouchpadCanvas.Children.Add(shape);
+
+        var stroke = new ShapePath
+        {
+            Data = overlay.StrokeGeometry,
+            Stroke = TouchpadOverlayStrokeBrush,
+            StrokeThickness = PreviewStrokeThickness
+        };
+        TouchpadCanvas.Children.Add(stroke);
+
+        var label = new TextBlock
+        {
+            Text = labelText,
+            Foreground = new SolidColorBrush(ColorHelper.FromArgb(168, 255, 255, 255)),
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold
+        };
+        TouchpadCanvas.Children.Add(label);
+        label.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+        Canvas.SetLeft(label, overlay.LabelCenter.X - (label.DesiredSize.Width / 2));
+        Canvas.SetTop(label, overlay.LabelCenter.Y - (label.DesiredSize.Height / 2));
+    }
+
     private void AddGridLines(TouchpadPreviewCoordinateSpace preview)
     {
+        var horizontalInset = Math.Max(14d, preview.EdgeOverlayWidth + 10d);
         for (var index = 1; index < 4; index++)
         {
             var vertical = new Line
@@ -390,18 +715,18 @@ public sealed partial class TouchpadPage : Page
                 Y1 = preview.PadTop + 14,
                 X2 = preview.PadLeft + (preview.PadWidth * index / 4d),
                 Y2 = preview.PadTop + preview.PadHeight - 14,
-                Stroke = new SolidColorBrush(ColorHelper.FromArgb(255, 54, 61, 74)),
+                Stroke = TouchpadGridBrush,
                 StrokeThickness = 1
             };
             TouchpadCanvas.Children.Add(vertical);
 
             var horizontal = new Line
             {
-                X1 = preview.PadLeft + 14,
+                X1 = preview.PadLeft + horizontalInset,
                 Y1 = preview.PadTop + (preview.PadHeight * index / 4d),
-                X2 = preview.PadLeft + preview.PadWidth - 14,
+                X2 = preview.PadLeft + preview.PadWidth - horizontalInset,
                 Y2 = preview.PadTop + (preview.PadHeight * index / 4d),
-                Stroke = new SolidColorBrush(ColorHelper.FromArgb(255, 54, 61, 74)),
+                Stroke = TouchpadGridBrush,
                 StrokeThickness = 1
             };
             TouchpadCanvas.Children.Add(horizontal);

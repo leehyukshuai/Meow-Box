@@ -49,12 +49,15 @@ internal sealed class TouchpadStreamServer : IDisposable
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var server = new NamedPipeServerStream(
+            var server = NamedPipeServerStreamAcl.Create(
                 TouchpadPipeConstants.PipeName,
                 PipeDirection.Out,
                 NamedPipeServerStream.MaxAllowedServerInstances,
                 PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous);
+                PipeOptions.Asynchronous,
+                0,
+                0,
+                PipeSecurityFactory.Create());
 
             try
             {

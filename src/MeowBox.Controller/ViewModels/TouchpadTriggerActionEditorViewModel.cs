@@ -7,15 +7,18 @@ namespace MeowBox.Controller.ViewModels;
 public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
 {
     private readonly ActionDefinitionViewModel _action;
+    private readonly bool _simpleEdgeSlideMapping;
 
     public TouchpadTriggerActionEditorViewModel(
         string title,
         string description,
         IEnumerable<string>? guidanceLines = null,
-        ActionDefinitionConfiguration? model = null)
+        ActionDefinitionConfiguration? model = null,
+        bool simpleEdgeSlideMapping = false)
     {
         Title = title;
         Description = description;
+        _simpleEdgeSlideMapping = simpleEdgeSlideMapping;
         GuidanceLines =
         [
             .. (guidanceLines ?? [])
@@ -34,6 +37,11 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
                 OnPropertyChanged(nameof(ActionSummary));
                 OnPropertyChanged(nameof(ActionDescription));
                 OnPropertyChanged(nameof(ActionIconGlyph));
+                OnPropertyChanged(nameof(StandardActionPickerVisibility));
+                OnPropertyChanged(nameof(SimpleEdgeSlideMappingVisibility));
+                OnPropertyChanged(nameof(IsEdgeSlideMappingOff));
+                OnPropertyChanged(nameof(IsEdgeSlideMappingVolume));
+                OnPropertyChanged(nameof(IsEdgeSlideMappingBrightness));
             }
         };
 
@@ -47,12 +55,96 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
 
     public Visibility GuidanceVisibility => GuidanceLines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
+    public Visibility StandardActionPickerVisibility => _simpleEdgeSlideMapping ? Visibility.Collapsed : Visibility.Visible;
+
+    public Visibility SimpleEdgeSlideMappingVisibility => _simpleEdgeSlideMapping ? Visibility.Visible : Visibility.Collapsed;
+
     public ActionDefinitionViewModel Action => _action;
 
-    public string ActionSummary => Action.ActionLabel;
+    public string ActionSummary => _simpleEdgeSlideMapping ? GetEdgeSlideMappingLabel() : Action.ActionLabel;
 
-    public string ActionDescription => Action.ActionDescription;
+    public string ActionDescription => _simpleEdgeSlideMapping ? GetEdgeSlideMappingDescription() : Action.ActionDescription;
 
-    public string ActionIconGlyph => Action.ActionIconGlyph;
+    public string ActionIconGlyph => _simpleEdgeSlideMapping ? GetEdgeSlideMappingGlyph() : Action.ActionIconGlyph;
+
+    public bool IsEdgeSlideMappingOff
+    {
+        get => _simpleEdgeSlideMapping && string.IsNullOrWhiteSpace(Action.Type);
+        set
+        {
+            if (!_simpleEdgeSlideMapping || !value)
+            {
+                return;
+            }
+
+            Action.ClearAssignment();
+        }
+    }
+
+    public bool IsEdgeSlideMappingVolume
+    {
+        get => _simpleEdgeSlideMapping && string.Equals(Action.Type, HotkeyActionType.VolumeUp, StringComparison.OrdinalIgnoreCase);
+        set
+        {
+            if (!_simpleEdgeSlideMapping || !value)
+            {
+                return;
+            }
+
+            Action.ClearAssignment();
+            Action.Type = HotkeyActionType.VolumeUp;
+        }
+    }
+
+    public bool IsEdgeSlideMappingBrightness
+    {
+        get => _simpleEdgeSlideMapping && string.Equals(Action.Type, HotkeyActionType.BrightnessUp, StringComparison.OrdinalIgnoreCase);
+        set
+        {
+            if (!_simpleEdgeSlideMapping || !value)
+            {
+                return;
+            }
+
+            Action.ClearAssignment();
+            Action.Type = HotkeyActionType.BrightnessUp;
+        }
+    }
+
+    private string GetEdgeSlideMappingLabel()
+    {
+        return Action.Type switch
+        {
+            HotkeyActionType.VolumeUp => LocalizedText.Pick("Adjust volume", "调节音量"),
+            HotkeyActionType.BrightnessUp => LocalizedText.Pick("Adjust brightness", "调节亮度"),
+            _ => ActionCatalog.NoActionLabel
+        };
+    }
+
+    private string GetEdgeSlideMappingDescription()
+    {
+        return Action.Type switch
+        {
+            HotkeyActionType.VolumeUp => LocalizedText.Pick(
+                "Dragging vertically in this edge region adjusts system volume.",
+                "在这个边缘区域上下拖动时调节系统音量。"),
+            HotkeyActionType.BrightnessUp => LocalizedText.Pick(
+                "Dragging vertically in this edge region adjusts display brightness.",
+                "在这个边缘区域上下拖动时调节屏幕亮度。"),
+            _ => LocalizedText.Pick(
+                "This edge drag mapping is disabled.",
+                "这个边缘拖动映射当前已关闭。")
+        };
+    }
+
+    private string GetEdgeSlideMappingGlyph()
+    {
+        return Action.Type switch
+        {
+            HotkeyActionType.VolumeUp => "",
+            HotkeyActionType.BrightnessUp => "",
+            _ => ActionCatalog.NoActionIconGlyph
+        };
+    }
 
 }

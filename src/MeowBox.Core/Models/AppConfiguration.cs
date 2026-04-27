@@ -26,7 +26,15 @@ public sealed class AppPreferences
 {
     public bool IsListening { get; set; } = true;
 
-    public bool PreferPriorityStartup { get; set; } = false;
+    public bool PreferPriorityStartup { get; set; } = true;
+
+    public bool ResetPerformanceModeToSmartOnStartup { get; set; } = true;
+
+    public string PreferredPerformanceModeKey { get; set; } = BatteryControlCatalog.DefaultPerformanceModeKey;
+
+    public bool ResetChargeLimitToFullOnStartup { get; set; }
+
+    public int PreferredChargeLimitPercent { get; set; } = BatteryControlCatalog.DefaultChargeLimitPercent;
 
     public string Language { get; set; } = AppLanguagePreference.System;
 
@@ -80,11 +88,6 @@ public sealed class KeyChordConfiguration
 public sealed class MappingOsdConfiguration
 {
     public bool Enabled { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Title { get; set; }
-
-    public IconConfiguration Icon { get; set; } = new();
 }
 
 public sealed class KeyActionMappingConfiguration
@@ -251,9 +254,11 @@ public static class InputSourceKind
 public static class HotkeyActionType
 {
     public const string None = "";
+    public const string CyclePerformanceMode = "CyclePerformanceMode";
     public const string SendStandardKey = "SendStandardKey";
     public const string OpenSettings = "OpenSettings";
     public const string OpenProjection = "OpenProjection";
+    public const string ToggleTouchpad = "ToggleTouchpad";
     public const string MicrophoneMuteOn = "MicrophoneMuteOn";
     public const string MicrophoneMuteOff = "MicrophoneMuteOff";
     public const string VolumeUp = "VolumeUp";
@@ -311,6 +316,9 @@ public static class BuiltInOsdAsset
     public const string BacklightLow = "backlight-low";
     public const string BacklightHigh = "backlight-high";
     public const string BacklightAuto = "backlight-auto";
+    public const string PerformanceSilent = "performance-silent";
+    public const string PerformanceSmart = "performance-smart";
+    public const string PerformanceBeast = "performance-beast";
 }
 
 public static class ActionTag
@@ -370,7 +378,7 @@ public sealed class IconAssetOption
 
 public static class ActionCatalog
 {
-    public static string NoActionLabel => LocalizedText.Pick("Select action", "选择动作");
+    public static string NoActionLabel => LocalizedText.Pick("No action selected", "未选择动作");
     public static string NoActionDescription => LocalizedText.Pick("No action is assigned to this mapping.", "这个映射还没有分配动作。");
     public const string NoActionIconGlyph = "";
 
@@ -390,6 +398,7 @@ public static class ActionCatalog
         new ActionOption(HotkeyActionType.SendStandardKey, LocalizedText.Pick("Send key or shortcut", "发送按键或快捷键"), LocalizedText.Pick("Sends the keyboard key or modifier shortcut that you configure.", "发送你配置的键盘按键或修饰键快捷键。"), "", ActionTag.Keyboard, ActionTag.System),
         new ActionOption(HotkeyActionType.OpenSettings, LocalizedText.Pick("Open Windows Settings", "打开 Windows 设置"), LocalizedText.Pick("Launches the native Settings app.", "启动系统设置应用。"), "", ActionTag.System),
         new ActionOption(HotkeyActionType.OpenProjection, LocalizedText.Pick("Open projection switcher", "打开投影切换器"), LocalizedText.Pick("Launches the native projection overlay.", "打开系统投影切换界面。"), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.ToggleTouchpad, LocalizedText.Pick("Toggle touchpad", "切换触控板开关"), LocalizedText.Pick("Turns the Windows touchpad off or back on on supported devices.", "在支持的设备上关闭或重新开启 Windows 触控板。"), "\uEFA5", ActionTag.System),
         new ActionOption(HotkeyActionType.MicrophoneMuteOn, LocalizedText.Pick("Mute microphone input", "麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device off.", "关闭默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),
         new ActionOption(HotkeyActionType.MicrophoneMuteOff, LocalizedText.Pick("Unmute microphone input", "取消麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device back on.", "重新打开默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),
         new ActionOption(HotkeyActionType.VolumeUp, LocalizedText.Pick("Volume up", "音量增加"), LocalizedText.Pick("Raises the master output volume.", "提高系统主音量。"), "", ActionTag.Audio, ActionTag.Media),
@@ -404,26 +413,58 @@ public static class ActionCatalog
         new ActionOption(HotkeyActionType.LockWindows, LocalizedText.Pick("Lock Windows", "锁定 Windows"), LocalizedText.Pick("Locks the current Windows session.", "锁定当前 Windows 会话。"), "", ActionTag.System),
         new ActionOption(HotkeyActionType.Screenshot, LocalizedText.Pick("Take screenshot", "截图"), LocalizedText.Pick("Opens the native snipping overlay.", "打开系统截图浮层。"), "", ActionTag.System, ActionTag.Display),
         new ActionOption(HotkeyActionType.OpenCalculator, LocalizedText.Pick("Open Calculator", "打开计算器"), LocalizedText.Pick("Launches Calculator.", "启动计算器。"), "", ActionTag.System, ActionTag.Application),
-        new ActionOption(HotkeyActionType.OpenApplication, LocalizedText.Pick("Open application", "打开应用"), LocalizedText.Pick("Launches an installed app, shortcut, or executable.", "启动已安装应用、快捷方式或可执行文件。"), "", ActionTag.Application)
+        new ActionOption(HotkeyActionType.OpenApplication, LocalizedText.Pick("Open application", "打开应用"), LocalizedText.Pick("Launches an installed app, shortcut, or executable.", "启动已安装应用、快捷方式或可执行文件。"), "", ActionTag.Application),
+        new ActionOption(HotkeyActionType.CyclePerformanceMode, LocalizedText.Pick("Toggle performance mode", "切换性能模式"), LocalizedText.Pick("Cycles between Silent, Smart, and Beast modes.", "在静谧、智能和狂暴模式之间循环切换。"), "", ActionTag.System)
     };
+
+    public static bool IsKnownActionType(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return false;
+        }
+
+        return string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase) ||
+               All.Any(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase));
+    }
 
     public static string GetLabel(string key)
     {
+        if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return LocalizedText.Pick("Toggle performance mode", "切换性能模式");
+        }
+
         return GetOption(key)?.Label ?? NoActionLabel;
     }
 
     public static string GetDescription(string key)
     {
+        if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return LocalizedText.Pick("Cycles between Silent, Smart, and Beast modes.", "在静谧、智能和狂暴模式之间循环切换。");
+        }
+
         return GetOption(key)?.Description ?? NoActionDescription;
     }
 
     public static string GetIconGlyph(string key)
     {
+        if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return "";
+        }
+
         return GetOption(key)?.IconGlyph ?? NoActionIconGlyph;
     }
 
     public static IReadOnlyList<string> GetTags(string key)
     {
+        if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
+        {
+            return [ActionTag.System];
+        }
+
         return GetOption(key)?.Tags ?? [];
     }
 
@@ -495,10 +536,9 @@ public static class IconAssetCatalog
 
 public static class DefaultKeyIds
 {
-    public const string FnLockOn = "key-fn-lock-on";
-    public const string FnLockOff = "key-fn-lock-off";
-    public const string CapsLockOn = "key-caps-lock-on";
-    public const string CapsLockOff = "key-caps-lock-off";
+    public const string PerformanceModePress = "key-performance-mode-press";
+    public const string FnLockToggle = "key-fn-lock-toggle";
+    public const string CapsLockToggle = "key-caps-lock-toggle";
     public const string MicrophoneMuteOn = "key-mic-mute-on";
     public const string MicrophoneMuteOff = "key-mic-mute-off";
     public const string XiaoAiPress = "key-xiaoai-press";
@@ -506,9 +546,6 @@ public static class DefaultKeyIds
     public const string SettingsPress = "key-settings-press";
     public const string ManagerPress = "key-manager-press";
     public const string ManagerRelease = "key-manager-release";
-    public const string BacklightOff = "key-backlight-off";
-    public const string BacklightLevel1 = "key-backlight-level1";
-    public const string BacklightLevel2 = "key-backlight-level2";
-    public const string BacklightAuto = "key-backlight-auto";
+    public const string BacklightCycle = "key-backlight-cycle";
     public const string Projection = "key-projection";
 }

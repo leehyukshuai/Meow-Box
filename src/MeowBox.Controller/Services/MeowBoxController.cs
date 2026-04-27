@@ -14,10 +14,11 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 {
     private readonly AppConfigService _configService = new();
     private readonly InstalledAppService _installedAppService = new();
-    private readonly AutostartService _autostartService = new();
+    private readonly ControllerPipeServer _controllerPipeServer;
     private readonly WorkerPipeClient _workerPipeClient = new();
     private readonly WorkerProcessService _workerProcessService = new();
     private readonly TouchpadStreamClient _touchpadStreamClient = new();
+    private readonly SemaphoreSlim _serviceOperationGate = new(1, 1);
 
     private DispatcherQueue? _dispatcherQueue;
     private DispatcherQueueTimer? _statusTimer;
@@ -28,19 +29,35 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private bool _touchpadMonitoringActive;
     private bool _touchpadStreamConnected;
     private bool _statusRefreshInFlight;
-    private bool _serviceRunning;
-    private bool _autostartEnabled;
-    private bool _priorityStartupEnabled;
-    private bool _priorityStartupBusy;
+    private bool _serviceOperationInFlight;
+    private WorkerServiceState _serviceState;
     private bool _isReloadingConfiguration;
     private string _languagePreference = AppLanguagePreference.System;
     private bool _trayIconEnabled;
+    private bool _workerElevated;
+    private bool _batteryControlBusy;
+    private bool _batteryStateKnown;
+    private bool _batteryControlSupported;
+    private string _batteryControlStatusMessage = LocalizedText.Pick("Start the background service to view or change the current power status.", "请先启动后台服务，才能查看或修改当前电源状态。");
+    private bool _resetPerformanceModeToSmartOnStartup = true;
+    private string _currentPerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey;
+    private bool _resetChargeLimitToFullOnStartup;
+    private int _currentChargeLimitPercent = BatteryControlCatalog.DefaultChargeLimitPercent;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
     private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
     private int _touchpadLightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
     private int _touchpadLongPressDurationMs = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
+    private int _touchpadPressSensitivityLevel = TouchpadHardwareSettings.Medium;
+    private int _touchpadFeedbackLevel = TouchpadHardwareSettings.Medium;
+    private bool _touchpadDeepPressHapticsEnabled = true;
+    private bool _touchpadEdgeSlideEnabled;
+
+    public MeowBoxController()
+    {
+        _controllerPipeServer = new ControllerPipeServer(OnWorkerNotificationAsync);
+    }
 
     public ObservableCollection<KeyDefinitionViewModel> KeyItems { get; } = [];
 
@@ -98,35 +115,21 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
     }
 
-    public bool ServiceRunning
+    public WorkerServiceState ServiceState
     {
-        get => _serviceRunning;
+        get => _serviceState;
         private set
         {
-            if (SetProperty(ref _serviceRunning, value))
+            if (SetProperty(ref _serviceState, value))
             {
+                OnPropertyChanged(nameof(ServiceRunning));
                 OnPropertyChanged(nameof(ServiceStatusLabel));
+                OnPropertyChanged(nameof(BatteryControlsEnabled));
             }
         }
     }
 
-    public bool AutostartEnabled
-    {
-        get => _autostartEnabled;
-        private set => SetProperty(ref _autostartEnabled, value);
-    }
-
-    public bool PriorityStartupEnabled
-    {
-        get => _priorityStartupEnabled;
-        private set => SetProperty(ref _priorityStartupEnabled, value);
-    }
-
-    public bool PriorityStartupBusy
-    {
-        get => _priorityStartupBusy;
-        private set => SetProperty(ref _priorityStartupBusy, value);
-    }
+    public bool ServiceRunning => ServiceState == WorkerServiceState.Running;
 
     public bool IsReloadingConfiguration
     {
@@ -146,7 +149,110 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         private set => SetProperty(ref _trayIconEnabled, value);
     }
 
-    public string ServiceStatusLabel => ServiceRunning ? LocalizedText.Pick("Running", "运行中") : LocalizedText.Pick("Stopped", "已停止");
+    public bool WorkerElevated
+    {
+        get => _workerElevated;
+        private set
+        {
+            if (SetProperty(ref _workerElevated, value))
+            {
+                OnPropertyChanged(nameof(BatteryControlsEnabled));
+            }
+        }
+    }
+
+    public bool BatteryControlBusy
+    {
+        get => _batteryControlBusy;
+        private set
+        {
+            if (SetProperty(ref _batteryControlBusy, value))
+            {
+                OnPropertyChanged(nameof(BatteryControlsEnabled));
+            }
+        }
+    }
+
+    public bool BatteryStateKnown
+    {
+        get => _batteryStateKnown;
+        private set
+        {
+            if (SetProperty(ref _batteryStateKnown, value))
+            {
+                OnPropertyChanged(nameof(BatteryControlsEnabled));
+            }
+        }
+    }
+
+    public bool BatteryControlSupported
+    {
+        get => _batteryControlSupported;
+        private set
+        {
+            if (SetProperty(ref _batteryControlSupported, value))
+            {
+                OnPropertyChanged(nameof(BatteryControlsEnabled));
+            }
+        }
+    }
+
+    public string BatteryControlStatusMessage
+    {
+        get => _batteryControlStatusMessage;
+        private set => SetProperty(ref _batteryControlStatusMessage, value);
+    }
+
+    public string CurrentPerformanceModeKey
+    {
+        get => _currentPerformanceModeKey;
+        private set
+        {
+            if (SetProperty(ref _currentPerformanceModeKey, value))
+            {
+                OnPropertyChanged(nameof(CurrentPerformanceModeLabel));
+            }
+        }
+    }
+
+    public string CurrentPerformanceModeLabel => BatteryControlCatalog.GetPerformanceModeLabel(CurrentPerformanceModeKey);
+
+    public bool ResetPerformanceModeToSmartOnStartup
+    {
+        get => _resetPerformanceModeToSmartOnStartup;
+        private set => SetProperty(ref _resetPerformanceModeToSmartOnStartup, value);
+    }
+
+    public int CurrentChargeLimitPercent
+    {
+        get => _currentChargeLimitPercent;
+        private set
+        {
+            if (SetProperty(ref _currentChargeLimitPercent, value))
+            {
+                OnPropertyChanged(nameof(CurrentChargeLimitLabel));
+            }
+        }
+    }
+
+    public string CurrentChargeLimitLabel => BatteryControlCatalog.GetChargeLimitLabel(CurrentChargeLimitPercent);
+
+    public bool ResetChargeLimitToFullOnStartup
+    {
+        get => _resetChargeLimitToFullOnStartup;
+        private set => SetProperty(ref _resetChargeLimitToFullOnStartup, value);
+    }
+
+    public bool BatteryControlsEnabled => ServiceRunning && WorkerElevated && BatteryStateKnown && BatteryControlSupported && !BatteryControlBusy;
+
+    public string ServiceStatusLabel => ServiceState switch
+    {
+        WorkerServiceState.Running => LocalizedText.Pick("Running", "运行中"),
+        WorkerServiceState.Starting => LocalizedText.Pick("Starting", "启动中"),
+        WorkerServiceState.Stopping => LocalizedText.Pick("Stopping", "停止中"),
+        WorkerServiceState.UnexpectedlyStopped => LocalizedText.Pick("Worker stopped", "后台已停止运行"),
+        _ => LocalizedText.Pick("Stopped", "已停止")
+    };
 
     public string ThemePreference => App.ThemeService.CurrentPreference;
 
@@ -155,8 +261,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public string ConfigDirectory => _configService.ConfigDirectory;
 
     public string ConfigPath => _configService.ConfigPath;
-
-    public string OsdIconDirectory => OsdIconPathResolver.GetOsdIconDirectory(_configService.ConfigDirectory);
 
     public int OsdDurationMs
     {
@@ -194,19 +298,41 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         private set => SetProperty(ref _touchpadLightPressThreshold, value);
     }
 
+    public int TouchpadPressSensitivityLevel
+    {
+        get => _touchpadPressSensitivityLevel;
+        private set => SetProperty(ref _touchpadPressSensitivityLevel, value);
+    }
+
+    public int TouchpadFeedbackLevel
+    {
+        get => _touchpadFeedbackLevel;
+        private set => SetProperty(ref _touchpadFeedbackLevel, value);
+    }
+
+    public bool TouchpadDeepPressHapticsEnabled
+    {
+        get => _touchpadDeepPressHapticsEnabled;
+        private set => SetProperty(ref _touchpadDeepPressHapticsEnabled, value);
+    }
+
+    public bool TouchpadEdgeSlideEnabled
+    {
+        get => _touchpadEdgeSlideEnabled;
+        private set => SetProperty(ref _touchpadEdgeSlideEnabled, value);
+    }
+
     public void Initialize(Window window)
     {
         _dispatcherQueue ??= DispatcherQueue.GetForCurrentThread();
-        SyncBundledOsdIconsToConfigDirectory();
         _configuration = _configService.Load();
         ReloadCollectionsFromConfiguration();
         _touchpadStreamClient.SnapshotReceived += OnTouchpadSnapshotReceived;
         _touchpadStreamClient.ConnectionChanged += OnTouchpadStreamConnectionChanged;
 
         App.ThemeService.Initialize(window, _configuration.Theme);
-        _ = RefreshAutostartStateAsync();
         StartStatusPolling();
-        _ = RefreshWorkerStatusAsync();
+        _ = RequestWorkerAnnouncementAsync();
     }
 
     public void SetTouchpadMonitoringActive(bool active)
@@ -303,104 +429,262 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         OpenFolder(ConfigDirectory);
     }
 
-    public void OpenOsdIconFolder()
+    public async Task<bool> EnsureBatteryControlReadyAsync()
     {
-        Directory.CreateDirectory(OsdIconDirectory);
-        OpenFolder(OsdIconDirectory);
-    }
-
-    public void RefreshOsdIconCatalog()
-    {
-        SyncBundledOsdIconsToConfigDirectory();
-    }
-
-    public async Task<bool> StartWorkerServiceAsync()
-    {
-        if (!_workerProcessService.IsWorkerInstalled())
-        {
-            return false;
-        }
-
-        if (_workerProcessService.IsWorkerProcessRunning())
-        {
-            return await WaitForWorkerReadyAsync();
-        }
-
-        if (!_workerProcessService.StartWorker())
-        {
-            return false;
-        }
-
-        return await WaitForWorkerReadyAsync();
-    }
-
-    public async Task StopWorkerServiceAsync()
-    {
-        _ = await _workerPipeClient.SendAsync(new WorkerRequest
-        {
-            Command = WorkerCommandType.StopWorker
-        }, 600);
-
-        ResetTouchpadLiveState();
-
-        for (var attempt = 0; attempt < 12; attempt++)
-        {
-            if (!_workerProcessService.IsWorkerProcessRunning())
-            {
-                await RefreshWorkerStatusAsync();
-                return;
-            }
-
-            await Task.Delay(80);
-        }
-
-        await RefreshWorkerStatusAsync();
-    }
-
-    public void SetAutostart(bool enabled)
-    {
-        var workerExecutablePath = enabled
-            ? _workerProcessService.ResolveWorkerExecutablePath()
-            : _workerProcessService.WorkerExecutablePath;
-
-        _autostartService.SetEnabled(enabled, workerExecutablePath ?? string.Empty, _configuration.Preferences.PreferPriorityStartup);
-        RefreshAutostartState();
-    }
-
-    public async Task SetPriorityStartupEnabledAsync(bool enabled)
-    {
-        if (PriorityStartupBusy)
-        {
-            return;
-        }
-
-        var previousPreference = _configuration.Preferences.PreferPriorityStartup;
-        PriorityStartupBusy = true;
-        _configuration.Preferences.PreferPriorityStartup = enabled;
-        PriorityStartupEnabled = enabled;
-        SaveConfiguration();
+        BatteryControlBusy = true;
+        BatteryControlStatusMessage = LocalizedText.Pick("Preparing battery controls...", "正在准备电池控制……");
 
         try
         {
-            if (AutostartEnabled)
+            var statusResponse = await QueryWorkerStatusAsync(350);
+            if (statusResponse?.Success == true && statusResponse.Status is not null)
             {
-                var workerExecutablePath = _workerProcessService.ResolveWorkerExecutablePath() ?? _workerProcessService.WorkerExecutablePath;
-                await Task.Run(() => _autostartService.SetEnabled(true, workerExecutablePath, enabled));
+                ApplyWorkerSnapshot(statusResponse.Status);
+                if (!statusResponse.Status.IsElevated)
+                {
+                    await StopWorkerServiceAsync();
+                }
             }
 
-            RefreshAutostartState();
+            _workerProcessService.EnsureElevatedRuntimeTask();
+
+            if (!_workerProcessService.IsWorkerProcessRunning())
+            {
+                if (!_workerProcessService.StartWorker())
+                {
+                    MarkWorkerStopped();
+                    BatteryControlStatusMessage = LocalizedText.Pick("Could not start the elevated worker.", "无法启动管理员后台服务。");
+                    return false;
+                }
+
+                SetServiceState(WorkerServiceState.Starting, false);
+                _ = ObserveWorkerStartupAsync();
+            }
+
+            if (!await WaitForWorkerReadyAsync(requireElevated: true))
+            {
+                BatteryControlStatusMessage = LocalizedText.Pick("The worker did not enter elevated mode.", "后台服务未进入管理员模式。");
+                return false;
+            }
+
+            return await RefreshBatteryControlStateCoreAsync();
+        }
+        catch (Exception exception)
+        {
+            BatteryControlStatusMessage = exception.Message;
+            return false;
+        }
+        finally
+        {
+            BatteryControlBusy = false;
+        }
+    }
+
+    public async Task<bool> RefreshBatteryControlStateAsync()
+    {
+        BatteryControlBusy = true;
+        BatteryControlStatusMessage = LocalizedText.Pick("Reading battery controls...", "正在读取电池控制……");
+
+        try
+        {
+            return await RefreshBatteryControlStateCoreAsync();
+        }
+        finally
+        {
+            BatteryControlBusy = false;
+        }
+    }
+
+    public async Task SetPerformanceModeAsync(string modeKey)
+    {
+        var normalizedModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(modeKey);
+        var previousModeKey = CurrentPerformanceModeKey;
+        CurrentPerformanceModeKey = normalizedModeKey;
+        BatteryStateKnown = true;
+        BatteryControlSupported = true;
+        BatteryControlStatusMessage = LocalizedText.Pick("Updating performance mode...", "正在切换性能模式……");
+        BatteryControlBusy = true;
+        try
+        {
+            var response = await _workerPipeClient.SendAsync(new WorkerRequest
+            {
+                Command = WorkerCommandType.SetPerformanceMode,
+                PerformanceModeKey = normalizedModeKey
+            }, 2500);
+
+            if (response?.Success != true)
+            {
+                throw new InvalidOperationException(response?.Error ?? LocalizedText.Pick("Could not change the performance mode.", "无法切换性能模式。"));
+            }
+
+            _configuration.Preferences.PreferredPerformanceModeKey = normalizedModeKey;
+            SaveConfiguration();
+            ApplyWorkerSnapshot(response.Status);
+            BatteryControlStatusMessage = LocalizedText.Pick("Performance mode updated.", "性能模式已更新。");
         }
         catch
         {
-            _configuration.Preferences.PreferPriorityStartup = previousPreference;
-            PriorityStartupEnabled = previousPreference;
-            SaveConfiguration();
-            RefreshAutostartState();
+            CurrentPerformanceModeKey = previousModeKey;
             throw;
         }
         finally
         {
-            PriorityStartupBusy = false;
+            BatteryControlBusy = false;
+        }
+    }
+
+    public void SetResetPerformanceModeToSmartOnStartup(bool enabled)
+    {
+        _configuration.Preferences.ResetPerformanceModeToSmartOnStartup = enabled;
+        ResetPerformanceModeToSmartOnStartup = enabled;
+        SaveConfiguration();
+    }
+
+    public async Task SetChargeLimitPercentAsync(int percent)
+    {
+        var normalizedPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(percent);
+        var previousPercent = CurrentChargeLimitPercent;
+        CurrentChargeLimitPercent = normalizedPercent;
+        BatteryStateKnown = true;
+        BatteryControlSupported = true;
+        BatteryControlStatusMessage = LocalizedText.Pick("Updating charge limit...", "正在切换充电限制……");
+        BatteryControlBusy = true;
+        try
+        {
+            var response = await _workerPipeClient.SendAsync(new WorkerRequest
+            {
+                Command = WorkerCommandType.SetChargeLimit,
+                ChargeLimitPercent = normalizedPercent
+            }, 2500);
+
+            if (response?.Success != true)
+            {
+                throw new InvalidOperationException(response?.Error ?? LocalizedText.Pick("Could not change the charge limit.", "无法切换充电限制。"));
+            }
+
+            _configuration.Preferences.PreferredChargeLimitPercent = normalizedPercent;
+            SaveConfiguration();
+            ApplyWorkerSnapshot(response.Status);
+            BatteryControlStatusMessage = LocalizedText.Pick("Charge limit updated.", "充电限制已更新。");
+        }
+        catch
+        {
+            CurrentChargeLimitPercent = previousPercent;
+            throw;
+        }
+        finally
+        {
+            BatteryControlBusy = false;
+        }
+    }
+
+    public void SetResetChargeLimitToFullOnStartup(bool enabled)
+    {
+        _configuration.Preferences.ResetChargeLimitToFullOnStartup = enabled;
+        ResetChargeLimitToFullOnStartup = enabled;
+        SaveConfiguration();
+    }
+
+    public async Task<bool> StartWorkerServiceAsync()
+    {
+        SetServiceState(WorkerServiceState.Starting, false);
+        MarkBatteryStateUnknown(LocalizedText.Pick("Waiting for the background service to report the current power status...", "正在等待后台服务上报当前电源状态……"));
+        await _serviceOperationGate.WaitAsync();
+        try
+        {
+            _serviceOperationInFlight = true;
+            if (!await Task.Run(_workerProcessService.IsWorkerInstalled))
+            {
+                MarkWorkerStopped();
+                return false;
+            }
+
+            if (await Task.Run(_workerProcessService.IsWorkerProcessRunning))
+            {
+                var response = await QueryWorkerStatusAsync(300);
+                if (response?.Success == true && response.Status is not null)
+                {
+                    ApplyWorkerSnapshot(response.Status);
+                    if (response.Status.IsElevated)
+                    {
+                        await RequestWorkerAnnouncementAsync();
+                        return true;
+                    }
+                }
+
+                await _workerPipeClient.SendAsync(new WorkerRequest
+                {
+                    Command = WorkerCommandType.StopWorker
+                }, 600);
+
+                if (!await WaitForWorkerExitAsync())
+                {
+                    await Task.Run(_workerProcessService.StopWorker);
+                    await WaitForWorkerExitAsync();
+                }
+
+                ResetTouchpadLiveState();
+            }
+
+            if (!await Task.Run(_workerProcessService.StartWorker))
+            {
+                MarkWorkerStopped();
+                return false;
+            }
+
+            if (!_touchpadStreamConnected)
+            {
+                TouchpadLive.Update(null, serviceAvailable: true, Touchpad.DeepPressThreshold);
+            }
+
+            _ = ObserveWorkerStartupAsync();
+            return true;
+        }
+        catch
+        {
+            MarkWorkerStopped();
+            return false;
+        }
+        finally
+        {
+            _serviceOperationInFlight = false;
+            _serviceOperationGate.Release();
+        }
+    }
+
+    public async Task StopWorkerServiceAsync()
+    {
+        SetServiceState(WorkerServiceState.Stopping, false);
+        MarkBatteryStateUnknown(LocalizedText.Pick("The background service is stopping...", "后台服务正在停止……"));
+        await _serviceOperationGate.WaitAsync();
+        try
+        {
+            _serviceOperationInFlight = true;
+            await _workerPipeClient.SendAsync(new WorkerRequest
+            {
+                Command = WorkerCommandType.StopWorker
+            }, 600);
+
+            var workerExited = await WaitForWorkerExitAsync();
+            if (!workerExited)
+            {
+                await Task.Run(_workerProcessService.StopWorker);
+                workerExited = await WaitForWorkerExitAsync();
+            }
+
+            if (workerExited)
+            {
+                MarkWorkerStopped();
+            }
+            else
+            {
+                _ = ObserveWorkerShutdownAsync();
+            }
+        }
+        finally
+        {
+            _serviceOperationInFlight = false;
+            _serviceOperationGate.Release();
         }
     }
 
@@ -441,12 +725,76 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     {
         var normalizedLightPressThreshold = Math.Clamp(lightPressThreshold, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1);
         var normalizedValue = Math.Clamp(longPressDurationMs, 200, 3000);
+        var normalizedPressSensitivityLevel = TouchpadHardwareSettings.MapThresholdToPressSensitivityLevel(normalizedLightPressThreshold);
         _configuration.Touchpad.LightPressThreshold = normalizedLightPressThreshold;
+        _configuration.Touchpad.PressSensitivityLevel = normalizedPressSensitivityLevel;
         _configuration.Touchpad.LongPressDurationMs = normalizedValue;
         Touchpad.LightPressThreshold = normalizedLightPressThreshold;
+        Touchpad.PressSensitivityLevel = normalizedPressSensitivityLevel;
         TouchpadLightPressThreshold = normalizedLightPressThreshold;
+        TouchpadPressSensitivityLevel = normalizedPressSensitivityLevel;
         Touchpad.LongPressDurationMs = normalizedValue;
         TouchpadLongPressDurationMs = normalizedValue;
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
+    public async Task SetTouchpadHardwareHapticAsync(bool enabled)
+    {
+        await Task.Run(() => TouchpadPrivateHidService.SetHaptic(enabled));
+        _configuration.Touchpad.DeepPressHapticsEnabled = enabled;
+        Touchpad.DeepPressHapticsEnabled = enabled;
+        TouchpadDeepPressHapticsEnabled = enabled;
+        SaveConfiguration();
+    }
+
+    public async Task SetTouchpadHardwareVibrationAsync(int mode)
+    {
+        var normalizedMode = TouchpadHardwareSettings.NormalizeLevel(mode);
+        await Task.Run(() => TouchpadPrivateHidService.SetVibration(normalizedMode));
+        _configuration.Touchpad.FeedbackLevel = normalizedMode;
+        Touchpad.FeedbackLevel = normalizedMode;
+        TouchpadFeedbackLevel = normalizedMode;
+        SaveConfiguration();
+    }
+
+    public async Task SetTouchpadHardwarePressAsync(int mode)
+    {
+        var normalizedMode = TouchpadHardwareSettings.NormalizeLevel(mode);
+        var threshold = TouchpadHardwareSettings.MapPressSensitivityLevelToThreshold(normalizedMode);
+        await Task.Run(() => TouchpadPrivateHidService.SetPress(normalizedMode));
+        _configuration.Touchpad.PressSensitivityLevel = normalizedMode;
+        _configuration.Touchpad.LightPressThreshold = threshold;
+        Touchpad.PressSensitivityLevel = normalizedMode;
+        Touchpad.LightPressThreshold = threshold;
+        TouchpadPressSensitivityLevel = normalizedMode;
+        TouchpadLightPressThreshold = threshold;
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
+    public void SetTouchpadEdgeSlideEnabled(bool enabled)
+    {
+        _configuration.Touchpad.EdgeSlideEnabled = enabled;
+        if (enabled)
+        {
+            if (!Touchpad.LeftEdgeSlide.Action.HasAssignedAction)
+            {
+                Touchpad.LeftEdgeSlide.Action.Type = HotkeyActionType.BrightnessUp;
+            }
+
+            if (!Touchpad.RightEdgeSlide.Action.HasAssignedAction)
+            {
+                Touchpad.RightEdgeSlide.Action.Type = HotkeyActionType.VolumeUp;
+            }
+        }
+        else
+        {
+            Touchpad.LeftEdgeSlide.Action.ClearAssignment();
+            Touchpad.RightEdgeSlide.Action.ClearAssignment();
+        }
+
+        TouchpadEdgeSlideEnabled = Touchpad.EdgeSlideEnabled;
         SaveConfiguration();
         _ = ReloadWorkerAsync();
     }
@@ -514,9 +862,11 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public void Dispose()
     {
         _statusTimer?.Stop();
+        _controllerPipeServer.Dispose();
         _touchpadStreamClient.SnapshotReceived -= OnTouchpadSnapshotReceived;
         _touchpadStreamClient.ConnectionChanged -= OnTouchpadStreamConnectionChanged;
         _touchpadStreamClient.Dispose();
+        _serviceOperationGate.Dispose();
     }
 
     private void SaveConfiguration()
@@ -568,12 +918,17 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             }
 
             SelectedActionTag = ActionTags.FirstOrDefault();
-            PriorityStartupEnabled = _configuration.Preferences.PreferPriorityStartup;
             LanguagePreference = _configuration.Preferences.Language;
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
+            ResetPerformanceModeToSmartOnStartup = _configuration.Preferences.ResetPerformanceModeToSmartOnStartup;
+            ResetChargeLimitToFullOnStartup = _configuration.Preferences.ResetChargeLimitToFullOnStartup;
             Touchpad = new TouchpadConfigurationViewModel(_configuration.Touchpad);
             TouchpadLightPressThreshold = Touchpad.LightPressThreshold;
             TouchpadLongPressDurationMs = Touchpad.LongPressDurationMs;
+            TouchpadPressSensitivityLevel = Touchpad.PressSensitivityLevel;
+            TouchpadFeedbackLevel = Touchpad.FeedbackLevel;
+            TouchpadDeepPressHapticsEnabled = Touchpad.DeepPressHapticsEnabled;
+            TouchpadEdgeSlideEnabled = Touchpad.EdgeSlideEnabled;
             SyncOsdPreferenceState();
             RefreshMappingReferences();
             SelectedMapping = MappingItems.FirstOrDefault();
@@ -582,32 +937,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         finally
         {
             IsReloadingConfiguration = false;
-        }
-    }
-
-    private void SyncBundledOsdIconsToConfigDirectory()
-    {
-        Directory.CreateDirectory(OsdIconDirectory);
-
-        var bundledDirectory = Path.Combine(AppContext.BaseDirectory, "assets", BuiltInAssetResolver.OsdIconsDirectoryName);
-        if (!Directory.Exists(bundledDirectory))
-        {
-            return;
-        }
-
-        foreach (var sourcePath in Directory.GetFiles(bundledDirectory, "*.png", SearchOption.TopDirectoryOnly))
-        {
-            var fileName = Path.GetFileName(sourcePath);
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                continue;
-            }
-
-            var destinationPath = Path.Combine(OsdIconDirectory, fileName);
-            if (!File.Exists(destinationPath) || File.GetLastWriteTimeUtc(sourcePath) > File.GetLastWriteTimeUtc(destinationPath))
-            {
-                File.Copy(sourcePath, destinationPath, overwrite: true);
-            }
         }
     }
 
@@ -625,46 +954,27 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         OsdScalePercent = Math.Clamp(osd.ScalePercent, 60, 200);
     }
 
-    private void RefreshAutostartState()
-    {
-        var startupMode = _autostartService.GetStartupMode();
-        ApplyAutostartState(startupMode);
-    }
-
-    private async Task RefreshAutostartStateAsync()
-    {
-        var startupMode = await Task.Run(_autostartService.GetStartupMode);
-
-        if (_dispatcherQueue is null)
-        {
-            ApplyAutostartState(startupMode);
-            return;
-        }
-
-        _dispatcherQueue.TryEnqueue(() => ApplyAutostartState(startupMode));
-    }
-
-    private void ApplyAutostartState(StartupRegistrationMode startupMode)
-    {
-        AutostartEnabled = startupMode != StartupRegistrationMode.Disabled;
-        PriorityStartupEnabled = startupMode != StartupRegistrationMode.Disabled
-            ? startupMode == StartupRegistrationMode.ScheduledTask
-            : _configuration.Preferences.PreferPriorityStartup;
-    }
-
     private void StartStatusPolling()
     {
         _statusTimer?.Stop();
         _statusTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
         _statusTimer.IsRepeating = true;
-        _statusTimer.Interval = TimeSpan.FromSeconds(1.5);
-        _statusTimer.Tick += async (_, _) => await RefreshWorkerStatusAsync();
+        _statusTimer.Interval = TimeSpan.FromSeconds(5);
+        _statusTimer.Tick += async (_, _) => await PollWorkerHeartbeatAsync();
         _statusTimer.Start();
+    }
+
+    private async Task<WorkerResponse?> QueryWorkerStatusAsync(int timeoutMs)
+    {
+        return await _workerPipeClient.SendAsync(new WorkerRequest
+        {
+            Command = WorkerCommandType.GetStatus
+        }, timeoutMs);
     }
 
     private async Task RefreshWorkerStatusAsync()
     {
-        if (_statusRefreshInFlight)
+        if (_statusRefreshInFlight || _serviceOperationInFlight)
         {
             return;
         }
@@ -673,16 +983,17 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
         try
         {
-        var response = await _workerPipeClient.SendAsync(new WorkerRequest
-        {
-            Command = WorkerCommandType.GetStatus
-        }, 350);
+            var response = await QueryWorkerStatusAsync(350);
+            if (response?.Success == true && response.Status is not null)
+            {
+                ApplyWorkerSnapshot(response.Status);
+                return;
+            }
 
-        ServiceRunning = response?.Success == true && response.Status is not null;
-        if (!_touchpadStreamConnected || !ServiceRunning)
-        {
-            TouchpadLive.Update(ServiceRunning ? response?.Status?.Touchpad : null, ServiceRunning, Touchpad.DeepPressThreshold);
-        }
+            if (ServiceRunning)
+            {
+                MarkWorkerUnexpectedlyStopped();
+            }
         }
         finally
         {
@@ -690,44 +1001,295 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
     }
 
-    private async Task<bool> WaitForWorkerReadyAsync()
+    private async Task<bool> WaitForWorkerReadyAsync(bool requireElevated = false)
     {
-        for (var attempt = 0; attempt < 12; attempt++)
+        for (var attempt = 0; attempt < 20; attempt++)
         {
-            var response = await _workerPipeClient.SendAsync(new WorkerRequest
-            {
-                Command = WorkerCommandType.GetStatus
-            }, 150);
+            var response = await QueryWorkerStatusAsync(150);
 
             if (response?.Success == true && response.Status is not null)
             {
-                ServiceRunning = true;
-                if (!_touchpadStreamConnected)
+                ApplyWorkerSnapshot(response.Status);
+                if (!requireElevated || response.Status.IsElevated)
                 {
-                    TouchpadLive.Update(response.Status.Touchpad, serviceAvailable: true, Touchpad.DeepPressThreshold);
+                    return true;
                 }
-
-                return true;
             }
 
-            if (!_workerProcessService.IsWorkerProcessRunning())
+            if (!await Task.Run(_workerProcessService.IsWorkerProcessRunning))
             {
-                ResetTouchpadLiveState();
+                MarkWorkerStopped();
                 return false;
             }
 
             await Task.Delay(80);
         }
 
-        await RefreshWorkerStatusAsync();
-        return ServiceRunning;
+        return false;
+    }
+
+    private async Task<bool> WaitForWorkerExitAsync()
+    {
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            if (!await Task.Run(_workerProcessService.IsWorkerProcessRunning))
+            {
+                return true;
+            }
+
+            await Task.Delay(120);
+        }
+
+        return false;
     }
 
     private void ResetTouchpadLiveState()
     {
         _touchpadStreamConnected = false;
-        ServiceRunning = false;
         TouchpadLive.Update(null, serviceAvailable: false, Touchpad.DeepPressThreshold);
+    }
+
+    private async Task<bool> RefreshBatteryControlStateCoreAsync()
+    {
+        var response = await _workerPipeClient.SendAsync(new WorkerRequest
+        {
+            Command = WorkerCommandType.GetBatteryControlState
+        }, 2500);
+
+        if (response?.Success != true || response.Battery is null)
+        {
+            MarkBatteryStateUnknown(response?.Error ?? LocalizedText.Pick("Could not read the battery controls.", "无法读取电池控制。"));
+            ApplyWorkerSnapshot(response?.Status);
+            return false;
+        }
+
+        ApplyWorkerSnapshot(response.Status);
+        ApplyBatteryState(response.Battery);
+        if (response.Battery.Supported)
+        {
+            BatteryControlStatusMessage = LocalizedText.Pick("Connected to low-level battery controls.", "已连接到底层电池控制。");
+            return true;
+        }
+
+        BatteryControlStatusMessage = LocalizedText.Pick("This device does not expose the required battery controls.", "这台设备没有暴露所需的电池控制接口。");
+        return false;
+    }
+
+    private async Task PollWorkerHeartbeatAsync()
+    {
+        if (!ServiceRunning)
+        {
+            return;
+        }
+
+        await RefreshWorkerStatusAsync();
+    }
+
+    private async Task RequestWorkerAnnouncementAsync()
+    {
+        var response = await _workerPipeClient.SendAsync(new WorkerRequest
+        {
+            Command = WorkerCommandType.AnnounceState
+        }, 500);
+
+        if (response?.Success == true && response.Status is not null)
+        {
+            ApplyWorkerSnapshot(response.Status);
+        }
+    }
+
+    private async Task ObserveWorkerStartupAsync()
+    {
+        var attempt = 0;
+        var startupDeadlineUtc = DateTime.UtcNow.AddSeconds(8);
+        var sawWorkerProcess = false;
+        var missingProcessChecks = 0;
+        while (ServiceState == WorkerServiceState.Starting)
+        {
+            if (await Task.Run(_workerProcessService.IsWorkerProcessRunning))
+            {
+                sawWorkerProcess = true;
+                missingProcessChecks = 0;
+            }
+            else
+            {
+                missingProcessChecks++;
+                var startupFailed = sawWorkerProcess
+                    ? missingProcessChecks >= 3
+                    : DateTime.UtcNow >= startupDeadlineUtc;
+
+                if (startupFailed)
+                {
+                    MarkWorkerStopped();
+                    return;
+                }
+            }
+
+            attempt++;
+            if (attempt % 4 == 0)
+            {
+                await RequestWorkerAnnouncementAsync();
+            }
+
+            await Task.Delay(250);
+        }
+    }
+
+    private async Task ObserveWorkerShutdownAsync()
+    {
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            if (ServiceState != WorkerServiceState.Stopping)
+            {
+                return;
+            }
+
+            if (!await Task.Run(_workerProcessService.IsWorkerProcessRunning))
+            {
+                MarkWorkerStopped();
+                return;
+            }
+
+            await Task.Delay(120);
+        }
+    }
+
+    private Task OnWorkerNotificationAsync(WorkerNotification notification)
+    {
+        if (_dispatcherQueue is null)
+        {
+            ApplyWorkerNotification(notification);
+            return Task.CompletedTask;
+        }
+
+        var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            try
+            {
+                ApplyWorkerNotification(notification);
+                completionSource.SetResult();
+            }
+            catch (Exception exception)
+            {
+                completionSource.SetException(exception);
+            }
+        });
+
+        return completionSource.Task;
+    }
+
+    private void ApplyWorkerNotification(WorkerNotification notification)
+    {
+        switch (notification.Type)
+        {
+            case WorkerNotificationType.Started:
+                if (notification.Status is not null)
+                {
+                    SetServiceState(WorkerServiceState.Running, notification.Status.IsElevated);
+                    ApplyWorkerSnapshot(notification.Status);
+                }
+                else
+                {
+                    SetServiceState(WorkerServiceState.Running, WorkerElevated);
+                }
+                break;
+            case WorkerNotificationType.Stopped:
+                if (ServiceState == WorkerServiceState.Starting)
+                {
+                    break;
+                }
+
+                MarkWorkerStopped();
+                break;
+        }
+    }
+
+    private void ApplyWorkerSnapshot(WorkerStatus? status)
+    {
+        if (status is null)
+        {
+            WorkerElevated = false;
+            MarkBatteryStateUnknown(BuildBatteryRuntimeUnavailableMessage());
+            if (!_touchpadStreamConnected)
+            {
+                TouchpadLive.Update(null, serviceAvailable: false, Touchpad.DeepPressThreshold);
+            }
+
+            return;
+        }
+
+        WorkerElevated = status.IsElevated;
+        if (status.Battery is not null)
+        {
+            ApplyBatteryState(status.Battery);
+        }
+        else if (!status.IsRunning || !status.IsElevated)
+        {
+            MarkBatteryStateUnknown(BuildBatteryRuntimeUnavailableMessage(status.IsRunning, status.IsElevated));
+        }
+
+        if (!_touchpadStreamConnected || !ServiceRunning)
+        {
+            TouchpadLive.Update(status.Touchpad, serviceAvailable: status.IsRunning, Touchpad.DeepPressThreshold);
+        }
+    }
+
+    private void MarkWorkerStopped()
+    {
+        MarkBatteryStateUnknown(BuildBatteryRuntimeUnavailableMessage(serviceRunning: false, workerElevated: false));
+        SetServiceState(WorkerServiceState.Stopped, false);
+        ResetTouchpadLiveState();
+    }
+
+    private void MarkWorkerUnexpectedlyStopped()
+    {
+        MarkBatteryStateUnknown(BuildBatteryRuntimeUnavailableMessage(serviceRunning: false, workerElevated: false));
+        SetServiceState(WorkerServiceState.UnexpectedlyStopped, false);
+        ResetTouchpadLiveState();
+    }
+
+    private void SetServiceState(WorkerServiceState state, bool workerElevated)
+    {
+        WorkerElevated = workerElevated;
+        ServiceState = state;
+    }
+
+    private void ApplyBatteryState(BatteryControlState state)
+    {
+        BatteryStateKnown = true;
+        BatteryControlSupported = state.Supported;
+        if (!string.IsNullOrWhiteSpace(state.PerformanceModeKey))
+        {
+            CurrentPerformanceModeKey = state.PerformanceModeKey;
+        }
+
+        CurrentChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(state.ChargeLimitPercent);
+    }
+
+    private void MarkBatteryStateUnknown(string statusMessage)
+    {
+        BatteryStateKnown = false;
+        BatteryControlSupported = false;
+        BatteryControlStatusMessage = statusMessage;
+    }
+
+    private string BuildBatteryRuntimeUnavailableMessage(bool? serviceRunning = null, bool? workerElevated = null)
+    {
+        var isRunning = serviceRunning ?? ServiceRunning;
+        var isElevated = workerElevated ?? WorkerElevated;
+
+        if (!isRunning)
+        {
+            return LocalizedText.Pick("Start the background service to view or change the current power status.", "请先启动后台服务，才能查看或修改当前电源状态。");
+        }
+
+        if (!isElevated)
+        {
+            return LocalizedText.Pick("Restart the background service with admin rights to view or change the current power status.", "请以管理员权限重新启动后台服务，才能查看或修改当前电源状态。");
+        }
+
+        return LocalizedText.Pick("Waiting for the background service to report the current power status...", "正在等待后台服务上报当前电源状态……");
     }
 
     private void ApplyActionType(string type)
@@ -761,14 +1323,12 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     {
         if (_dispatcherQueue is null)
         {
-            ServiceRunning = true;
             TouchpadLive.Update(snapshot, serviceAvailable: true, Touchpad.DeepPressThreshold);
             return;
         }
 
         _dispatcherQueue.TryEnqueue(() =>
         {
-            ServiceRunning = true;
             TouchpadLive.Update(snapshot, serviceAvailable: true, Touchpad.DeepPressThreshold);
         });
     }
@@ -778,21 +1338,20 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         _touchpadStreamConnected = connected;
         if (connected)
         {
-            if (_dispatcherQueue is null)
-            {
-                ServiceRunning = true;
-            }
-            else
-            {
-                _dispatcherQueue.TryEnqueue(() => ServiceRunning = true);
-            }
-
             return;
         }
 
         if (!_workerProcessService.IsWorkerProcessRunning())
         {
-            ResetTouchpadLiveState();
+            if (ServiceRunning)
+            {
+                MarkWorkerUnexpectedlyStopped();
+            }
+            else
+            {
+                ResetTouchpadLiveState();
+            }
+
             return;
         }
 

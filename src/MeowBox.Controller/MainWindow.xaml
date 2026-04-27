@@ -139,10 +139,18 @@
                 </NavigationViewItem>
                 <NavigationViewItem
                     x:Name="TouchpadItem"
-                    Content="Touchpad"
+                    Content="Touch"
                     Tag="touchpad">
                     <NavigationViewItem.Icon>
                         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xEFA5;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="BatteryItem"
+                    Content="Battery"
+                    Tag="battery">
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontFamily="Segoe Fluent Icons" FontSize="15" Glyph="&#xE7F8;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem

@@ -36,6 +36,15 @@
   <data name="ServiceStatus.Running" xml:space="preserve">
     <value>服务运行中</value>
   </data>
+  <data name="ServiceStatus.Starting" xml:space="preserve">
+    <value>服务启动中</value>
+  </data>
+  <data name="ServiceStatus.Stopping" xml:space="preserve">
+    <value>服务停止中</value>
+  </data>
+  <data name="ServiceStatus.WorkerStopped" xml:space="preserve">
+    <value>后台已停止运行</value>
+  </data>
   <data name="ServiceStatus.Stopped" xml:space="preserve">
     <value>服务未运行</value>
   </data>
@@ -44,6 +53,12 @@
   </data>
   <data name="QuickService.Stop" xml:space="preserve">
     <value>停止服务</value>
+  </data>
+  <data name="QuickService.Starting" xml:space="preserve">
+    <value>启动中…</value>
+  </data>
+  <data name="QuickService.Stopping" xml:space="preserve">
+    <value>停止中…</value>
   </data>
   <data name="Dialog.Close" xml:space="preserve">
     <value>关闭</value>
@@ -68,12 +83,6 @@
   </data>
   <data name="Settings.Messages.StartServiceFailed.Body" xml:space="preserve">
     <value>后台 Worker 无法启动，或启动后没有响应。</value>
-  </data>
-  <data name="Settings.Messages.AutostartFailed.Title" xml:space="preserve">
-    <value>无法修改开机启动设置</value>
-  </data>
-  <data name="Settings.Messages.PriorityFailed.Title" xml:space="preserve">
-    <value>无法修改优先启动设置</value>
   </data>
   <data name="Settings.Messages.ImportFailed.Title" xml:space="preserve">
     <value>无法导入配置</value>
@@ -375,18 +384,6 @@
   <data name="ServiceRunningText.Text" xml:space="preserve">
     <value>运行</value>
   </data>
-  <data name="AutostartText.Text" xml:space="preserve">
-    <value>随 Windows 启动</value>
-  </data>
-  <data name="PriorityStartupTitleText.Text" xml:space="preserve">
-    <value>优先启动</value>
-  </data>
-  <data name="PriorityStartupDescriptionText.Text" xml:space="preserve">
-    <value>使用 Windows 计划任务替代启动文件夹，让 Worker 在登录后更早启动。</value>
-  </data>
-  <data name="PriorityStartupBusyText.Text" xml:space="preserve">
-    <value>正在应用……</value>
-  </data>
   <data name="TrayIconText.Text" xml:space="preserve">
     <value>托盘图标</value>
   </data>
@@ -541,13 +538,13 @@
     <value>打开配置文件夹</value>
   </data>
   <data name="Navigation.Touchpad" xml:space="preserve">
-    <value>触控板</value>
+    <value>&#x89E6;&#x63A7;</value>
   </data>
   <data name="PageTitle.Touchpad" xml:space="preserve">
-    <value>触控板</value>
+    <value>&#x89E6;&#x63A7;</value>
   </data>
   <data name="TouchpadPageTitleText.Text" xml:space="preserve">
-    <value>触控板</value>
+    <value>&#x89E6;&#x63A7;</value>
   </data>
   <data name="TouchpadStatusTitleText.Text" xml:space="preserve">
     <value>实时压感</value>
@@ -659,5 +656,71 @@
   </data>
   <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
     <value>无法恢复默认设置</value>
+  </data>
+  <data name="Navigation.Battery" xml:space="preserve">
+    <value>电池</value>
+  </data>
+  <data name="PageTitle.Battery" xml:space="preserve">
+    <value>电池</value>
+  </data>
+  <data name="BatteryRefreshButton.Content" xml:space="preserve">
+    <value>重新读取</value>
+  </data>
+  <data name="BatteryPerformanceTitleText.Text" xml:space="preserve">
+    <value>&#x6027;&#x80FD;&#x6A21;&#x5F0F;</value>
+  </data>
+  <data name="BatteryChargeTitleText.Text" xml:space="preserve">
+    <value>&#x5145;&#x7535;&#x4E0A;&#x9650;</value>
+  </data>
+  <data name="BatteryChargeInfoBar.Message" xml:space="preserve">
+    <value>&#x5C06;&#x5145;&#x7535;&#x4FDD;&#x6301;&#x5728;&#x8F83;&#x4F4E;&#x4E0A;&#x9650;&#xFF0C;&#x6709;&#x52A9;&#x4E8E;&#x5EF6;&#x957F;&#x7535;&#x6C60;&#x5BFF;&#x547D;&#xFF1B;&#x5728;&#x9AD8;&#x6E29;&#x73AF;&#x5883;&#x4E0B;&#xFF0C;&#x957F;&#x65F6;&#x95F4;&#x6EE1;&#x7535;&#x4F1A;&#x66F4;&#x5BB9;&#x6613;&#x5BFC;&#x81F4;&#x7535;&#x6C60;&#x8001;&#x5316;&#x3002;</value>
+  </data>
+  <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
+    <value>&#x89E6;&#x63A7;&#x7075;&#x654F;&#x5EA6;</value>
+  </data>
+  <data name="TouchpadPressSensitivityLowItem.Content" xml:space="preserve">
+    <value>&#x4F4E;</value>
+  </data>
+  <data name="TouchpadPressSensitivityMediumItem.Content" xml:space="preserve">
+    <value>&#x4E2D;</value>
+  </data>
+  <data name="TouchpadPressSensitivityHighItem.Content" xml:space="preserve">
+    <value>&#x9AD8;</value>
+  </data>
+  <data name="TouchpadFeedbackLabelText.Text" xml:space="preserve">
+    <value>&#x9707;&#x52A8;&#x53CD;&#x9988;&#x5EA6;</value>
+  </data>
+  <data name="TouchpadFeedbackWeakItem.Content" xml:space="preserve">
+    <value>&#x5F31;</value>
+  </data>
+  <data name="TouchpadFeedbackMediumItem.Content" xml:space="preserve">
+    <value>&#x4E2D;</value>
+  </data>
+  <data name="TouchpadFeedbackStrongItem.Content" xml:space="preserve">
+    <value>&#x5F3A;</value>
+  </data>
+  <data name="TouchpadDeepPressFeedbackLabelText.Text" xml:space="preserve">
+    <value>&#x542F;&#x7528;&#x91CD;&#x6309;&#x53CD;&#x9988;</value>
+  </data>
+  <data name="TouchpadDeepPressFeedbackOffItem.Content" xml:space="preserve">
+    <value>&#x5173;&#x95ED;</value>
+  </data>
+  <data name="TouchpadDeepPressFeedbackOnItem.Content" xml:space="preserve">
+    <value>&#x5F00;&#x542F;</value>
+  </data>
+  <data name="TouchpadEdgeSlideLabelText.Text" xml:space="preserve">
+    <value>&#x542F;&#x7528;&#x8FB9;&#x7F18;&#x6ED1;&#x52A8;</value>
+  </data>
+  <data name="TouchpadEdgeSlideOffItem.Content" xml:space="preserve">
+    <value>&#x5173;&#x95ED;</value>
+  </data>
+  <data name="TouchpadEdgeSlideOnItem.Content" xml:space="preserve">
+    <value>&#x5F00;&#x542F;</value>
+  </data>
+  <data name="TouchpadLongPressLabelText.Text" xml:space="preserve">
+    <value>&#x957F;&#x6309;&#x89E6;&#x53D1;&#x65F6;&#x957F;</value>
+  </data>
+  <data name="TouchpadPressureTextBlock.Text" xml:space="preserve">
+    <value>&#x538B;&#x529B;&#xFF1A;0</value>
   </data>
 </root>

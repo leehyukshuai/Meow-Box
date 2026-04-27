@@ -54,62 +54,27 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock x:Uid="ServiceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Service" />
 
-                        <Border Grid.Row="1" Style="{StaticResource InsetPanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock x:Uid="ServiceRunningText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Running" />
-                                <ToggleSwitch x:Name="ServiceToggleSwitch" Grid.Column="1" Toggled="OnServiceStateChanged" />
-                            </Grid>
-                        </Border>
+                        <Grid Grid.Row="1" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="ServiceRunningText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Running" />
+                            <ToggleSwitch x:Name="ServiceToggleSwitch" Grid.Column="1" Toggled="OnServiceStateChanged" />
+                        </Grid>
 
-                        <Border Grid.Row="2" Style="{StaticResource InsetPanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock x:Uid="AutostartText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Start with Windows" />
-                                <ToggleSwitch x:Name="AutostartToggleSwitch" Grid.Column="1" Toggled="OnAutostartChanged" />
-                            </Grid>
-                        </Border>
-
-                        <Border Grid.Row="3" Style="{StaticResource InsetPanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Spacing="4">
-                                    <TextBlock x:Uid="PriorityStartupTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Priority startup" />
-                                    <TextBlock x:Uid="PriorityStartupDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Uses a Windows scheduled task instead of the Startup folder so Worker starts earlier after sign-in." TextWrapping="WrapWholeWords" />
-                                    <StackPanel x:Name="PriorityStartupBusyPanel" Orientation="Horizontal" Spacing="8" Visibility="Collapsed">
-                                        <ProgressRing x:Name="PriorityStartupProgressRing" Width="16" Height="16" IsActive="False" />
-                                        <TextBlock x:Uid="PriorityStartupBusyText" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Text="Applying..." />
-                                    </StackPanel>
-                                </StackPanel>
-                                <ToggleSwitch x:Name="PriorityStartupToggleSwitch" Grid.Column="1" Toggled="OnPriorityStartupChanged" />
-                            </Grid>
-                        </Border>
-
-                        <Border Grid.Row="4" Style="{StaticResource InsetPanelCardStyle}">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock x:Uid="TrayIconText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
-                                <ToggleSwitch x:Name="TrayIconToggleSwitch" Grid.Column="1" Toggled="OnTrayIconChanged" />
-                            </Grid>
-                        </Border>
+                        <Grid Grid.Row="2" ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="TrayIconText" VerticalAlignment="Center" Style="{StaticResource CardTitleTextBlockStyle}" Text="Tray icon" />
+                            <ToggleSwitch x:Name="TrayIconToggleSwitch" Grid.Column="1" Toggled="OnTrayIconChanged" />
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -117,24 +82,20 @@
                     <StackPanel Spacing="14">
                         <TextBlock x:Uid="AppearanceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Appearance" />
 
-                        <Border Style="{StaticResource InsetPanelCardStyle}">
-                            <ComboBox x:Uid="ThemeComboBox" x:Name="ThemeComboBox" Header="Theme" SelectionChanged="OnThemeSelectionChanged">
-                                <ComboBoxItem x:Uid="ThemeSystemItem" Content="System" Tag="System" />
-                                <ComboBoxItem x:Uid="ThemeLightItem" Content="Light" Tag="Light" />
-                                <ComboBoxItem x:Uid="ThemeDarkItem" Content="Dark" Tag="Dark" />
-                            </ComboBox>
-                        </Border>
+                        <ComboBox x:Uid="ThemeComboBox" x:Name="ThemeComboBox" Header="Theme" SelectionChanged="OnThemeSelectionChanged">
+                            <ComboBoxItem x:Uid="ThemeSystemItem" Content="System" Tag="System" />
+                            <ComboBoxItem x:Uid="ThemeLightItem" Content="Light" Tag="Light" />
+                            <ComboBoxItem x:Uid="ThemeDarkItem" Content="Dark" Tag="Dark" />
+                        </ComboBox>
 
-                        <Border Style="{StaticResource InsetPanelCardStyle}">
-                            <StackPanel Spacing="4">
-                                <ComboBox x:Uid="LanguageComboBox" x:Name="LanguageComboBox" Header="Language" SelectionChanged="OnLanguageSelectionChanged">
-                                    <ComboBoxItem x:Uid="LanguageSystemItem" Content="Use system language" Tag="System" />
-                                    <ComboBoxItem x:Uid="LanguageEnglishItem" Content="English" Tag="English" />
-                                    <ComboBoxItem x:Uid="LanguageChineseItem" Content="Chinese" Tag="Chinese" />
-                                </ComboBox>
-                                <TextBlock x:Uid="LanguageRestartHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Language changes apply after restarting the app." TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-                        </Border>
+                        <StackPanel Spacing="4">
+                            <ComboBox x:Uid="LanguageComboBox" x:Name="LanguageComboBox" Header="Language" SelectionChanged="OnLanguageSelectionChanged">
+                                <ComboBoxItem x:Uid="LanguageSystemItem" Content="Use system language" Tag="System" />
+                                <ComboBoxItem x:Uid="LanguageEnglishItem" Content="English" Tag="English" />
+                                <ComboBoxItem x:Uid="LanguageChineseItem" Content="Chinese" Tag="Chinese" />
+                            </ComboBox>
+                            <TextBlock x:Uid="LanguageRestartHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Language changes apply after restarting the app." TextWrapping="WrapWholeWords" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
@@ -149,13 +110,11 @@
                         <TextBlock x:Uid="ConfigsCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Details" />
 
                         <Border Grid.Row="1" Style="{StaticResource InsetPanelCardStyle}">
-                            <Grid RowSpacing="12">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                                <Grid RowSpacing="12">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
                                 <TextBlock x:Uid="OsdSettingsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
 
@@ -165,7 +124,6 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
@@ -179,27 +137,8 @@
                                     <NumberBox x:Uid="OsdDurationNumberBox" x:Name="OsdDurationNumberBox" Grid.Column="1" Header="OSD duration (ms)" Minimum="500" Maximum="10000" SmallChange="100" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
                                     <NumberBox x:Uid="OsdBackgroundOpacityNumberBox" x:Name="OsdBackgroundOpacityNumberBox" Grid.Row="1" Header="Background opacity (%)" Minimum="0" Maximum="100" SmallChange="5" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
                                     <NumberBox x:Uid="OsdScaleNumberBox" x:Name="OsdScaleNumberBox" Grid.Row="1" Grid.Column="1" Header="OSD size (%)" Minimum="60" Maximum="200" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
-                                    <TextBox x:Uid="OsdIconFolderTextBox" x:Name="OsdIconFolderTextBox" Grid.Row="2" Grid.ColumnSpan="2" Header="OSD icon folder" IsReadOnly="True" />
                                 </Grid>
-
-                                <StackPanel Grid.Row="2" Spacing="10">
-                                    <StackPanel Orientation="Horizontal" Spacing="12">
-                                        <Button x:Uid="OpenOsdIconFolderButton" Click="OnOpenOsdIconFolderClick" Content="Open icon folder" Style="{StaticResource SubtleButtonStyle}" />
-                                        <Button x:Uid="RefreshOsdIconFolderButton" Click="OnRefreshOsdIconFolderClick" Content="Refresh icons" Style="{StaticResource SubtleButtonStyle}" />
-                                    </StackPanel>
-                                    <TextBlock x:Uid="OsdIconSpecText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Icon spec: transparent PNG, square canvas, 256×256 recommended, single-color glyph, and leave some padding near the edge." TextWrapping="WrapWholeWords" />
-                                </StackPanel>
                             </Grid>
-                        </Border>
-
-                        <Border Grid.Row="2" Style="{StaticResource InsetPanelCardStyle}">
-                            <StackPanel Spacing="12">
-                                <TextBlock x:Uid="TouchpadSettingsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Touchpad" />
-
-                                <NumberBox x:Uid="TouchpadLightPressThresholdNumberBox" x:Name="TouchpadLightPressThresholdNumberBox" Header="Touchpad light press" Minimum="20" Maximum="499" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnTouchpadNumberValueChanged" />
-                                <TextBlock x:Uid="TouchpadLightPressThresholdDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Only affects this app's light-press threshold and is unrelated to vibration feedback." TextWrapping="WrapWholeWords" />
-                                <NumberBox x:Uid="TouchpadLongPressDurationNumberBox" x:Name="TouchpadLongPressDurationNumberBox" Header="Touchpad long press (ms)" Minimum="200" Maximum="3000" SmallChange="50" SpinButtonPlacementMode="Inline" ValueChanged="OnTouchpadNumberValueChanged" />
-                            </StackPanel>
                         </Border>
                     </Grid>
                 </Border>

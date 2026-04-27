@@ -17,8 +17,8 @@ public sealed partial class MainWindow : Window
 {
     private const int InitialWidth = 1080;
     private const int InitialHeight = 760;
-    private const int MinimumWidth = 980;
-    private const int MinimumHeight = 720;
+    private const int MinimumWidth = InitialWidth;
+    private const int MinimumHeight = InitialHeight;
     private const int GwlWndProc = -4;
     private const int WmGetMinMaxInfo = 0x0024;
     private const int SwRestore = 9;
@@ -32,6 +32,7 @@ public sealed partial class MainWindow : Window
     {
         ["keyboard"] = typeof(MappingsPage),
         ["touchpad"] = typeof(TouchpadPage),
+        ["battery"] = typeof(BatteryPage),
         ["settings"] = typeof(SettingsPage)
     };
 
@@ -39,6 +40,7 @@ public sealed partial class MainWindow : Window
     {
         ["keyboard"] = "PageTitle.Mappings",
         ["touchpad"] = "PageTitle.Touchpad",
+        ["battery"] = "PageTitle.Battery",
         ["settings"] = "PageTitle.Settings"
     };
 
@@ -50,11 +52,9 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        XamlStringLocalizer.Apply(this);
         ApplyLocalizedShellText();
         ConfigureWindowChrome();
         ConfigureNavigation();
-        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Closed += OnWindowClosed;
     }
@@ -86,6 +86,7 @@ public sealed partial class MainWindow : Window
         AppTitleTextBlock.Text = appTitle;
         MappingsItem.Content = Localizer.GetString("Navigation.Mappings");
         TouchpadItem.Content = Localizer.GetString("Navigation.Touchpad");
+        BatteryItem.Content = Localizer.GetString("Navigation.Battery");
         SettingsItem.Content = Localizer.GetString("Navigation.Settings");
     }
 
@@ -141,7 +142,6 @@ public sealed partial class MainWindow : Window
             Controller.SetTouchpadMonitoringActive(string.Equals(key, "touchpad", StringComparison.OrdinalIgnoreCase));
             ContentFrame.Navigate(pageType);
             UpdatePageChrome(key);
-            DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
         }
     }
 
@@ -178,7 +178,7 @@ public sealed partial class MainWindow : Window
 
     private void OnControllerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Services.MeowBoxController.ServiceRunning))
+        if (e.PropertyName is nameof(Services.MeowBoxController.ServiceState) or nameof(Services.MeowBoxController.ServiceRunning))
         {
             DispatcherQueue.TryEnqueue(() =>
             {
@@ -190,28 +190,51 @@ public sealed partial class MainWindow : Window
 
     private void UpdateServiceIndicator()
     {
-        ServiceStatusTextBlock.Text = Controller.ServiceRunning
-            ? Localizer.GetString("ServiceStatus.Running")
-            : Localizer.GetString("ServiceStatus.Stopped");
-        ServiceStatusGlow.Fill = new SolidColorBrush(
-            Controller.ServiceRunning
-                ? ColorHelper.FromArgb(96, 76, 196, 115)
-                : ColorHelper.FromArgb(96, 255, 111, 97));
-        ServiceStatusHalo.Fill = new SolidColorBrush(
-            Controller.ServiceRunning
-                ? ColorHelper.FromArgb(255, 58, 128, 78)
-                : ColorHelper.FromArgb(255, 144, 54, 48));
-        ServiceStatusCore.Fill = new SolidColorBrush(
-            Controller.ServiceRunning
-                ? ColorHelper.FromArgb(255, 118, 232, 145)
-                : ColorHelper.FromArgb(255, 255, 138, 124));
+        ServiceStatusTextBlock.Text = Controller.ServiceState switch
+        {
+            WorkerServiceState.Running => Localizer.GetString("ServiceStatus.Running"),
+            WorkerServiceState.Starting => Localizer.GetString("ServiceStatus.Starting"),
+            WorkerServiceState.Stopping => Localizer.GetString("ServiceStatus.Stopping"),
+            WorkerServiceState.UnexpectedlyStopped => Localizer.GetString("ServiceStatus.WorkerStopped"),
+            _ => Localizer.GetString("ServiceStatus.Stopped")
+        };
+
+        var glowColor = Controller.ServiceState switch
+        {
+            WorkerServiceState.Running => ColorHelper.FromArgb(96, 76, 196, 115),
+            WorkerServiceState.Starting or WorkerServiceState.Stopping => ColorHelper.FromArgb(96, 255, 192, 82),
+            _ => ColorHelper.FromArgb(96, 255, 111, 97)
+        };
+
+        var haloColor = Controller.ServiceState switch
+        {
+            WorkerServiceState.Running => ColorHelper.FromArgb(255, 58, 128, 78),
+            WorkerServiceState.Starting or WorkerServiceState.Stopping => ColorHelper.FromArgb(255, 191, 132, 42),
+            _ => ColorHelper.FromArgb(255, 144, 54, 48)
+        };
+
+        var coreColor = Controller.ServiceState switch
+        {
+            WorkerServiceState.Running => ColorHelper.FromArgb(255, 118, 232, 145),
+            WorkerServiceState.Starting or WorkerServiceState.Stopping => ColorHelper.FromArgb(255, 255, 214, 120),
+            _ => ColorHelper.FromArgb(255, 255, 138, 124)
+        };
+
+        ServiceStatusGlow.Fill = new SolidColorBrush(glowColor);
+        ServiceStatusHalo.Fill = new SolidColorBrush(haloColor);
+        ServiceStatusCore.Fill = new SolidColorBrush(coreColor);
     }
 
     private void UpdateQuickServiceButton()
     {
-        QuickServiceButtonTextBlock.Text = Controller.ServiceRunning
-            ? Localizer.GetString("QuickService.Stop")
-            : Localizer.GetString("QuickService.Start");
+        QuickServiceButtonTextBlock.Text = Controller.ServiceState switch
+        {
+            WorkerServiceState.Running => Localizer.GetString("QuickService.Stop"),
+            WorkerServiceState.Starting => Localizer.GetString("QuickService.Starting"),
+            WorkerServiceState.Stopping => Localizer.GetString("QuickService.Stopping"),
+            _ => Localizer.GetString("QuickService.Start")
+        };
+        QuickServiceButton.IsEnabled = Controller.ServiceState is not WorkerServiceState.Starting and not WorkerServiceState.Stopping;
     }
 
     private void UpdatePageChrome(string key)
@@ -223,6 +246,11 @@ public sealed partial class MainWindow : Window
 
     private async void OnQuickServiceButtonClick(object sender, RoutedEventArgs e)
     {
+        if (Controller.ServiceState is WorkerServiceState.Starting or WorkerServiceState.Stopping)
+        {
+            return;
+        }
+
         QuickServiceButton.IsEnabled = false;
         try
         {
@@ -239,7 +267,6 @@ public sealed partial class MainWindow : Window
         {
             UpdateServiceIndicator();
             UpdateQuickServiceButton();
-            QuickServiceButton.IsEnabled = true;
         }
     }
 

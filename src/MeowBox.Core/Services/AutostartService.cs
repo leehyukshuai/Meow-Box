@@ -13,6 +13,7 @@ public sealed class AutostartService
     private const string EntryName = "MeowBoxWorker";
     private const string StartupShortcutFileName = "Meow Box.lnk";
     private const string ScheduledTaskName = "MeowBoxWorker";
+    private const string ElevatedRuntimeTaskName = "MeowBoxWorker.Runtime";
     private const string HeadlessArguments = "--headless";
     private static readonly TimeSpan StartupModeCacheDuration = TimeSpan.FromSeconds(10);
 
@@ -28,6 +29,19 @@ public sealed class AutostartService
     public bool IsPriorityEnabled()
     {
         return GetStartupMode() is StartupRegistrationMode.ScheduledTask or StartupRegistrationMode.RunKey;
+    }
+
+    public bool HasMatchingPriorityStartupTask(string workerExecutablePath)
+    {
+        if (string.IsNullOrWhiteSpace(workerExecutablePath))
+        {
+            return false;
+        }
+
+        var fullWorkerExecutablePath = Path.GetFullPath(workerExecutablePath);
+        return TryGetScheduledTaskDefinition(ScheduledTaskName, out var taskDefinition) &&
+               string.Equals(taskDefinition.Command, fullWorkerExecutablePath, StringComparison.OrdinalIgnoreCase) &&
+               string.Equals(taskDefinition.Arguments?.Trim(), HeadlessArguments, StringComparison.OrdinalIgnoreCase);
     }
 
     public void SetEnabled(bool enabled, string workerExecutablePath, bool preferPriorityStartup)
@@ -87,6 +101,129 @@ public sealed class AutostartService
         var startupMode = DetectStartupMode();
         SetCachedStartupMode(startupMode);
         return startupMode;
+    }
+
+    public bool HasElevatedRuntimeTask()
+    {
+        return TryGetScheduledTaskDefinition(ElevatedRuntimeTaskName, out _);
+    }
+
+    public void EnsureElevatedRuntimeTask(string workerExecutablePath)
+    {
+        if (string.IsNullOrWhiteSpace(workerExecutablePath))
+        {
+            throw new ArgumentException("The worker executable path cannot be empty.", nameof(workerExecutablePath));
+        }
+
+        var fullWorkerExecutablePath = Path.GetFullPath(workerExecutablePath);
+        if (!File.Exists(fullWorkerExecutablePath))
+        {
+            throw new FileNotFoundException("The worker executable could not be found.", fullWorkerExecutablePath);
+        }
+
+        if (TryGetScheduledTaskDefinition(ElevatedRuntimeTaskName, out var existingTask) &&
+            string.Equals(existingTask.Command, fullWorkerExecutablePath, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(existingTask.Arguments?.Trim(), HeadlessArguments, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        CreateElevatedRuntimeTask(fullWorkerExecutablePath);
+    }
+
+    public void StartElevatedRuntimeTask()
+    {
+        var script = string.Join(Environment.NewLine,
+        [
+            "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8",
+            "Import-Module ScheduledTasks",
+            "Start-ScheduledTask -TaskName " + ToPowerShellLiteral(ElevatedRuntimeTaskName) + " -ErrorAction Stop"
+        ]);
+
+        var result = RunPowerShellHidden(script);
+        if (result.ExitCode != 0)
+        {
+            throw new InvalidOperationException(BuildToolErrorMessage("start the elevated runtime task", result));
+        }
+    }
+
+    public void StopElevatedRuntimeTask()
+    {
+        StopScheduledTask(ElevatedRuntimeTaskName, "stop the elevated runtime task");
+    }
+
+    public void StopStartupTask()
+    {
+        StopScheduledTask(ScheduledTaskName, "stop the startup scheduled task");
+    }
+
+    public void BeginDisableSilently()
+    {
+        var shortcutPathLiteral = ToPowerShellLiteral(StartupShortcutPath);
+        var runKeyPathLiteral = ToPowerShellLiteral(RunKeyPath);
+        var entryNameLiteral = ToPowerShellLiteral(EntryName);
+        var scheduledTaskNameLiteral = ToPowerShellLiteral(ScheduledTaskName);
+
+        var script = $@"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Start-Sleep -Milliseconds 1500
+if (Get-Process -Name 'MeowBox.Worker' -ErrorAction SilentlyContinue | Select-Object -First 1)
+{{
+    exit 0
+}}
+try
+{{
+    if (Test-Path -LiteralPath {shortcutPathLiteral})
+    {{
+        Remove-Item -LiteralPath {shortcutPathLiteral} -Force -ErrorAction SilentlyContinue
+    }}
+}}
+catch
+{{
+}}
+try
+{{
+    $runKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey({runKeyPathLiteral}, $true)
+    if ($null -ne $runKey)
+    {{
+        $runKey.DeleteValue({entryNameLiteral}, $false)
+        $runKey.Dispose()
+    }}
+}}
+catch
+{{
+}}
+try
+{{
+    Import-Module ScheduledTasks
+    $task = Get-ScheduledTask -TaskName {scheduledTaskNameLiteral} -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -ne $task)
+    {{
+        Unregister-ScheduledTask -TaskName {scheduledTaskNameLiteral} -Confirm:$false -ErrorAction SilentlyContinue
+    }}
+}}
+catch
+{{
+}}";
+
+        StartDetachedPowerShell(script);
+        SetCachedStartupMode(StartupRegistrationMode.Disabled);
+    }
+
+    private static void StopScheduledTask(string taskName, string action)
+    {
+        var script = string.Join(Environment.NewLine,
+        [
+            "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8",
+            "Import-Module ScheduledTasks",
+            "$task = Get-ScheduledTask -TaskName " + ToPowerShellLiteral(taskName) + " -ErrorAction SilentlyContinue | Select-Object -First 1",
+            "if ($null -ne $task)",
+            "{",
+            "    Stop-ScheduledTask -TaskName " + ToPowerShellLiteral(taskName) + " -ErrorAction SilentlyContinue",
+            "}"
+        ]);
+
+        RunScheduledTaskCommand(script, action);
     }
 
     private static string StartupShortcutPath =>
@@ -157,7 +294,7 @@ public sealed class AutostartService
 
     private static bool HasValidScheduledTask()
     {
-        return TryGetScheduledTaskDefinition(out var taskDefinition) &&
+        return TryGetScheduledTaskDefinition(ScheduledTaskName, out var taskDefinition) &&
                !string.IsNullOrWhiteSpace(taskDefinition.Command) &&
                File.Exists(taskDefinition.Command) &&
                string.Equals(taskDefinition.Arguments?.Trim(), HeadlessArguments, StringComparison.OrdinalIgnoreCase);
@@ -202,13 +339,35 @@ public sealed class AutostartService
 Import-Module ScheduledTasks
 $taskName = {taskNameLiteral}
 $trigger = New-ScheduledTaskTrigger -AtLogOn
-$principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
+$principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Highest
 $action = New-ScheduledTaskAction -Execute {workerPathLiteral} -Argument {ToPowerShellLiteral(HeadlessArguments)} -WorkingDirectory {workingDirectoryLiteral}
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -StartWhenAvailable
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description {descriptionLiteral} -Force | Out-Null
 """;
 
         RunScheduledTaskCommand(script, "create the startup scheduled task");
+    }
+
+    private static void CreateElevatedRuntimeTask(string workerExecutablePath)
+    {
+        var workingDirectory = Path.GetDirectoryName(workerExecutablePath) ?? AppContext.BaseDirectory;
+        var workerPathLiteral = ToPowerShellLiteral(workerExecutablePath);
+        var workingDirectoryLiteral = ToPowerShellLiteral(workingDirectory);
+        var taskNameLiteral = ToPowerShellLiteral(ElevatedRuntimeTaskName);
+        var descriptionLiteral = ToPowerShellLiteral("Runs the Meow Box background service with administrator privileges on demand.");
+
+        var script = $"""
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Import-Module ScheduledTasks
+$taskName = {taskNameLiteral}
+$trigger = New-ScheduledTaskTrigger -Once -At ((Get-Date).Date.AddYears(20))
+$action = New-ScheduledTaskAction -Execute {workerPathLiteral} -Argument {ToPowerShellLiteral(HeadlessArguments)} -WorkingDirectory {workingDirectoryLiteral}
+$principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Highest
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -StartWhenAvailable
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description {descriptionLiteral} -Force | Out-Null
+""";
+
+        RunScheduledTaskCommand(script, "create the elevated runtime task");
     }
 
     private static void DeleteStartupShortcut()
@@ -300,13 +459,13 @@ Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Pr
         }
     }
 
-    private static bool TryGetScheduledTaskDefinition(out ScheduledTaskDefinition taskDefinition)
+    private static bool TryGetScheduledTaskDefinition(string taskName, out ScheduledTaskDefinition taskDefinition)
     {
         var script = string.Join(Environment.NewLine,
         [
             "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8",
             "Import-Module ScheduledTasks",
-            "$task = Get-ScheduledTask -TaskName " + ToPowerShellLiteral(ScheduledTaskName) + " -ErrorAction SilentlyContinue | Select-Object -First 1",
+            "$task = Get-ScheduledTask -TaskName " + ToPowerShellLiteral(taskName) + " -ErrorAction SilentlyContinue | Select-Object -First 1",
             "if ($null -eq $task)",
             "{",
             "    [PSCustomObject]@{ Exists = $false } | ConvertTo-Json -Compress",
@@ -470,6 +629,20 @@ Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Pr
             {
             }
         }
+    }
+
+    private static void StartDetachedPowerShell(string script)
+    {
+        var wrappedScript = "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n" + script;
+        var encodedCommand = Convert.ToBase64String(Encoding.Unicode.GetBytes(wrappedScript));
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe"),
+            Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand {encodedCommand}",
+            UseShellExecute = false,
+            CreateNoWindow = true
+        });
     }
 
     private static string ToPowerShellLiteral(string value)

@@ -46,7 +46,7 @@ function Invoke-MSBuildProject {
     )
 
     $arguments = @(
-        $ProjectPath,
+        ('"{0}"' -f $ProjectPath),
         '/restore',
         '/t:Rebuild',
         '/verbosity:minimal'
@@ -67,11 +67,11 @@ function Invoke-MSBuildPublishProject {
     )
 
     $arguments = @(
-        $ProjectPath,
+        ('"{0}"' -f $ProjectPath),
         '/restore',
         '/t:Publish',
         '/verbosity:minimal',
-        "/p:PublishDir=$PublishDirectory"
+        ('/p:PublishDir="{0}"' -f $PublishDirectory)
     ) + $Properties
 
     & $MSBuild @arguments

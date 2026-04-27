@@ -6,15 +6,27 @@ public sealed class TouchpadConfiguration
 
     public int LightPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
 
+    public int PressSensitivityLevel { get; set; }
+
     public int DeepPressThreshold { get; set; } = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
 
     public int LongPressDurationMs { get; set; } = RuntimeDefaults.DefaultTouchpadCornerLongPressDurationMs;
+
+    public int FeedbackLevel { get; set; }
+
+    public bool DeepPressHapticsEnabled { get; set; } = true;
+
+    public bool EdgeSlideEnabled { get; set; }
 
     public int SurfaceWidth { get; set; } = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
 
     public int SurfaceHeight { get; set; } = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
 
     public ActionDefinitionConfiguration DeepPressAction { get; set; } = new();
+
+    public ActionDefinitionConfiguration LeftEdgeSlideAction { get; set; } = new();
+
+    public ActionDefinitionConfiguration RightEdgeSlideAction { get; set; } = new();
 
     public TouchpadCornerRegionConfiguration LeftTopCorner { get; set; } = TouchpadCornerRegionConfiguration.CreateLeftTopDefault();
 
@@ -77,6 +89,44 @@ public static class TouchpadCornerRegionId
 {
     public const string LeftTop = "left-top";
     public const string RightTop = "right-top";
+}
+
+public static class TouchpadHardwareSettings
+{
+    public const int Low = 1;
+    public const int Medium = 2;
+    public const int High = 3;
+
+    public static int NormalizeLevel(int level, int fallback = Medium)
+    {
+        return level is >= Low and <= High ? level : fallback;
+    }
+
+    public static int MapPressSensitivityLevelToThreshold(int level)
+    {
+        return NormalizeLevel(level) switch
+        {
+            Low => 150,
+            High => 105,
+            _ => RuntimeDefaults.DefaultTouchpadLightPressThreshold
+        };
+    }
+
+    public static int MapThresholdToPressSensitivityLevel(int threshold)
+    {
+        var candidates = new[]
+        {
+            (Level: Low, Threshold: 150),
+            (Level: Medium, Threshold: RuntimeDefaults.DefaultTouchpadLightPressThreshold),
+            (Level: High, Threshold: 105)
+        };
+
+        return candidates
+            .OrderBy(item => Math.Abs(item.Threshold - threshold))
+            .ThenBy(item => item.Level)
+            .First()
+            .Level;
+    }
 }
 
 public sealed class TouchpadLiveStateSnapshot

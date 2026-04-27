@@ -192,14 +192,8 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Row="3" Style="{StaticResource SubtlePanelCardStyle}">
+                            <Border Grid.Row="3" Style="{StaticResource SubtlePanelCardStyle}" Visibility="{Binding SelectedMapping.OsdVisibility, Mode=OneWay}">
                                 <Grid ColumnSpacing="12">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
                                     <Grid ColumnSpacing="12">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -212,46 +206,6 @@
                                         </StackPanel>
 
                                         <ToggleSwitch x:Uid="OsdEnabledToggleSwitch" x:Name="OsdEnabledToggleSwitch" Grid.Column="1" Header="Show OSD" IsOn="{Binding SelectedMapping.Osd.Enabled, Mode=TwoWay}" Toggled="OnOsdEnabledChanged" />
-                                    </Grid>
-
-                                    <Grid Grid.Row="1" Margin="0,8,0,0" ColumnSpacing="10" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock
-                                            x:Uid="OsdTitleLabelText"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource CaptionTextBlockStyle}"
-                                            Text="Title" />
-                                        <TextBox
-                                            x:Name="OsdTitleTextBox"
-                                            Grid.Column="1"
-                                            LostFocus="OnMappingEditorLostFocus"
-                                            MaxLength="32"
-                                            Text="{Binding SelectedMapping.Osd.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                    </Grid>
-
-                                    <Grid Grid.Row="2" Margin="0,8,0,0" ColumnSpacing="10" Visibility="{Binding SelectedMapping.Osd.EditorVisibility}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock
-                                            x:Uid="OsdIconLabelText"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Style="{StaticResource CaptionTextBlockStyle}"
-                                            Text="Icon" />
-                                        <ComboBox
-                                            Grid.Column="1"
-                                            x:Name="OsdIconComboBox"
-                                            DisplayMemberPath="DisplayName"
-                                            SelectionChanged="OnMappingEditorSelectionChanged"
-                                            SelectedValuePath="RelativePath" />
                                     </Grid>
                                 </Grid>
                             </Border>

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using MeowBox.Core.Contracts;
 using MeowBox.Core.Models;
@@ -17,21 +18,36 @@ internal sealed class WorkerHost : IDisposable
     private readonly Action _exitCallback;
     private readonly SynchronizationContext _syncContext;
     private readonly AppConfigService _configService = new();
+    private readonly AutostartService _autostartService = new();
     private readonly NativeActionService _nativeActionService = new();
+    private readonly BatteryControlService _batteryControlService = new();
+    private readonly ControllerPipeClient _controllerPipeClient = new();
     private readonly WorkerPipeServer _pipeServer;
     private readonly TouchpadInputService _touchpadInputService;
     private readonly TouchpadStreamServer _touchpadStreamServer;
     private readonly CancellationTokenSource _shellReadyCancellation = new();
+    private readonly object _edgeSlideSync = new();
+    private readonly object _edgeSlideHapticsSync = new();
+    private readonly object _performanceModeSync = new();
+    private readonly object _runtimeMappingSync = new();
 
     private FileSystemWatcher? _configWatcher;
     private WmiEventMonitor? _wmiMonitor;
     private TrayIconService? _trayIconService;
     private WorkerOsdService? _osdService;
     private AppConfiguration _configuration = AppConfiguration.CreateDefault();
+    private IReadOnlyList<KeyDefinitionConfiguration> _runtimeKeys = [];
+    private Dictionary<string, KeyActionMappingConfiguration> _runtimeMappingsByKeyId = new(StringComparer.OrdinalIgnoreCase);
     private string _lastEventSummary = "No OEM event received yet.";
     private string? _resolvedControllerPath;
     private string _stateMessage = "Starting worker";
     private volatile bool _interactiveShellReady;
+    private int _pendingBrightnessEdgeSteps;
+    private int _pendingVolumeEdgeSteps;
+    private bool _edgeSlideProcessing;
+    private bool _edgeSlideHapticsPrimed;
+    private TouchpadPrivateHidService.PulseSession? _edgeSlidePulseSession;
+    private int _shutdownSignaled;
 
     public WorkerHost(Action exitCallback)
     {
@@ -46,11 +62,27 @@ internal sealed class WorkerHost : IDisposable
         _pipeServer = new WorkerPipeServer(HandleRequestAsync);
         _touchpadInputService = new TouchpadInputService();
         _touchpadInputService.GestureTriggered += OnTouchpadGestureTriggered;
+        _touchpadInputService.EdgeSlideTriggered += OnTouchpadEdgeSlideTriggered;
         _touchpadInputService.StateChanged += OnTouchpadStateChanged;
         _touchpadStreamServer = new TouchpadStreamServer(_touchpadInputService.GetLatestState);
         LoadConfiguration();
         StartConfigWatcher();
-        StartWmiWatcher();
+        _ = NotifyControllerAsync(WorkerNotificationType.Started);
+        _ = Task.Run(CompleteDeferredStartupAsync);
+    }
+
+    private async Task CompleteDeferredStartupAsync()
+    {
+        try
+        {
+            StartWmiWatcher();
+            EnsureAutostartRegistration();
+            await RestorePreferredBatteryStateOnStartupAsync();
+        }
+        catch (Exception exception)
+        {
+            _stateMessage = exception.Message;
+        }
     }
 
     private async Task MonitorInteractiveShellReadyAsync()
@@ -134,10 +166,13 @@ internal sealed class WorkerHost : IDisposable
     public void Dispose()
     {
         _shellReadyCancellation.Cancel();
+        _nativeActionService.ReleaseBrightnessAdjustment();
+        ReleaseEdgeSlidePulseSession();
         _configWatcher?.Dispose();
         _wmiMonitor?.Dispose();
         _pipeServer.Dispose();
         _touchpadInputService.GestureTriggered -= OnTouchpadGestureTriggered;
+        _touchpadInputService.EdgeSlideTriggered -= OnTouchpadEdgeSlideTriggered;
         _touchpadInputService.StateChanged -= OnTouchpadStateChanged;
         _touchpadStreamServer.Dispose();
         _touchpadInputService.Dispose();
@@ -155,7 +190,16 @@ internal sealed class WorkerHost : IDisposable
                 Success = true,
                 Status = BuildStatus()
             }),
+            WorkerCommandType.GetBatteryControlState => Task.FromResult(new WorkerResponse
+            {
+                Success = true,
+                Battery = _batteryControlService.QueryState(),
+                Status = BuildStatus()
+            }),
+            WorkerCommandType.SetPerformanceMode => Task.FromResult(SetPerformanceMode(request)),
+            WorkerCommandType.SetChargeLimit => Task.FromResult(SetChargeLimit(request)),
             WorkerCommandType.ReloadConfig => Task.FromResult(ReloadConfig()),
+            WorkerCommandType.AnnounceState => Task.FromResult(AnnounceState()),
             WorkerCommandType.StopWorker => Task.FromResult(StopWorker()),
             _ => Task.FromResult(new WorkerResponse
             {
@@ -175,6 +219,84 @@ internal sealed class WorkerHost : IDisposable
         };
     }
 
+    public void OnApplicationExit()
+    {
+        if (Interlocked.Exchange(ref _shutdownSignaled, 1) != 0)
+        {
+            return;
+        }
+
+        NotifyControllerAsync(WorkerNotificationType.Stopped).GetAwaiter().GetResult();
+        _autostartService.BeginDisableSilently();
+    }
+
+    private WorkerResponse SetPerformanceMode(WorkerRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PerformanceModeKey))
+        {
+            return new WorkerResponse
+            {
+                Success = false,
+                Error = "Performance mode was not provided.",
+                Status = BuildStatus()
+            };
+        }
+
+        BatteryControlState batteryState;
+        ActionExecutionOsd? actionOsd;
+        lock (_performanceModeSync)
+        {
+            batteryState = _batteryControlService.SetPerformanceModeFast(request.PerformanceModeKey);
+            var title = BatteryControlCatalog.GetPerformanceModeLabel(batteryState.PerformanceModeKey);
+            var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(batteryState.PerformanceModeKey);
+            actionOsd = new ActionExecutionOsd(
+                title,
+                new IconConfiguration
+                {
+                    Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                    Path = assetKey
+                });
+            _stateMessage = "Performance mode set to " + title + ".";
+        }
+
+        if (actionOsd is not null)
+        {
+            ShowActionOsd(actionOsd);
+        }
+
+        _ = Task.Run(RefreshBatteryStateAfterMutationAsync);
+
+        return new WorkerResponse
+        {
+            Success = true,
+            Battery = batteryState,
+            Status = BuildStatus()
+        };
+    }
+
+    private WorkerResponse SetChargeLimit(WorkerRequest request)
+    {
+        if (request.ChargeLimitPercent is null)
+        {
+            return new WorkerResponse
+            {
+                Success = false,
+                Error = "Charge limit was not provided.",
+                Status = BuildStatus()
+            };
+        }
+
+        var batteryState = _batteryControlService.SetChargeLimitPercentFast(request.ChargeLimitPercent.Value);
+        _ = Task.Run(RefreshBatteryStateAfterMutationAsync);
+
+        return new WorkerResponse
+        {
+            Success = true,
+            Battery = batteryState,
+            Status = BuildStatus()
+        };
+    }
+
     private WorkerResponse StopWorker()
     {
         _syncContext.Post(_ => _exitCallback(), null);
@@ -184,13 +306,92 @@ internal sealed class WorkerHost : IDisposable
         };
     }
 
+    private WorkerResponse AnnounceState()
+    {
+        _ = NotifyControllerAsync(WorkerNotificationType.Started);
+        return new WorkerResponse
+        {
+            Success = true,
+            Status = BuildStatus()
+        };
+    }
+
     private void LoadConfiguration()
     {
         _configuration = _configService.Load();
+        RebuildRuntimeMappings();
+        _nativeActionService.ReleaseBrightnessAdjustment();
         _touchpadInputService.UpdateConfiguration(_configuration.Touchpad);
         _touchpadStreamServer.Broadcast(_touchpadInputService.GetLatestState());
         ApplyTrayIconVisibility();
         _stateMessage = "Configuration loaded.";
+        PrewarmEdgeSlideHapticsIfNeeded();
+    }
+
+    private void RebuildRuntimeMappings()
+    {
+        var runtimeKeys = _configuration.Keys
+            .Select(CloneKeyDefinition)
+            .Concat(SupportedDeviceConfiguration.CreateBuiltInRuntimeKeys())
+            .Where(item => !string.IsNullOrWhiteSpace(item.Id))
+            .GroupBy(item => item.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToList();
+
+        var runtimeMappings = _configuration.Mappings
+            .Select(CloneMapping)
+            .Concat(SupportedDeviceConfiguration.CreateBuiltInRuntimeMappings())
+            .Where(item => !string.IsNullOrWhiteSpace(item.KeyId))
+            .GroupBy(item => item.KeyId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        lock (_runtimeMappingSync)
+        {
+            _runtimeKeys = runtimeKeys;
+            _runtimeMappingsByKeyId = runtimeMappings;
+        }
+    }
+
+    private async Task RestorePreferredBatteryStateOnStartupAsync()
+    {
+        var preferredPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(
+            _configuration.Preferences.PreferredPerformanceModeKey);
+        var preferredChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(
+            _configuration.Preferences.PreferredChargeLimitPercent);
+        var shouldRestorePerformanceMode = !_configuration.Preferences.ResetPerformanceModeToSmartOnStartup &&
+                                           !string.Equals(preferredPerformanceModeKey, BatteryControlCatalog.DefaultPerformanceModeKey, StringComparison.OrdinalIgnoreCase);
+        var shouldRestoreChargeLimit = !_configuration.Preferences.ResetChargeLimitToFullOnStartup &&
+                                       preferredChargeLimitPercent < BatteryControlCatalog.DefaultChargeLimitPercent;
+        if (!shouldRestorePerformanceMode && !shouldRestoreChargeLimit)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(2000);
+            await Task.Run(() =>
+            {
+                if (shouldRestorePerformanceMode)
+                {
+                    lock (_performanceModeSync)
+                    {
+                        _batteryControlService.SetPerformanceModeFast(preferredPerformanceModeKey);
+                    }
+                }
+
+                if (shouldRestoreChargeLimit)
+                {
+                    _batteryControlService.SetChargeLimitPercentFast(preferredChargeLimitPercent);
+                }
+            });
+            await Task.Delay(900);
+            await Task.Run(_batteryControlService.QueryState);
+            await NotifyControllerAsync(WorkerNotificationType.Started);
+        }
+        catch
+        {
+        }
     }
 
     private void StartConfigWatcher()
@@ -238,31 +439,57 @@ internal sealed class WorkerHost : IDisposable
             return;
         }
 
-        var matchedKey = _configuration.Keys.FirstOrDefault(item => item.Trigger.IsMatch(inputEvent));
+        IReadOnlyList<KeyDefinitionConfiguration> runtimeKeys;
+        Dictionary<string, KeyActionMappingConfiguration> runtimeMappingsByKeyId;
+        lock (_runtimeMappingSync)
+        {
+            runtimeKeys = _runtimeKeys;
+            runtimeMappingsByKeyId = _runtimeMappingsByKeyId;
+        }
+
+        var matchedKey = runtimeKeys.FirstOrDefault(item => item.Trigger.IsMatch(inputEvent));
         if (matchedKey is null)
         {
             return;
         }
 
-        var mapping = _configuration.Mappings.FirstOrDefault(item =>
-            string.Equals(item.KeyId, matchedKey.Id, StringComparison.OrdinalIgnoreCase));
+        runtimeMappingsByKeyId.TryGetValue(matchedKey.Id, out var mapping);
 
         if (mapping is not null && (mapping.Enabled || mapping.Osd.Enabled))
         {
-            ExecuteMapping(mapping);
+            if (ShouldExecuteOnBackgroundThread(mapping))
+            {
+                _ = Task.Run(() => ExecuteMapping(mapping, inputEvent));
+                return;
+            }
+
+            ExecuteMapping(mapping, inputEvent);
         }
     }
 
-    private void ExecuteMapping(KeyActionMappingConfiguration mapping)
+    private void ExecuteMapping(KeyActionMappingConfiguration mapping, InputEvent inputEvent)
     {
         try
         {
+            ActionExecutionOsd? actionOsd = null;
             if (mapping.Enabled)
             {
-                ExecuteAction(mapping.Action);
+                actionOsd = ExecuteAction(mapping.Action);
             }
 
-            ShowMappingOsd(mapping);
+            if (!mapping.Osd.Enabled)
+            {
+                return;
+            }
+
+            if (actionOsd is not null)
+            {
+                ShowActionOsd(actionOsd);
+            }
+            else if (ResolveBuiltInMappingOsd(mapping, inputEvent) is { } mappingOsd)
+            {
+                ShowBuiltInOsd(mappingOsd);
+            }
         }
         catch (Exception exception)
         {
@@ -285,7 +512,12 @@ internal sealed class WorkerHost : IDisposable
 
         try
         {
-            ExecuteAction(action);
+            var actionOsd = ExecuteAction(action);
+            if (actionOsd is not null)
+            {
+                ShowActionOsd(actionOsd);
+            }
+
             _lastEventSummary = BuildTouchpadGestureSummary(e);
         }
         catch (Exception exception)
@@ -299,81 +531,351 @@ internal sealed class WorkerHost : IDisposable
         _touchpadStreamServer.Broadcast(state);
     }
 
-    private void ExecuteAction(ActionDefinitionConfiguration action)
+    private void OnTouchpadEdgeSlideTriggered(object? sender, TouchpadEdgeSlideEventArgs e)
     {
-        switch (action.Type)
-        {
-            case HotkeyActionType.None:
-                return;
-            case HotkeyActionType.SendStandardKey:
-                _nativeActionService.SendConfiguredKeyChord(action.KeyChord);
-                break;
-            case HotkeyActionType.OpenSettings:
-                _nativeActionService.OpenSettings();
-                break;
-            case HotkeyActionType.OpenProjection:
-                _nativeActionService.OpenProjection();
-                break;
-            case HotkeyActionType.MicrophoneMuteOn:
-                AudioEndpointController.SetCaptureMute(true);
-                break;
-            case HotkeyActionType.MicrophoneMuteOff:
-                AudioEndpointController.SetCaptureMute(false);
-                break;
-            case HotkeyActionType.VolumeUp:
-                _nativeActionService.VolumeUp();
-                break;
-            case HotkeyActionType.VolumeDown:
-                _nativeActionService.VolumeDown();
-                break;
-            case HotkeyActionType.VolumeMute:
-                _nativeActionService.VolumeMute();
-                break;
-            case HotkeyActionType.MediaPrevious:
-                _nativeActionService.MediaPrevious();
-                break;
-            case HotkeyActionType.MediaNext:
-                _nativeActionService.MediaNext();
-                break;
-            case HotkeyActionType.MediaPlayPause:
-                _nativeActionService.MediaPlayPause();
-                break;
-            case HotkeyActionType.BrightnessUp:
-                _nativeActionService.BrightnessUp();
-                break;
-            case HotkeyActionType.BrightnessDown:
-                _nativeActionService.BrightnessDown();
-                break;
-            case HotkeyActionType.ToggleAirplaneMode:
-                _ = _nativeActionService.ToggleAirplaneModeAsync();
-                break;
-            case HotkeyActionType.LockWindows:
-                _nativeActionService.LockWindows();
-                break;
-            case HotkeyActionType.Screenshot:
-                _nativeActionService.Screenshot();
-                break;
-            case HotkeyActionType.OpenCalculator:
-                _nativeActionService.OpenCalculator();
-                break;
-            case HotkeyActionType.OpenApplication:
-                _nativeActionService.LaunchConfiguredTarget(action.Target ?? string.Empty, action.Arguments);
-                break;
-            default:
-                return;
-        }
-    }
-
-    private void ShowMappingOsd(KeyActionMappingConfiguration mapping)
-    {
-        if (!mapping.Osd.Enabled)
+        if (!_configuration.Preferences.IsListening)
         {
             return;
         }
 
-        var title = ResolveMappingOsdTitle(mapping);
-        var icon = mapping.Osd.Icon ?? new IconConfiguration();
+        var target = ResolveEdgeSlideTarget(e.Side);
+        if (target == TouchpadEdgeSlideTarget.None)
+        {
+            return;
+        }
 
+        var signedSteps = e.Direction == TouchpadEdgeSlideDirection.Up ? e.Steps : -e.Steps;
+        lock (_edgeSlideSync)
+        {
+            if (target == TouchpadEdgeSlideTarget.Brightness)
+            {
+                _pendingBrightnessEdgeSteps += signedSteps;
+            }
+            else
+            {
+                _pendingVolumeEdgeSteps += signedSteps;
+            }
+
+            _lastEventSummary = BuildTouchpadEdgeSlideSummary(e, target);
+            if (_edgeSlideProcessing)
+            {
+                return;
+            }
+
+            _edgeSlideProcessing = true;
+        }
+
+        _ = Task.Run(ProcessPendingEdgeSlideAsync);
+    }
+
+    private async Task ProcessPendingEdgeSlideAsync()
+    {
+        while (true)
+        {
+            int brightnessSteps;
+            int volumeSteps;
+            lock (_edgeSlideSync)
+            {
+                brightnessSteps = _pendingBrightnessEdgeSteps;
+                volumeSteps = _pendingVolumeEdgeSteps;
+                _pendingBrightnessEdgeSteps = 0;
+                _pendingVolumeEdgeSteps = 0;
+
+                if (brightnessSteps == 0 && volumeSteps == 0)
+                {
+                    _edgeSlideProcessing = false;
+                    return;
+                }
+            }
+
+            try
+            {
+                if (brightnessSteps != 0 || volumeSteps != 0)
+                {
+                    EnsureEdgeSlideHapticsReady();
+                }
+
+                ApplyBrightnessEdgeSteps(brightnessSteps);
+                ApplyVolumeEdgeSteps(volumeSteps);
+            }
+            catch (Exception exception)
+            {
+                _stateMessage = exception.Message;
+            }
+            finally
+            {
+                _nativeActionService.ReleaseBrightnessAdjustment();
+            }
+
+            await Task.Yield();
+        }
+    }
+
+    private static bool ShouldExecuteOnBackgroundThread(KeyActionMappingConfiguration mapping)
+    {
+        return string.Equals(mapping.Action?.Type, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ApplyBrightnessEdgeSteps(int steps)
+    {
+        if (steps == 0)
+        {
+            return;
+        }
+
+        for (var index = 0; index < Math.Abs(steps); index++)
+        {
+            if (steps > 0)
+            {
+                ExecuteEdgeSlideStep(_nativeActionService.BrightnessEdgeSlideUp);
+            }
+            else
+            {
+                ExecuteEdgeSlideStep(_nativeActionService.BrightnessEdgeSlideDown);
+            }
+        }
+    }
+
+    private void ApplyVolumeEdgeSteps(int steps)
+    {
+        if (steps == 0)
+        {
+            return;
+        }
+
+        for (var index = 0; index < Math.Abs(steps); index++)
+        {
+            if (steps > 0)
+            {
+                ExecuteEdgeSlideStep(_nativeActionService.EdgeSlideVolumeUp);
+            }
+            else
+            {
+                ExecuteEdgeSlideStep(_nativeActionService.EdgeSlideVolumeDown);
+            }
+        }
+    }
+
+    private void ExecuteEdgeSlideStep(Action stepAction)
+    {
+        if (!_edgeSlideHapticsPrimed)
+        {
+            EnsureEdgeSlideHapticsReady();
+        }
+
+        TryPulseEdgeSlide();
+        stepAction();
+    }
+
+    private void EnsureEdgeSlideHapticsReady()
+    {
+        if (_edgeSlideHapticsPrimed)
+        {
+            return;
+        }
+
+        lock (_edgeSlideHapticsSync)
+        {
+            if (_edgeSlideHapticsPrimed)
+            {
+                return;
+            }
+
+            var touchpad = _configuration.Touchpad;
+            TouchpadPrivateHidService.SetVibration(TouchpadHardwareSettings.NormalizeLevel(touchpad.FeedbackLevel));
+            TouchpadPrivateHidService.SetHaptic(true);
+            _edgeSlideHapticsPrimed = true;
+        }
+    }
+
+    private void TryPulseEdgeSlide()
+    {
+        try
+        {
+            GetOrCreateEdgeSlidePulseSession().Pulse();
+        }
+        catch
+        {
+            ReleaseEdgeSlidePulseSession();
+            _edgeSlideHapticsPrimed = false;
+        }
+    }
+
+    private TouchpadPrivateHidService.PulseSession GetOrCreateEdgeSlidePulseSession()
+    {
+        lock (_edgeSlideHapticsSync)
+        {
+            _edgeSlidePulseSession ??= TouchpadPrivateHidService.CreatePulseSession();
+            return _edgeSlidePulseSession;
+        }
+    }
+
+    private void ReleaseEdgeSlidePulseSession()
+    {
+        lock (_edgeSlideHapticsSync)
+        {
+            _edgeSlidePulseSession?.Dispose();
+            _edgeSlidePulseSession = null;
+        }
+    }
+
+    private void PrewarmEdgeSlideHapticsIfNeeded()
+    {
+        if (ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Left) == TouchpadEdgeSlideTarget.None &&
+            ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Right) == TouchpadEdgeSlideTarget.None)
+        {
+            return;
+        }
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                EnsureEdgeSlideHapticsReady();
+            }
+            catch (Exception exception)
+            {
+                _edgeSlideHapticsPrimed = false;
+                _stateMessage = exception.Message;
+            }
+        });
+    }
+
+    private ActionExecutionOsd? ExecuteAction(ActionDefinitionConfiguration action)
+    {
+        switch (action.Type)
+        {
+            case HotkeyActionType.None:
+                return null;
+            case HotkeyActionType.CyclePerformanceMode:
+                return ExecuteCyclePerformanceModeAction();
+            case HotkeyActionType.SendStandardKey:
+                _nativeActionService.SendConfiguredKeyChord(action.KeyChord);
+                return null;
+            case HotkeyActionType.OpenSettings:
+                _nativeActionService.OpenSettings();
+                return null;
+            case HotkeyActionType.OpenProjection:
+                _nativeActionService.OpenProjection();
+                return null;
+            case HotkeyActionType.ToggleTouchpad:
+                _nativeActionService.ToggleTouchpad();
+                return null;
+            case HotkeyActionType.MicrophoneMuteOn:
+                AudioEndpointController.SetCaptureMute(true);
+                return null;
+            case HotkeyActionType.MicrophoneMuteOff:
+                AudioEndpointController.SetCaptureMute(false);
+                return null;
+            case HotkeyActionType.VolumeUp:
+                _nativeActionService.VolumeUp();
+                return null;
+            case HotkeyActionType.VolumeDown:
+                _nativeActionService.VolumeDown();
+                return null;
+            case HotkeyActionType.VolumeMute:
+                _nativeActionService.VolumeMute();
+                return null;
+            case HotkeyActionType.MediaPrevious:
+                _nativeActionService.MediaPrevious();
+                return null;
+            case HotkeyActionType.MediaNext:
+                _nativeActionService.MediaNext();
+                return null;
+            case HotkeyActionType.MediaPlayPause:
+                _nativeActionService.MediaPlayPause();
+                return null;
+            case HotkeyActionType.BrightnessUp:
+                _nativeActionService.BrightnessUp();
+                return null;
+            case HotkeyActionType.BrightnessDown:
+                _nativeActionService.BrightnessDown();
+                return null;
+            case HotkeyActionType.ToggleAirplaneMode:
+                _ = _nativeActionService.ToggleAirplaneModeAsync();
+                return null;
+            case HotkeyActionType.LockWindows:
+                _nativeActionService.LockWindows();
+                return null;
+            case HotkeyActionType.Screenshot:
+                _nativeActionService.Screenshot();
+                return null;
+            case HotkeyActionType.OpenCalculator:
+                _nativeActionService.OpenCalculator();
+                return null;
+            case HotkeyActionType.OpenApplication:
+                _nativeActionService.LaunchConfiguredTarget(action.Target ?? string.Empty, action.Arguments);
+                return null;
+            default:
+                return null;
+        }
+    }
+
+    private ActionExecutionOsd ExecuteCyclePerformanceModeAction()
+    {
+        lock (_performanceModeSync)
+        {
+            var state = _batteryControlService.TryGetCachedState(out var cachedState)
+                ? cachedState
+                : _batteryControlService.QueryState();
+            if (!state.Supported)
+            {
+                throw new InvalidOperationException(LocalizedText.Pick("The device does not expose the performance mode controls.", "设备没有暴露性能模式控制接口。"));
+            }
+
+            var nextModeKey = BatteryControlCatalog.GetNextCyclePerformanceModeKey(state.PerformanceModeKey);
+            var updatedState = _batteryControlService.SetPerformanceModeFast(nextModeKey);
+            _ = Task.Run(RefreshBatteryStateAfterMutationAsync);
+            var title = BatteryControlCatalog.GetPerformanceModeLabel(updatedState.PerformanceModeKey);
+            var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(updatedState.PerformanceModeKey);
+            _stateMessage = "Performance mode set to " + title + ".";
+
+            return new ActionExecutionOsd(
+                title,
+                new IconConfiguration
+                {
+                    Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                    Path = assetKey
+                });
+        }
+    }
+
+    private async Task RefreshBatteryStateAfterMutationAsync()
+    {
+        try
+        {
+            await Task.Delay(700);
+            _batteryControlService.QueryState();
+            await NotifyControllerAsync(WorkerNotificationType.Started);
+        }
+        catch
+        {
+        }
+    }
+
+    private static BuiltInOsdDefinition? ResolveBuiltInMappingOsd(KeyActionMappingConfiguration mapping, InputEvent inputEvent)
+    {
+        return BuiltInOsdCatalog.ResolveForKey(mapping.KeyId, inputEvent.ReportHex);
+    }
+
+    private void ShowActionOsd(ActionExecutionOsd actionOsd)
+    {
+        ShowOsd(actionOsd.Title, actionOsd.Icon);
+    }
+
+    private void ShowBuiltInOsd(BuiltInOsdDefinition osd)
+    {
+        ShowOsd(
+            osd.Title,
+            new IconConfiguration
+            {
+                Mode = string.IsNullOrWhiteSpace(osd.AssetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                Path = osd.AssetKey
+            });
+    }
+
+    private void ShowOsd(string title, IconConfiguration icon)
+    {
         _syncContext.Post(_ =>
         {
             try
@@ -395,18 +897,6 @@ internal sealed class WorkerHost : IDisposable
                 _stateMessage = exception.Message;
             }
         }, null);
-    }
-
-    private static string ResolveMappingOsdTitle(KeyActionMappingConfiguration mapping)
-    {
-        if (!string.IsNullOrWhiteSpace(mapping.Osd.Title))
-        {
-            return mapping.Osd.Title;
-        }
-
-        return !string.IsNullOrWhiteSpace(mapping.Action.Type)
-            ? ActionCatalog.GetLabel(mapping.Action.Type)
-            : MappingDisplayCatalog.ShowOsdLabel;
     }
 
     private ActionDefinitionConfiguration? ResolveTouchpadAction(TouchpadGestureTriggerEventArgs e)
@@ -438,29 +928,147 @@ internal sealed class WorkerHost : IDisposable
         {
             TouchpadCornerRegionId.LeftTop => "left-top corner",
             TouchpadCornerRegionId.RightTop => "right-top corner",
-            _ => "surface"
+            _ => "main region"
         };
 
         return e.TriggerKind switch
+            {
+                TouchpadGestureTriggerKind.LongPress => $"Touchpad long press ({regionLabel})",
+                TouchpadGestureTriggerKind.DeepPress when !string.IsNullOrWhiteSpace(e.RegionId) => $"Touchpad deep press ({regionLabel})",
+            _ => "Touchpad deep press (main region)"
+            };
+    }
+
+    private TouchpadEdgeSlideTarget ResolveEdgeSlideTarget(TouchpadEdgeSlideSide side)
+    {
+        var action = side == TouchpadEdgeSlideSide.Left
+            ? _configuration.Touchpad.LeftEdgeSlideAction
+            : _configuration.Touchpad.RightEdgeSlideAction;
+
+        return action?.Type switch
         {
-            TouchpadGestureTriggerKind.LongPress => $"Touchpad long press ({regionLabel})",
-            TouchpadGestureTriggerKind.DeepPress when !string.IsNullOrWhiteSpace(e.RegionId) => $"Touchpad deep press ({regionLabel})",
-            _ => "Touchpad deep press"
+            HotkeyActionType.BrightnessUp or HotkeyActionType.BrightnessDown => TouchpadEdgeSlideTarget.Brightness,
+            HotkeyActionType.VolumeUp or HotkeyActionType.VolumeDown => TouchpadEdgeSlideTarget.Volume,
+            _ => TouchpadEdgeSlideTarget.None
+        };
+    }
+
+    private static string BuildTouchpadEdgeSlideSummary(TouchpadEdgeSlideEventArgs e, TouchpadEdgeSlideTarget target)
+    {
+        var sideLabel = e.Side == TouchpadEdgeSlideSide.Left ? "left edge" : "right edge";
+        var targetLabel = target == TouchpadEdgeSlideTarget.Brightness ? "brightness" : "volume";
+        var directionLabel = e.Direction == TouchpadEdgeSlideDirection.Up ? "up" : "down";
+        return $"Touchpad {sideLabel} slide {directionLabel} ({targetLabel}) x{e.Steps}";
+    }
+
+    private static KeyDefinitionConfiguration CloneKeyDefinition(KeyDefinitionConfiguration key)
+    {
+        return new KeyDefinitionConfiguration
+        {
+            Id = key.Id,
+            Name = key.Name,
+            Trigger = key.Trigger ?? new EventMatcherConfiguration()
+        };
+    }
+
+    private enum TouchpadEdgeSlideTarget
+    {
+        None,
+        Brightness,
+        Volume
+    }
+
+    private static KeyActionMappingConfiguration CloneMapping(KeyActionMappingConfiguration mapping)
+    {
+        return new KeyActionMappingConfiguration
+        {
+            Id = mapping.Id,
+            Name = mapping.Name,
+            Enabled = mapping.Enabled,
+            KeyId = mapping.KeyId,
+            Action = new ActionDefinitionConfiguration
+            {
+                Type = mapping.Action?.Type ?? HotkeyActionType.None,
+                KeyChord = mapping.Action?.KeyChord is null
+                    ? null
+                    : new KeyChordConfiguration
+                    {
+                        PrimaryKey = mapping.Action.KeyChord.PrimaryKey,
+                        Modifiers = [.. mapping.Action.KeyChord.Modifiers]
+                    },
+                Target = mapping.Action?.Target,
+                Arguments = mapping.Action?.Arguments
+            },
+            Osd = new MappingOsdConfiguration
+            {
+                Enabled = mapping.Osd?.Enabled == true
+            }
         };
     }
 
     private WorkerStatus BuildStatus()
     {
+        var batteryState = _batteryControlService.TryGetCachedState(out var cachedBatteryState)
+            ? cachedBatteryState
+            : null;
+
         return new WorkerStatus
         {
             IsRunning = true,
+            IsElevated = IsCurrentProcessElevated(),
             IsListening = _configuration.Preferences.IsListening,
             IsTrayIconVisible = _configuration.Preferences.ShowTrayIcon,
             LastEventSummary = _lastEventSummary,
             ConfigPath = _configService.ConfigPath,
             StateMessage = _stateMessage,
+            Battery = batteryState,
             Touchpad = _touchpadInputService.GetLatestState()
         };
+    }
+
+    private void EnsureAutostartRegistration()
+    {
+        try
+        {
+            if (!IsCurrentProcessElevated())
+            {
+                return;
+            }
+
+            var workerExecutablePath = Environment.ProcessPath;
+            if (string.IsNullOrWhiteSpace(workerExecutablePath) || !File.Exists(workerExecutablePath))
+            {
+                _stateMessage = "Worker executable path not found.";
+                return;
+            }
+
+            if (_autostartService.HasMatchingPriorityStartupTask(workerExecutablePath))
+            {
+                return;
+            }
+
+            _autostartService.SetEnabled(true, workerExecutablePath, preferPriorityStartup: true);
+        }
+        catch (Exception exception)
+        {
+            _stateMessage = "Failed to register startup task: " + exception.Message;
+        }
+    }
+
+    private async Task NotifyControllerAsync(string notificationType)
+    {
+        await _controllerPipeClient.SendAsync(new WorkerNotification
+        {
+            Type = notificationType,
+            Status = BuildStatus()
+        });
+    }
+
+    private static bool IsCurrentProcessElevated()
+    {
+        var identity = WindowsIdentity.GetCurrent();
+        var principal = new WindowsPrincipal(identity);
+        return principal.IsInRole(WindowsBuiltInRole.Administrator);
     }
 
     private static string BuildEventSummary(InputEvent inputEvent)
@@ -475,7 +1083,7 @@ internal sealed class WorkerHost : IDisposable
 
     private TrayIconService GetTrayIconService()
     {
-        _trayIconService ??= new TrayIconService(OpenController, RequestExit);
+        _trayIconService ??= new TrayIconService(OpenController, RequestHardExit);
         return _trayIconService;
     }
 
@@ -502,6 +1110,8 @@ internal sealed class WorkerHost : IDisposable
         return _osdService;
     }
 
+    private sealed record ActionExecutionOsd(string Title, IconConfiguration Icon);
+
     private void OpenController()
     {
         try
@@ -526,9 +1136,9 @@ internal sealed class WorkerHost : IDisposable
         }
     }
 
-    private void RequestExit()
+    private void RequestHardExit()
     {
-        _syncContext.Post(_ => _exitCallback(), null);
+        Environment.Exit(0);
     }
 
     private string? ResolveControllerPath()
@@ -554,9 +1164,15 @@ internal sealed class WorkerHost : IDisposable
 
     private static IEnumerable<string> EnumerateControllerCandidates()
     {
-        yield return Path.Combine(AppContext.BaseDirectory, "MeowBox.Controller.exe");
-        yield return Path.Combine(AppContext.BaseDirectory, "..", "MeowBox.Controller.exe");
-        yield return Path.Combine(AppContext.BaseDirectory, "..", "..", "MeowBox.Controller.exe");
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var candidate in EnumerateDirectControllerCandidates())
+        {
+            if (seen.Add(candidate))
+            {
+                yield return candidate;
+            }
+        }
 
         var repositoryRoot = FindRepositoryRoot(AppContext.BaseDirectory);
         if (repositoryRoot is null)
@@ -565,26 +1181,45 @@ internal sealed class WorkerHost : IDisposable
         }
 
         var controllerBuildRoot = Path.Combine(repositoryRoot, "build", "bin", "MeowBox.Controller");
-        if (!Directory.Exists(controllerBuildRoot))
+        if (Directory.Exists(controllerBuildRoot))
         {
-            yield break;
-        }
+            IEnumerable<string> discoveredCandidates;
+            try
+            {
+                discoveredCandidates = Directory
+                    .EnumerateFiles(controllerBuildRoot, "MeowBox.Controller.exe", SearchOption.AllDirectories)
+                    .OrderByDescending(static path => File.GetLastWriteTimeUtc(path));
+            }
+            catch
+            {
+                discoveredCandidates = [];
+            }
 
-        IEnumerable<string> discoveredCandidates;
-        try
-        {
-            discoveredCandidates = Directory
-                .EnumerateFiles(controllerBuildRoot, "MeowBox.Controller.exe", SearchOption.AllDirectories)
-                .OrderByDescending(static path => File.GetLastWriteTimeUtc(path));
+            foreach (var candidate in discoveredCandidates)
+            {
+                if (seen.Add(candidate))
+                {
+                    yield return candidate;
+                }
+            }
         }
-        catch
-        {
-            yield break;
-        }
+    }
 
-        foreach (var candidate in discoveredCandidates)
+    private static IEnumerable<string> EnumerateDirectControllerCandidates()
+    {
+        var baseDirectory = AppContext.BaseDirectory;
+        yield return Path.Combine(baseDirectory, "MeowBox.Controller.exe");
+        yield return Path.Combine(baseDirectory, "..", "MeowBox.Controller.exe");
+        yield return Path.Combine(baseDirectory, "..", "..", "MeowBox.Controller.exe");
+
+        var current = new DirectoryInfo(baseDirectory);
+        for (var depth = 0; depth < 6 && current is not null; depth++, current = current.Parent)
         {
-            yield return candidate;
+            yield return Path.Combine(current.FullName, "build", "bin", "MeowBox.Controller", "net8.0-windows10.0.19041.0", "MeowBox.Controller.exe");
+            yield return Path.Combine(current.FullName, "build", "bin", "MeowBox.Controller", "net8.0-windows10.0.19041.0", "win-x64", "MeowBox.Controller.exe");
+            yield return Path.Combine(current.FullName, "artifacts", "MeowBox", "MeowBox.Controller.exe");
+            yield return Path.Combine(current.FullName, "build", "publish", "controller", "MeowBox.Controller.exe");
+            yield return Path.Combine(current.FullName, "build", "package", "MeowBox", "MeowBox.Controller.exe");
         }
     }
 

@@ -388,8 +388,8 @@ internal sealed class OsdForm : Form
 
     private static string? ResolvePreferredIconPath(IconConfiguration icon)
     {
-        var configDirectory = new AppConfigService().ConfigDirectory;
-        return ResolvePngPath(OsdIconPathResolver.ResolveAbsolutePath(icon.Path, configDirectory));
+        var assetKey = Path.GetFileNameWithoutExtension(icon.Path);
+        return ResolvePngPath(BuiltInAssetResolver.ResolveOsdAssetPath(assetKey));
     }
 
     private static string? ResolvePngPath(string? path)
