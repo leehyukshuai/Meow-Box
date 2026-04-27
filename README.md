@@ -49,7 +49,18 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 
 #### 🔨 构建
 
-默认构建：
+日常本地调试直接用：
+
+```powershell
+dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
+```
+
+默认会把可直接运行的二进制统一放到：
+
+- `build/bin/MeowBox/`
+- `build/bin/MeowBox/runtime/worker/`
+
+如果需要脚本化本地构建，也可以用：
 
 ```powershell
 .\build.ps1
@@ -60,18 +71,21 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 - `-Version 1.0.0` — 指定输出版本号
 - `-Zip` — 额外生成 Portable zip 包
 - `-Msi` — 额外生成 MSI 安装包
-- `-PackageAll` — 同时生成 zip 和 msi
-- `-SelfContained` — 生成 self-contained 构建，体积更大
 
 示例：
 
 ```powershell
-.\build.ps1 -Version 1.0.0 -PackageAll
 .\build.ps1 -Version 1.0.0 -Zip
 .\build.ps1 -Version 1.0.0 -Msi
+.\build.ps1 -Version 1.0.0 -Zip -Msi
 ```
 
-默认输出：
+本地构建输出：
+
+- `build/bin/MeowBox/`
+- `build/bin/MeowBox/runtime/worker/`
+
+只有打包时才会输出到：
 
 - `artifacts/MeowBox/`
 - `artifacts/MeowBox-portable-v<version>.zip`
@@ -129,7 +143,18 @@ If the target PC does not already have the required runtime installed, add these
 
 #### 🔨 Build
 
-Default build:
+For everyday local debugging, use:
+
+```powershell
+dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
+```
+
+This produces a directly runnable local layout under:
+
+- `build/bin/MeowBox/`
+- `build/bin/MeowBox/runtime/worker/`
+
+If you still want the script for a local build, use:
 
 ```powershell
 .\build.ps1
@@ -140,18 +165,21 @@ Optional arguments:
 - `-Version 1.0.0` — sets the output version
 - `-Zip` — also builds a Portable zip
 - `-Msi` — also builds an MSI installer
-- `-PackageAll` — builds both zip and msi
-- `-SelfContained` — builds a self-contained package with larger size
 
 Examples:
 
 ```powershell
-.\build.ps1 -Version 1.0.0 -PackageAll
 .\build.ps1 -Version 1.0.0 -Zip
 .\build.ps1 -Version 1.0.0 -Msi
+.\build.ps1 -Version 1.0.0 -Zip -Msi
 ```
 
-Default outputs:
+Local build outputs:
+
+- `build/bin/MeowBox/`
+- `build/bin/MeowBox/runtime/worker/`
+
+Only packaging emits to:
 
 - `artifacts/MeowBox/`
 - `artifacts/MeowBox-portable-v<version>.zip`

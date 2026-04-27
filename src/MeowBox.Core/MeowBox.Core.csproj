@@ -2,7 +2,9 @@
   <PropertyGroup>
     <AssemblyName>MeowBox.Core</AssemblyName>
     <RootNamespace>MeowBox.Core</RootNamespace>
-    <OutputPath>..\..\build\bin\MeowBox.Core\</OutputPath>
+    <OutputPath>$(BaseIntermediateOutputPath)bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <Nullable>enable</Nullable>

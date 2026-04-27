@@ -2,7 +2,9 @@
   <PropertyGroup>
     <AssemblyName>MeowBox.Controller</AssemblyName>
     <RootNamespace>MeowBox.Controller</RootNamespace>
-    <OutputPath>..\..\build\bin\MeowBox.Controller\</OutputPath>
+    <OutputPath>..\..\build\bin\MeowBox\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputType>WinExe</OutputType>
     <ApplicationIcon>..\..\assets\app\app.ico</ApplicationIcon>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -77,5 +79,13 @@
       SourceFiles="@(_PublishedLooseWinUiFiles)"
       DestinationFiles="@(_PublishedLooseWinUiFiles->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
       SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="BuildWorkerForLocalRuntime" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipBuildWorkerForLocalRuntime)' != 'true'">
+    <MSBuild
+      Projects="..\MeowBox.Worker\MeowBox.Worker.csproj"
+      Targets="Restore;Build"
+      Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(RuntimeIdentifier)"
+      BuildInParallel="false" />
   </Target>
 </Project>

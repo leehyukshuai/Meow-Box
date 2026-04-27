@@ -201,8 +201,9 @@ Primary command:
 ```
 
 Expected outputs:
-- build staging under `build/`
-- final distributables under `artifacts/`
+- local runnable binaries under `build/bin/MeowBox/`
+- packaging staging under `build/`
+- final distributables under `artifacts/` when packaging is requested
 
 Keep project files simple.
 Do not reintroduce `Directory.Build.props` just to relocate transient `obj/` folders; the packaging script already cleans those after a build.
@@ -216,9 +217,10 @@ Packaging rules:
 - user-visible entry point is `MeowBox.Controller.exe`
 - `Worker` is internal runtime payload and may be staged under a subdirectory
 - package from MSBuild `Publish` outputs
-- default `.\build.ps1` should emit `artifacts/MeowBox/` for fast local debugging
+- normal local debugging should work directly from `build/bin/MeowBox/`
+- default `.\build.ps1` should refresh the local runnable build under `build/bin/MeowBox/`
+- only packaging modes should emit `artifacts/MeowBox/`, `.zip`, or `.msi`
 - default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
-- use self-contained publish only when explicitly needed for a copy-and-run distribution
 - the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup
 
 If you change packaging paths, update:

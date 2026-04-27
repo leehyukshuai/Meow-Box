@@ -2,32 +2,18 @@ param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version = '0.1.0',
     [switch]$Zip,
-    [switch]$Msi,
-    [switch]$PackageAll,
-    [switch]$SkipZip,
-    [switch]$SkipMsi,
-    [switch]$SelfContained
+    [switch]$Msi
 )
 
 $ErrorActionPreference = 'Stop'
 
-function Get-MsBuildPath {
-    $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
-    if (-not (Test-Path $vswhere)) {
-        throw 'MSBuild.exe not found. Install Visual Studio 2022 Community or Build Tools with the Managed Desktop workload.'
-    }
+function Invoke-Dotnet {
+    param([string[]]$Arguments)
 
-    $installPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-    if ([string]::IsNullOrWhiteSpace($installPath)) {
-        throw 'MSBuild.exe not found. Install Visual Studio 2022 Community or Build Tools with the Managed Desktop workload.'
+    & dotnet @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet command failed: dotnet $($Arguments -join ' ')"
     }
-
-    $msbuild = Join-Path $installPath 'MSBuild\Current\Bin\MSBuild.exe'
-    if (-not (Test-Path $msbuild)) {
-        throw 'MSBuild.exe not found. Install Visual Studio 2022 Community or Build Tools with the Managed Desktop workload.'
-    }
-
-    return $msbuild
 }
 
 function Remove-PathIfExists {
@@ -38,62 +24,16 @@ function Remove-PathIfExists {
     }
 }
 
-function Invoke-MSBuildProject {
-    param(
-        [string]$MSBuild,
-        [string]$ProjectPath,
-        [string[]]$Properties = @()
-    )
-
-    $arguments = @(
-        ('"{0}"' -f $ProjectPath),
-        '/restore',
-        '/t:Rebuild',
-        '/verbosity:minimal'
-    ) + $Properties
-
-    & $MSBuild @arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "Build failed for '$ProjectPath' with exit code $LASTEXITCODE."
-    }
-}
-
-function Invoke-MSBuildPublishProject {
-    param(
-        [string]$MSBuild,
-        [string]$ProjectPath,
-        [string]$PublishDirectory,
-        [string[]]$Properties = @()
-    )
-
-    $arguments = @(
-        ('"{0}"' -f $ProjectPath),
-        '/restore',
-        '/t:Publish',
-        '/verbosity:minimal',
-        ('/p:PublishDir="{0}"' -f $PublishDirectory)
-    ) + $Properties
-
-    & $MSBuild @arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "Publish failed for '$ProjectPath' with exit code $LASTEXITCODE."
-    }
-}
-
 function Copy-DirectoryContent {
     param(
         [string]$SourceDirectory,
         [string]$DestinationDirectory
     )
 
-    if (-not (Test-Path $SourceDirectory)) {
-        throw "Source directory not found: $SourceDirectory"
-    }
-
-    New-Item -ItemType Directory -Force $DestinationDirectory | Out-Null
+    New-Item -ItemType Directory -Force -Path $DestinationDirectory | Out-Null
     $null = robocopy $SourceDirectory $DestinationDirectory /E /NFL /NDL /NJH /NJS /NP
     if ($LASTEXITCODE -ge 8) {
-        throw "Robocopy failed with exit code $LASTEXITCODE while copying '$SourceDirectory' to '$DestinationDirectory'."
+        throw "Robocopy failed while copying '$SourceDirectory' to '$DestinationDirectory'."
     }
 }
 
@@ -103,12 +43,11 @@ function Get-HashHex {
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value.ToLowerInvariant())
     $md5 = [System.Security.Cryptography.MD5]::Create()
     try {
-        $hashBytes = $md5.ComputeHash($bytes)
+        return ([System.BitConverter]::ToString($md5.ComputeHash($bytes))).Replace('-', '')
     }
     finally {
         $md5.Dispose()
     }
-    return ([System.BitConverter]::ToString($hashBytes)).Replace('-', '')
 }
 
 function New-StableId {
@@ -123,23 +62,17 @@ function New-StableId {
 function New-StableGuid {
     param([string]$Value)
 
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value.ToLowerInvariant())
     $md5 = [System.Security.Cryptography.MD5]::Create()
     try {
-        $hashBytes = $md5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Value.ToLowerInvariant()))
+        return ([guid]::new($md5.ComputeHash($bytes))).ToString().ToUpperInvariant()
     }
     finally {
         $md5.Dispose()
     }
-    return ([guid]::new($hashBytes)).ToString().ToUpperInvariant()
 }
 
-function Escape-Xml {
-    param([string]$Value)
-
-    return [System.Security.SecurityElement]::Escape($Value)
-}
-
-function Write-PortableDirectory {
+function Write-WixDirectory {
     param(
         [string]$DirectoryPath,
         [string]$Indent,
@@ -147,12 +80,11 @@ function Write-PortableDirectory {
         [System.Collections.Generic.List[string]]$ComponentRefLines
     )
 
-    $files = Get-ChildItem -LiteralPath $DirectoryPath -File | Sort-Object Name
-    foreach ($file in $files) {
+    foreach ($file in Get-ChildItem -LiteralPath $DirectoryPath -File | Sort-Object Name) {
         $componentId = New-StableId 'CMP' $file.FullName
         $fileId = New-StableId 'FIL' $file.FullName
         $guid = New-StableGuid $file.FullName
-        $source = Escape-Xml $file.FullName
+        $source = [System.Security.SecurityElement]::Escape($file.FullName)
 
         $DirectoryLines.Add(('{0}<Component Id="{1}" Guid="{2}">' -f $Indent, $componentId, $guid))
         $DirectoryLines.Add(('{0}  <File Id="{1}" Source="{2}" KeyPath="yes" />' -f $Indent, $fileId, $source))
@@ -160,17 +92,16 @@ function Write-PortableDirectory {
         $ComponentRefLines.Add(('      <ComponentRef Id="{0}" />' -f $componentId))
     }
 
-    $directories = Get-ChildItem -LiteralPath $DirectoryPath -Directory | Sort-Object Name
-    foreach ($directory in $directories) {
+    foreach ($directory in Get-ChildItem -LiteralPath $DirectoryPath -Directory | Sort-Object Name) {
         $directoryId = New-StableId 'DIR' $directory.FullName
-        $name = Escape-Xml $directory.Name
+        $name = [System.Security.SecurityElement]::Escape($directory.Name)
         $DirectoryLines.Add(('{0}<Directory Id="{1}" Name="{2}">' -f $Indent, $directoryId, $name))
-        Write-PortableDirectory -DirectoryPath $directory.FullName -Indent ($Indent + '  ') -DirectoryLines $DirectoryLines -ComponentRefLines $ComponentRefLines
+        Write-WixDirectory -DirectoryPath $directory.FullName -Indent ($Indent + '  ') -DirectoryLines $DirectoryLines -ComponentRefLines $ComponentRefLines
         $DirectoryLines.Add(('{0}</Directory>' -f $Indent))
     }
 }
 
-function New-InstallerFilesWxs {
+function New-PortableFilesWxs {
     param(
         [string]$PortableRoot,
         [string]$OutputPath
@@ -179,7 +110,7 @@ function New-InstallerFilesWxs {
     $directoryLines = [System.Collections.Generic.List[string]]::new()
     $componentRefLines = [System.Collections.Generic.List[string]]::new()
 
-    Write-PortableDirectory -DirectoryPath $PortableRoot -Indent '      ' -DirectoryLines $directoryLines -ComponentRefLines $componentRefLines
+    Write-WixDirectory -DirectoryPath $PortableRoot -Indent '      ' -DirectoryLines $directoryLines -ComponentRefLines $componentRefLines
 
     $lines = [System.Collections.Generic.List[string]]::new()
     $lines.Add('<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">')
@@ -198,141 +129,151 @@ function New-InstallerFilesWxs {
     Set-Content -Path $OutputPath -Value $lines -Encoding UTF8
 }
 
+function Stop-RunningMeowBoxProcesses {
+    $running = @(Get-Process -Name 'MeowBox.Controller', 'MeowBox.Worker' -ErrorAction SilentlyContinue)
+    if ($running.Count -eq 0) {
+        return
+    }
+
+    $command = "Get-Process -Name 'MeowBox.Controller','MeowBox.Worker' -ErrorAction SilentlyContinue | Stop-Process -Force"
+
+    try {
+        $process = Start-Process -FilePath powershell.exe -Verb RunAs -Wait -PassThru -WindowStyle Hidden -ArgumentList @(
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command', $command
+        )
+    }
+    catch [System.ComponentModel.Win32Exception] {
+        if ($_.Exception.NativeErrorCode -eq 1223) {
+            throw 'Administrator permission was canceled. Build aborted because Meow Box is still running.'
+        }
+
+        throw
+    }
+
+    if ($process.ExitCode -ne 0) {
+        throw 'Could not stop the running Meow Box processes.'
+    }
+
+    Start-Sleep -Milliseconds 300
+    $remaining = @(Get-Process -Name 'MeowBox.Controller', 'MeowBox.Worker' -ErrorAction SilentlyContinue)
+    if ($remaining.Count -gt 0) {
+        throw 'Meow Box is still running after the elevated stop request.'
+    }
+}
+
+$buildPortable = $Zip -or $Msi
+
 $root = $PSScriptRoot
 $srcRoot = Join-Path $root 'src'
 $buildRoot = Join-Path $root 'build'
-$packageRoot = Join-Path $buildRoot 'package'
-$publishRoot = Join-Path $buildRoot 'publish'
-$packageAppRoot = Join-Path $packageRoot 'MeowBox'
-$packageWorkerRoot = Join-Path $packageAppRoot 'runtime\worker'
-$legacyPortableRoot = Join-Path $root 'portable'
 $artifactsRoot = Join-Path $root 'artifacts'
-$artifactPortableRoot = Join-Path $artifactsRoot 'MeowBox'
+$localBuildRoot = Join-Path $buildRoot 'bin\MeowBox'
+$publishRoot = Join-Path $buildRoot 'publish'
+$controllerPublishOutput = Join-Path $publishRoot 'controller'
+$workerPublishOutput = Join-Path $publishRoot 'worker'
+$packageRoot = Join-Path $buildRoot 'package\MeowBox'
+$packageWorkerRoot = Join-Path $packageRoot 'runtime\worker'
+$portableRoot = Join-Path $artifactsRoot 'MeowBox'
+$portableZipPath = Join-Path $artifactsRoot ("MeowBox-portable-v{0}.zip" -f $Version)
+$msiPath = Join-Path $artifactsRoot ("MeowBox-setup-v{0}.msi" -f $Version)
 $controllerProject = Join-Path $srcRoot 'MeowBox.Controller\MeowBox.Controller.csproj'
 $workerProject = Join-Path $srcRoot 'MeowBox.Worker\MeowBox.Worker.csproj'
 $installerProject = Join-Path $srcRoot 'MeowBox.Setup\MeowBox.Setup.wixproj'
-$generatedInstallerSource = Join-Path $srcRoot 'MeowBox.Setup\PortableFiles.wxs'
-$coreBuildRoot = Join-Path $buildRoot 'bin\MeowBox.Core'
-$controllerBuildRoot = Join-Path $buildRoot 'bin\MeowBox.Controller'
-$workerBuildRoot = Join-Path $buildRoot 'bin\MeowBox.Worker'
-$controllerPublishOutput = Join-Path $publishRoot 'controller'
-$workerPublishOutput = Join-Path $publishRoot 'worker'
 $installerOutputRoot = Join-Path $buildRoot 'bin\MeowBox.Setup'
-$portableZipPath = Join-Path $artifactsRoot ("MeowBox-portable-v{0}.zip" -f $Version)
-$msiPath = Join-Path $artifactsRoot ("MeowBox-setup-v{0}.msi" -f $Version)
+$portableFilesWxs = Join-Path $srcRoot 'MeowBox.Setup\PortableFiles.wxs'
 
-$legacyPackagingRequested = $PackageAll -or $SkipZip -or $SkipMsi
-$buildZip = $PackageAll -or $Zip -or ($legacyPackagingRequested -and -not $SkipZip)
-$buildMsi = $PackageAll -or $Msi -or ($legacyPackagingRequested -and -not $SkipMsi)
+Stop-RunningMeowBoxProcesses
 
-if (-not (Test-Path $controllerProject) -or -not (Test-Path $workerProject)) {
-    throw 'Worker or Controller project not found.'
-}
-
-$msbuild = Get-MsBuildPath
-
-Get-Process MeowBox.Controller -ErrorAction SilentlyContinue | Stop-Process -Force
-Get-Process MeowBox.Worker -ErrorAction SilentlyContinue | Stop-Process -Force
-Start-Sleep -Milliseconds 500
-
-Remove-PathIfExists $packageAppRoot
-Remove-PathIfExists $legacyPortableRoot
-Remove-PathIfExists $artifactsRoot
-Remove-PathIfExists $coreBuildRoot
-Remove-PathIfExists $controllerBuildRoot
-Remove-PathIfExists $workerBuildRoot
-Remove-PathIfExists $publishRoot
-Remove-PathIfExists $installerOutputRoot
-Remove-PathIfExists $generatedInstallerSource
-
-New-Item -ItemType Directory -Force $packageAppRoot | Out-Null
-New-Item -ItemType Directory -Force $packageWorkerRoot | Out-Null
-New-Item -ItemType Directory -Force $artifactsRoot | Out-Null
-New-Item -ItemType Directory -Force $controllerPublishOutput | Out-Null
-New-Item -ItemType Directory -Force $workerPublishOutput | Out-Null
-
-$controllerPublishProperties = @(
-    '/p:Configuration=Release',
-    '/p:Platform=x64',
-    '/p:RuntimeIdentifier=win-x64',
-    ('/p:SelfContained={0}' -f $SelfContained.ToString().ToLowerInvariant())
+$buildArguments = @(
+    'build',
+    $controllerProject,
+    '-c', 'Release',
+    '-p:Platform=x64'
 )
+Invoke-Dotnet $buildArguments
 
-if ($SelfContained) {
-    $controllerPublishProperties += '/p:WindowsAppSDKSelfContained=true'
-}
+if ($buildPortable) {
+    Remove-PathIfExists $controllerPublishOutput
+    Remove-PathIfExists $workerPublishOutput
+    Remove-PathIfExists $packageRoot
+    Remove-PathIfExists $artifactsRoot
+    Remove-PathIfExists $installerOutputRoot
+    Remove-PathIfExists $portableFilesWxs
 
-$workerPublishProperties = @(
-    '/p:Configuration=Release',
-    '/p:Platform=x64',
-    '/p:RuntimeIdentifier=win-x64',
-    ('/p:SelfContained={0}' -f $SelfContained.ToString().ToLowerInvariant())
-)
+    New-Item -ItemType Directory -Force -Path $controllerPublishOutput | Out-Null
+    New-Item -ItemType Directory -Force -Path $workerPublishOutput | Out-Null
+    New-Item -ItemType Directory -Force -Path $packageWorkerRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $artifactsRoot | Out-Null
 
-Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $controllerProject -PublishDirectory $controllerPublishOutput -Properties $controllerPublishProperties
-Copy-DirectoryContent -SourceDirectory $controllerPublishOutput -DestinationDirectory $packageAppRoot
+    $publishArguments = @(
+        '-c', 'Release',
+        '-r', 'win-x64',
+        '-p:Platform=x64',
+        '-p:SelfContained=false'
+    )
 
-Invoke-MSBuildPublishProject -MSBuild $msbuild -ProjectPath $workerProject -PublishDirectory $workerPublishOutput -Properties $workerPublishProperties
-Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $packageWorkerRoot
+    $controllerPublishArguments = @(
+        'publish',
+        $controllerProject,
+        '-o', $controllerPublishOutput,
+        '-p:SkipBuildWorkerForLocalRuntime=true'
+    ) + $publishArguments
+    Invoke-Dotnet $controllerPublishArguments
+    Copy-DirectoryContent -SourceDirectory $controllerPublishOutput -DestinationDirectory $packageRoot
 
-Get-ChildItem $packageAppRoot -Recurse -Include *.pdb | Remove-Item -Force
-Copy-DirectoryContent -SourceDirectory $packageAppRoot -DestinationDirectory $artifactPortableRoot
+    $workerPublishArguments = @(
+        'publish',
+        $workerProject,
+        '-o', $workerPublishOutput
+    ) + $publishArguments
+    Invoke-Dotnet $workerPublishArguments
+    Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $packageWorkerRoot
 
-if ($buildZip) {
-    if (Test-Path $portableZipPath) {
-        Remove-Item -LiteralPath $portableZipPath -Force
-    }
+    Get-ChildItem -Path $packageRoot -Recurse -Include *.pdb | Remove-Item -Force
+    Copy-DirectoryContent -SourceDirectory $packageRoot -DestinationDirectory $portableRoot
 
-    Compress-Archive -Path $artifactPortableRoot -DestinationPath $portableZipPath -CompressionLevel Optimal
-}
-
-if ($buildMsi) {
-    if (-not (Test-Path $installerProject)) {
-        throw 'Installer project not found.'
-    }
-
-    New-InstallerFilesWxs -PortableRoot $packageAppRoot -OutputPath $generatedInstallerSource
-
-    $msiBuildSucceeded = $false
-    for ($attempt = 1; $attempt -le 3 -and -not $msiBuildSucceeded; $attempt++) {
-        & dotnet build $installerProject -c Release -p:InstallerPlatform=x64 -p:ProductVersion=$Version
-        if ($LASTEXITCODE -eq 0) {
-            $msiBuildSucceeded = $true
-            break
+    if ($Zip) {
+        if (Test-Path $portableZipPath) {
+            Remove-Item -LiteralPath $portableZipPath -Force
         }
 
-        if ($attempt -lt 3) {
-            Write-Warning "MSI build attempt $attempt failed, retrying..."
-            Start-Sleep -Seconds 2
+        Compress-Archive -Path $portableRoot -DestinationPath $portableZipPath -CompressionLevel Optimal
+    }
+
+    if ($Msi) {
+        New-PortableFilesWxs -PortableRoot $packageRoot -OutputPath $portableFilesWxs
+        Invoke-Dotnet @(
+            'build',
+            $installerProject,
+            '-c', 'Release',
+            '-p:InstallerPlatform=x64',
+            ('-p:ProductVersion={0}' -f $Version)
+        )
+
+        $builtMsi = Get-ChildItem -Path $installerOutputRoot -Filter *.msi -Recurse |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1
+        if ($null -eq $builtMsi) {
+            throw 'MSI build completed but no .msi output was found.'
         }
-    }
 
-    if (-not $msiBuildSucceeded) {
-        throw "MSI build failed after multiple attempts."
+        Copy-Item -LiteralPath $builtMsi.FullName -Destination $msiPath -Force
     }
-
-    $builtMsi = Get-ChildItem -Path $installerOutputRoot -Filter *.msi -Recurse | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-    if ($null -eq $builtMsi) {
-        throw 'MSI build completed but no .msi output was found.'
-    }
-
-    Copy-Item -LiteralPath $builtMsi.FullName -Destination $msiPath -Force
 }
 
-Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Controller\obj')
-Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Core\obj')
-Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Worker\obj')
-Remove-PathIfExists (Join-Path $srcRoot 'MeowBox.Setup\obj')
-Remove-PathIfExists $generatedInstallerSource
+Remove-PathIfExists $portableFilesWxs
 
-Write-Host 'Packaging mode:' ($(if ($SelfContained) { 'self-contained win-x64' } else { 'framework-dependent win-x64' }))
-Write-Host 'Package staging folder:' $packageAppRoot
-Write-Host 'Portable folder:' $artifactPortableRoot
-Write-Host 'Launcher:' (Join-Path $artifactPortableRoot 'MeowBox.Controller.exe')
-Write-Host 'Internal worker:' (Join-Path $artifactPortableRoot 'runtime\worker\MeowBox.Worker.exe')
-if ($buildZip) {
+Write-Host 'Local app folder:' $localBuildRoot
+Write-Host 'Launcher:' (Join-Path $localBuildRoot 'MeowBox.Controller.exe')
+Write-Host 'Internal worker:' (Join-Path $localBuildRoot 'runtime\worker\MeowBox.Worker.exe')
+if ($buildPortable) {
+    Write-Host 'Portable folder:' $portableRoot
+}
+if ($Zip) {
     Write-Host 'Portable zip:' $portableZipPath
 }
-if ($buildMsi) {
+if ($Msi) {
     Write-Host 'MSI installer:' $msiPath
 }
