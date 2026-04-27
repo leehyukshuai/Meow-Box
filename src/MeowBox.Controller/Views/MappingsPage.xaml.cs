@@ -5,8 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using MeowBox.Controller.Services;
 using MeowBox.Controller.ViewModels;
 using MeowBox.Core.Models;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
 using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
@@ -84,22 +82,17 @@ public sealed partial class MappingsPage : Page
     private async void OnPickInstalledAppClick(object sender, RoutedEventArgs e)
     {
         var apps = await Controller.GetInstalledAppsAsync();
-        var dialog = new AppPickerDialog(apps)
+        var target = await ActionEditorDialogService.PickInstalledAppTargetAsync(Content.XamlRoot, apps);
+        if (!string.IsNullOrWhiteSpace(target) && Controller.SelectedMapping is not null)
         {
-            XamlRoot = Content.XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.SelectedApp is not null && Controller.SelectedMapping is not null)
-        {
-            Controller.SelectedMapping.Action.Target = dialog.SelectedApp.LaunchTarget;
+            Controller.SelectedMapping.Action.Target = target;
             TrySaveMappingAsync();
         }
     }
 
     private async void OnBrowseExecutableClick(object sender, RoutedEventArgs e)
     {
-        var path = await PickFileAsync([".exe", ".lnk", ".bat", "*"]);
+        var path = await ActionEditorDialogService.PickLaunchPathAsync([".exe", ".lnk", ".bat", "*"]);
         if (!string.IsNullOrWhiteSpace(path) && Controller.SelectedMapping is not null)
         {
             Controller.SelectedMapping.Action.Target = path;
@@ -114,17 +107,13 @@ public sealed partial class MappingsPage : Page
             return;
         }
 
-        var dialog = new ActionPickerDialog(Controller.SelectedMapping.Action.Type)
-        {
-            XamlRoot = Content.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary || dialog.SelectedAction is null)
+        var actionType = await ActionEditorDialogService.PickActionTypeAsync(Content.XamlRoot, Controller.SelectedMapping.Action.Type);
+        if (string.IsNullOrWhiteSpace(actionType))
         {
             return;
         }
 
-        Controller.SetSelectedActionType(dialog.SelectedAction.Key);
+        Controller.SetSelectedActionType(actionType);
         TrySaveMappingAsync();
     }
 
@@ -137,41 +126,6 @@ public sealed partial class MappingsPage : Page
 
         Controller.ClearSelectedMappingAction();
         TrySaveMappingAsync();
-    }
-
-    private async Task<string?> PickFileAsync(IEnumerable<string> types)
-    {
-        if (App.MainWindow is null)
-        {
-            return null;
-        }
-
-        var picker = new FileOpenPicker
-        {
-            SuggestedStartLocation = PickerLocationId.ComputerFolder
-        };
-
-        foreach (var type in types)
-        {
-            picker.FileTypeFilter.Add(type);
-        }
-
-        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
-        var file = await picker.PickSingleFileAsync();
-        return file?.Path;
-    }
-
-    private async Task ShowMessageAsync(string title, string message)
-    {
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = title,
-            Content = message,
-            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
-        };
-
-        await dialog.ShowAsync();
     }
 
     private void OnMappingEditorLostFocus(object sender, RoutedEventArgs e)
@@ -217,7 +171,10 @@ public sealed partial class MappingsPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync(ResourceStringService.GetString("Mappings.Messages.SaveFailed.Title", "Could not save mapping"), exception.Message);
+            await ActionEditorDialogService.ShowMessageAsync(
+                Content.XamlRoot,
+                ResourceStringService.GetString("Mappings.Messages.SaveFailed.Title", "Could not save mapping"),
+                exception.Message);
         }
     }
 

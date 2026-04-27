@@ -11,8 +11,6 @@ using Microsoft.UI.Xaml.Shapes;
 using MeowBox.Controller.Services;
 using MeowBox.Controller.ViewModels;
 using MeowBox.Core.Models;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
 using ShapePath = Microsoft.UI.Xaml.Shapes.Path;
 using MeowBox.Core.Services;
 
@@ -125,17 +123,13 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        var dialog = new ActionPickerDialog(editor.Action.Type)
-        {
-            XamlRoot = Content.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary || dialog.SelectedAction is null)
+        var actionType = await ActionEditorDialogService.PickActionTypeAsync(Content.XamlRoot, editor.Action.Type);
+        if (string.IsNullOrWhiteSpace(actionType))
         {
             return;
         }
 
-        editor.Action.Type = dialog.SelectedAction.Key;
+        editor.Action.Type = actionType;
         TrySaveTouchpadConfigurationAsync();
     }
 
@@ -168,15 +162,10 @@ public sealed partial class TouchpadPage : Page
         }
 
         var apps = await Controller.GetInstalledAppsAsync();
-        var dialog = new AppPickerDialog(apps)
+        var target = await ActionEditorDialogService.PickInstalledAppTargetAsync(Content.XamlRoot, apps);
+        if (!string.IsNullOrWhiteSpace(target))
         {
-            XamlRoot = Content.XamlRoot
-        };
-
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.SelectedApp is not null)
-        {
-            editor.Action.Target = dialog.SelectedApp.LaunchTarget;
+            editor.Action.Target = target;
             TrySaveTouchpadConfigurationAsync();
         }
     }
@@ -189,7 +178,7 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        var path = await PickFileAsync([".exe", ".lnk", ".bat", "*"]);
+        var path = await ActionEditorDialogService.PickLaunchPathAsync([".exe", ".lnk", ".bat", "*"]);
         if (!string.IsNullOrWhiteSpace(path))
         {
             editor.Action.Target = path;
@@ -460,16 +449,10 @@ public sealed partial class TouchpadPage : Page
 
     private async Task ShowTouchpadErrorAsync(string message)
     {
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = ResourceStringService.GetString("Touchpad.SettingsFailed.Title", "Touchpad settings failed"),
-            Content = message,
-            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close"),
-            DefaultButton = ContentDialogButton.Close
-        };
-
-        await dialog.ShowAsync();
+        await ActionEditorDialogService.ShowMessageAsync(
+            Content.XamlRoot,
+            ResourceStringService.GetString("Touchpad.SettingsFailed.Title", "Touchpad settings failed"),
+            message);
     }
 
     private void OnTouchpadLivePropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -948,43 +931,11 @@ public sealed partial class TouchpadPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync(ResourceStringService.GetString("Mappings.Messages.SaveFailed.Title", "Could not save mapping"), exception.Message);
+            await ActionEditorDialogService.ShowMessageAsync(
+                Content.XamlRoot,
+                ResourceStringService.GetString("Mappings.Messages.SaveFailed.Title", "Could not save mapping"),
+                exception.Message);
         }
-    }
-
-    private async Task<string?> PickFileAsync(IEnumerable<string> types)
-    {
-        if (App.MainWindow is null)
-        {
-            return null;
-        }
-
-        var picker = new FileOpenPicker
-        {
-            SuggestedStartLocation = PickerLocationId.ComputerFolder
-        };
-
-        foreach (var type in types)
-        {
-            picker.FileTypeFilter.Add(type);
-        }
-
-        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow));
-        var file = await picker.PickSingleFileAsync();
-        return file?.Path;
-    }
-
-    private async Task ShowMessageAsync(string title, string message)
-    {
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = title,
-            Content = message,
-            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
-        };
-
-        await dialog.ShowAsync();
     }
 
     private static TouchpadTriggerActionEditorViewModel? GetActionEditor(object sender)

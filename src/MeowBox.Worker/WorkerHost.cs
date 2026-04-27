@@ -27,9 +27,8 @@ internal sealed class WorkerHost : IDisposable
     private readonly WorkerPipeServer _pipeServer;
     private readonly TouchpadInputService _touchpadInputService;
     private readonly TouchpadStreamServer _touchpadStreamServer;
+    private readonly TouchpadEdgeSlideService _touchpadEdgeSlideService;
     private readonly CancellationTokenSource _shellReadyCancellation = new();
-    private readonly object _edgeSlideSync = new();
-    private readonly object _edgeSlideHapticsSync = new();
     private readonly object _performanceModeSync = new();
     private readonly object _runtimeMappingSync = new();
 
@@ -44,11 +43,6 @@ internal sealed class WorkerHost : IDisposable
     private string? _resolvedControllerPath;
     private string _stateMessage = "Starting worker";
     private volatile bool _interactiveShellReady;
-    private int _pendingBrightnessEdgeSteps;
-    private int _pendingVolumeEdgeSteps;
-    private bool _edgeSlideProcessing;
-    private bool _edgeSlideHapticsPrimed;
-    private TouchpadPrivateHidService.PulseSession? _edgeSlidePulseSession;
     private int _shutdownSignaled;
 
     public WorkerHost(Action exitCallback)
@@ -64,6 +58,11 @@ internal sealed class WorkerHost : IDisposable
 
         _pipeServer = new WorkerPipeServer(HandleRequestAsync);
         _touchpadInputService = new TouchpadInputService();
+        _touchpadEdgeSlideService = new TouchpadEdgeSlideService(
+            _nativeActionService,
+            () => _configuration.Touchpad,
+            summary => _lastEventSummary = summary,
+            message => _stateMessage = message);
         _touchpadInputService.GestureTriggered += OnTouchpadGestureTriggered;
         _touchpadInputService.EdgeSlideTriggered += OnTouchpadEdgeSlideTriggered;
         _touchpadInputService.StateChanged += OnTouchpadStateChanged;
@@ -170,7 +169,7 @@ internal sealed class WorkerHost : IDisposable
     {
         _shellReadyCancellation.Cancel();
         _nativeActionService.ReleaseBrightnessAdjustment();
-        ReleaseEdgeSlidePulseSession();
+        _touchpadEdgeSlideService.Dispose();
         _configWatcher?.Dispose();
         _wmiMonitor?.Dispose();
         _pipeServer.Dispose();
@@ -352,7 +351,9 @@ internal sealed class WorkerHost : IDisposable
         _touchpadStreamServer.Broadcast(_touchpadInputService.GetLatestState());
         ApplyTrayIconVisibility();
         _stateMessage = "Configuration loaded.";
-        PrewarmEdgeSlideHapticsIfNeeded();
+        _touchpadEdgeSlideService.PrewarmIfNeeded(
+            ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Left) != TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.None ||
+            ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Right) != TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.None);
     }
 
     private void RebuildRuntimeMappings()
@@ -566,206 +567,18 @@ internal sealed class WorkerHost : IDisposable
         }
 
         var target = ResolveEdgeSlideTarget(e.Side);
-        if (target == TouchpadEdgeSlideTarget.None)
+        if (target == TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.None)
         {
             return;
         }
 
         var signedSteps = e.Direction == TouchpadEdgeSlideDirection.Up ? e.Steps : -e.Steps;
-        lock (_edgeSlideSync)
-        {
-            if (target == TouchpadEdgeSlideTarget.Brightness)
-            {
-                _pendingBrightnessEdgeSteps += signedSteps;
-            }
-            else
-            {
-                _pendingVolumeEdgeSteps += signedSteps;
-            }
-
-            _lastEventSummary = BuildTouchpadEdgeSlideSummary(e, target);
-            if (_edgeSlideProcessing)
-            {
-                return;
-            }
-
-            _edgeSlideProcessing = true;
-        }
-
-        _ = Task.Run(ProcessPendingEdgeSlideAsync);
-    }
-
-    private async Task ProcessPendingEdgeSlideAsync()
-    {
-        while (true)
-        {
-            int brightnessSteps;
-            int volumeSteps;
-            lock (_edgeSlideSync)
-            {
-                brightnessSteps = _pendingBrightnessEdgeSteps;
-                volumeSteps = _pendingVolumeEdgeSteps;
-                _pendingBrightnessEdgeSteps = 0;
-                _pendingVolumeEdgeSteps = 0;
-
-                if (brightnessSteps == 0 && volumeSteps == 0)
-                {
-                    _edgeSlideProcessing = false;
-                    return;
-                }
-            }
-
-            try
-            {
-                if (brightnessSteps != 0 || volumeSteps != 0)
-                {
-                    EnsureEdgeSlideHapticsReady();
-                }
-
-                ApplyBrightnessEdgeSteps(brightnessSteps);
-                ApplyVolumeEdgeSteps(volumeSteps);
-            }
-            catch (Exception exception)
-            {
-                _stateMessage = exception.Message;
-            }
-            finally
-            {
-                _nativeActionService.ReleaseBrightnessAdjustment();
-            }
-
-            await Task.Yield();
-        }
+        _touchpadEdgeSlideService.Queue(target, signedSteps, BuildTouchpadEdgeSlideSummary(e, target));
     }
 
     private static bool ShouldExecuteOnBackgroundThread(KeyActionMappingConfiguration mapping)
     {
         return string.Equals(mapping.Action?.Type, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private void ApplyBrightnessEdgeSteps(int steps)
-    {
-        if (steps == 0)
-        {
-            return;
-        }
-
-        for (var index = 0; index < Math.Abs(steps); index++)
-        {
-            if (steps > 0)
-            {
-                ExecuteEdgeSlideStep(_nativeActionService.BrightnessEdgeSlideUp);
-            }
-            else
-            {
-                ExecuteEdgeSlideStep(_nativeActionService.BrightnessEdgeSlideDown);
-            }
-        }
-    }
-
-    private void ApplyVolumeEdgeSteps(int steps)
-    {
-        if (steps == 0)
-        {
-            return;
-        }
-
-        for (var index = 0; index < Math.Abs(steps); index++)
-        {
-            if (steps > 0)
-            {
-                ExecuteEdgeSlideStep(_nativeActionService.EdgeSlideVolumeUp);
-            }
-            else
-            {
-                ExecuteEdgeSlideStep(_nativeActionService.EdgeSlideVolumeDown);
-            }
-        }
-    }
-
-    private void ExecuteEdgeSlideStep(Action stepAction)
-    {
-        if (!_edgeSlideHapticsPrimed)
-        {
-            EnsureEdgeSlideHapticsReady();
-        }
-
-        TryPulseEdgeSlide();
-        stepAction();
-    }
-
-    private void EnsureEdgeSlideHapticsReady()
-    {
-        if (_edgeSlideHapticsPrimed)
-        {
-            return;
-        }
-
-        lock (_edgeSlideHapticsSync)
-        {
-            if (_edgeSlideHapticsPrimed)
-            {
-                return;
-            }
-
-            var touchpad = _configuration.Touchpad;
-            TouchpadPrivateHidService.SetVibration(TouchpadHardwareSettings.NormalizeLevel(touchpad.FeedbackLevel));
-            TouchpadPrivateHidService.SetHaptic(true);
-            _edgeSlideHapticsPrimed = true;
-        }
-    }
-
-    private void TryPulseEdgeSlide()
-    {
-        try
-        {
-            GetOrCreateEdgeSlidePulseSession().Pulse();
-        }
-        catch
-        {
-            ReleaseEdgeSlidePulseSession();
-            _edgeSlideHapticsPrimed = false;
-        }
-    }
-
-    private TouchpadPrivateHidService.PulseSession GetOrCreateEdgeSlidePulseSession()
-    {
-        lock (_edgeSlideHapticsSync)
-        {
-            _edgeSlidePulseSession ??= TouchpadPrivateHidService.CreatePulseSession();
-            return _edgeSlidePulseSession;
-        }
-    }
-
-    private void ReleaseEdgeSlidePulseSession()
-    {
-        lock (_edgeSlideHapticsSync)
-        {
-            _edgeSlidePulseSession?.Dispose();
-            _edgeSlidePulseSession = null;
-        }
-    }
-
-    private void PrewarmEdgeSlideHapticsIfNeeded()
-    {
-        if (ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Left) == TouchpadEdgeSlideTarget.None &&
-            ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Right) == TouchpadEdgeSlideTarget.None)
-        {
-            return;
-        }
-
-        _ = Task.Run(() =>
-        {
-            try
-            {
-                EnsureEdgeSlideHapticsReady();
-            }
-            catch (Exception exception)
-            {
-                _edgeSlideHapticsPrimed = false;
-                _stateMessage = exception.Message;
-            }
-        });
     }
 
     private ActionExecutionOsd? ExecuteAction(ActionDefinitionConfiguration action)
@@ -966,7 +779,7 @@ internal sealed class WorkerHost : IDisposable
             };
     }
 
-    private TouchpadEdgeSlideTarget ResolveEdgeSlideTarget(TouchpadEdgeSlideSide side)
+    private TouchpadEdgeSlideService.TouchpadEdgeSlideTarget ResolveEdgeSlideTarget(TouchpadEdgeSlideSide side)
     {
         var action = side == TouchpadEdgeSlideSide.Left
             ? _configuration.Touchpad.LeftEdgeSlideAction
@@ -974,16 +787,16 @@ internal sealed class WorkerHost : IDisposable
 
         return action?.Type switch
         {
-            HotkeyActionType.BrightnessUp or HotkeyActionType.BrightnessDown => TouchpadEdgeSlideTarget.Brightness,
-            HotkeyActionType.VolumeUp or HotkeyActionType.VolumeDown => TouchpadEdgeSlideTarget.Volume,
-            _ => TouchpadEdgeSlideTarget.None
+            HotkeyActionType.BrightnessUp or HotkeyActionType.BrightnessDown => TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.Brightness,
+            HotkeyActionType.VolumeUp or HotkeyActionType.VolumeDown => TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.Volume,
+            _ => TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.None
         };
     }
 
-    private static string BuildTouchpadEdgeSlideSummary(TouchpadEdgeSlideEventArgs e, TouchpadEdgeSlideTarget target)
+    private static string BuildTouchpadEdgeSlideSummary(TouchpadEdgeSlideEventArgs e, TouchpadEdgeSlideService.TouchpadEdgeSlideTarget target)
     {
         var sideLabel = e.Side == TouchpadEdgeSlideSide.Left ? "left edge" : "right edge";
-        var targetLabel = target == TouchpadEdgeSlideTarget.Brightness ? "brightness" : "volume";
+        var targetLabel = target == TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.Brightness ? "brightness" : "volume";
         var directionLabel = e.Direction == TouchpadEdgeSlideDirection.Up ? "up" : "down";
         return $"Touchpad {sideLabel} slide {directionLabel} ({targetLabel}) x{e.Steps}";
     }
@@ -996,13 +809,6 @@ internal sealed class WorkerHost : IDisposable
             Name = key.Name,
             Trigger = key.Trigger ?? new EventMatcherConfiguration()
         };
-    }
-
-    private enum TouchpadEdgeSlideTarget
-    {
-        None,
-        Brightness,
-        Volume
     }
 
     private static KeyActionMappingConfiguration CloneMapping(KeyActionMappingConfiguration mapping)
