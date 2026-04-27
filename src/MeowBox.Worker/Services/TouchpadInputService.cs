@@ -84,13 +84,15 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 3000);
             _surfaceWidth = Math.Max(1, configuration.SurfaceWidth);
             _surfaceHeight = Math.Max(1, configuration.SurfaceHeight);
+
+            var edgeSlideStateChanged = _edgeSlideEnabled != edgeSlideEnabled;
             _edgeSlideEnabled = edgeSlideEnabled;
             _leftTopBounds = CloneBounds(configuration.LeftTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds);
             _rightTopBounds = CloneBounds(configuration.RightTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds);
             _latestState.LightPressThreshold = _lightPressThreshold;
             _latestState.DeepPressThreshold = _deepPressThreshold;
 
-            if (!_edgeSlideEnabled)
+            if (edgeSlideStateChanged)
             {
                 ResetEdgeSlide();
             }

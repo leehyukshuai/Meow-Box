@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ internal sealed class WorkerHost : IDisposable
 
     private readonly Action _exitCallback;
     private readonly SynchronizationContext _syncContext;
+    private readonly int _uiThreadId;
     private readonly AppConfigService _configService = new();
     private readonly AutostartService _autostartService = new();
     private readonly NativeActionService _nativeActionService = new();
@@ -53,6 +55,7 @@ internal sealed class WorkerHost : IDisposable
     {
         _exitCallback = exitCallback;
         _syncContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
+        _uiThreadId = Environment.CurrentManagedThreadId;
         _interactiveShellReady = IsInteractiveShellReady();
         if (!_interactiveShellReady)
         {
@@ -318,6 +321,29 @@ internal sealed class WorkerHost : IDisposable
 
     private void LoadConfiguration()
     {
+        if (Environment.CurrentManagedThreadId != _uiThreadId)
+        {
+            Exception? capturedException = null;
+            _syncContext.Send(_ =>
+            {
+                try
+                {
+                    LoadConfiguration();
+                }
+                catch (Exception exception)
+                {
+                    capturedException = exception;
+                }
+            }, null);
+
+            if (capturedException is not null)
+            {
+                ExceptionDispatchInfo.Capture(capturedException).Throw();
+            }
+
+            return;
+        }
+
         _configuration = _configService.Load();
         AppLanguageService.Apply(_configuration.Preferences.Language);
         RebuildRuntimeMappings();
