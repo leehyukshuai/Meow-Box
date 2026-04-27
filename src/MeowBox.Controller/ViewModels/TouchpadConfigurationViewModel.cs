@@ -1,4 +1,5 @@
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -41,25 +42,19 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
             : RuntimeDefaults.DefaultTouchpadSurfaceHeight;
 
         MainRegionDeepPress = new TouchpadTriggerActionEditorViewModel(
-            LocalizedText.Pick("Main region · Deep press", "主区域 · 重按"),
-            LocalizedText.Pick(
-                "Runs once when a touch in the main region reaches the built-in deep press level. L, R, LT, and RT are excluded.",
-                "当主区域内的触控达到内置重按力度时执行一次。L、R、LT、RT 区域不会触发这个动作。"),
+            ResourceStringService.GetString("Touchpad.Trigger.MainDeepPress.Title", "Main region · Deep press"),
+            ResourceStringService.GetString("Touchpad.Trigger.MainDeepPress.Description", "Runs once when a touch in the main region reaches the built-in deep press level. L, R, LT, and RT are excluded."),
             null,
             model.DeepPressAction);
         LeftEdgeSlide = new TouchpadTriggerActionEditorViewModel(
-            LocalizedText.Pick("Left side · Drag", "左侧 · 拖动"),
-            LocalizedText.Pick(
-                "Choose what vertical dragging in the left edge region controls.",
-                "选择在左侧边缘区域上下拖动时要控制的目标。"),
+            ResourceStringService.GetString("Touchpad.Trigger.LeftSlide.Title", "Left side · Drag"),
+            ResourceStringService.GetString("Touchpad.Trigger.LeftSlide.Description", "Choose what vertical dragging in the left edge region controls."),
             null,
             model.LeftEdgeSlideAction,
             simpleEdgeSlideMapping: true);
         RightEdgeSlide = new TouchpadTriggerActionEditorViewModel(
-            LocalizedText.Pick("Right side · Drag", "右侧 · 拖动"),
-            LocalizedText.Pick(
-                "Choose what vertical dragging in the right edge region controls.",
-                "选择在右侧边缘区域上下拖动时要控制的目标。"),
+            ResourceStringService.GetString("Touchpad.Trigger.RightSlide.Title", "Right side · Drag"),
+            ResourceStringService.GetString("Touchpad.Trigger.RightSlide.Description", "Choose what vertical dragging in the right edge region controls."),
             null,
             model.RightEdgeSlideAction,
             simpleEdgeSlideMapping: true);
@@ -71,18 +66,10 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
             model.RightTopCorner);
         GuidanceLines =
         [
-            LocalizedText.Pick(
-                "Main-region deep press excludes L, R, LT, and RT.",
-                "主区域重按会排除 L、R、LT、RT 区域。"),
-            LocalizedText.Pick(
-                "Left-side and right-side drag can each be mapped to volume or brightness.",
-                "左侧和右侧拖动都可以分别映射到音量或亮度。"),
-            LocalizedText.Pick(
-                "LT and RT can each run separate deep-press and long-press actions.",
-                "LT 和 RT 区域也可以分别设置重按和长按两种动作。"),
-            LocalizedText.Pick(
-                "Long-press timing can be adjusted from the touchpad settings panel.",
-                "长按需要的触发时间可以在中间的触控板设置面板中调整。")
+            ResourceStringService.GetString("Touchpad.Guidance.MainExcludesCorners", "Main-region deep press excludes L, R, LT, and RT."),
+            ResourceStringService.GetString("Touchpad.Guidance.EdgeSlideMapping", "Left-side and right-side drag can each be mapped to volume or brightness."),
+            ResourceStringService.GetString("Touchpad.Guidance.CornerActions", "LT and RT can each run separate deep-press and long-press actions."),
+            ResourceStringService.GetString("Touchpad.Guidance.LongPressAdjustable", "Long-press timing can be adjusted from the touchpad settings panel.")
         ];
 
         CornerRegions = [LeftTopCorner, RightTopCorner];

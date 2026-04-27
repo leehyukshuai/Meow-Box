@@ -108,8 +108,10 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock
+                                x:Uid="PerformanceStartupResetLabelTextBlock"
                                 x:Name="PerformanceStartupResetLabelTextBlock"
                                 Style="{StaticResource CardTitleTextBlockStyle}"
+                                Text="Switch to Smart mode on startup"
                                 TextWrapping="WrapWholeWords"
                                 VerticalAlignment="Center" />
                             <ToggleSwitch
@@ -204,8 +206,10 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock
+                                x:Uid="ChargeStartupResetLabelTextBlock"
                                 x:Name="ChargeStartupResetLabelTextBlock"
                                 Style="{StaticResource CardTitleTextBlockStyle}"
+                                Text="Disable charge limit protection on startup"
                                 TextWrapping="WrapWholeWords"
                                 VerticalAlignment="Center" />
                             <ToggleSwitch

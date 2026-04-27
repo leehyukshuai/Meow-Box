@@ -101,6 +101,7 @@
                                         </StackPanel>
 
                                         <ToggleSwitch
+                                            x:Uid="MappingEnabledToggleSwitch"
                                             Grid.Column="1"
                                             Header="Enabled"
                                             IsOn="{Binding SelectedMapping.Enabled, Mode=TwoWay}"

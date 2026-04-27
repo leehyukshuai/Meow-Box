@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -109,18 +110,18 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
         }
     }
 
-    public string EdgeSlideMappingOffLabel => LocalizedText.Pick("Disable mapping", "关闭映射");
+    public string EdgeSlideMappingOffLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Disable", "Disable mapping");
 
-    public string EdgeSlideMappingVolumeLabel => LocalizedText.Pick("Adjust volume", "调节音量");
+    public string EdgeSlideMappingVolumeLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Volume", "Adjust volume");
 
-    public string EdgeSlideMappingBrightnessLabel => LocalizedText.Pick("Adjust brightness", "调节亮度");
+    public string EdgeSlideMappingBrightnessLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Brightness", "Adjust brightness");
 
     private string GetEdgeSlideMappingLabel()
     {
         return Action.Type switch
         {
-            HotkeyActionType.VolumeUp => LocalizedText.Pick("Adjust volume", "调节音量"),
-            HotkeyActionType.BrightnessUp => LocalizedText.Pick("Adjust brightness", "调节亮度"),
+            HotkeyActionType.VolumeUp => ResourceStringService.GetString("Touchpad.EdgeSlide.Volume", "Adjust volume"),
+            HotkeyActionType.BrightnessUp => ResourceStringService.GetString("Touchpad.EdgeSlide.Brightness", "Adjust brightness"),
             _ => ActionCatalog.NoActionLabel
         };
     }
@@ -129,15 +130,15 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
     {
         return Action.Type switch
         {
-            HotkeyActionType.VolumeUp => LocalizedText.Pick(
-                "Dragging vertically in this edge region adjusts system volume.",
-                "在这个边缘区域上下拖动时调节系统音量。"),
-            HotkeyActionType.BrightnessUp => LocalizedText.Pick(
-                "Dragging vertically in this edge region adjusts display brightness.",
-                "在这个边缘区域上下拖动时调节屏幕亮度。"),
-            _ => LocalizedText.Pick(
-                "This edge drag mapping is disabled.",
-                "这个边缘拖动映射当前已关闭。")
+            HotkeyActionType.VolumeUp => ResourceStringService.GetString(
+                "Touchpad.EdgeSlide.Volume.Description",
+                "Dragging vertically in this edge region adjusts system volume."),
+            HotkeyActionType.BrightnessUp => ResourceStringService.GetString(
+                "Touchpad.EdgeSlide.Brightness.Description",
+                "Dragging vertically in this edge region adjusts display brightness."),
+            _ => ResourceStringService.GetString(
+                "Touchpad.EdgeSlide.Disabled.Description",
+                "This edge drag mapping is disabled.")
         };
     }
 

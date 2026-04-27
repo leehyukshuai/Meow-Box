@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -10,7 +11,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
     private readonly MappingOsdViewModel _osd;
     private bool _enabled;
     private string _keyId;
-    private string _keyDisplayName = LocalizedText.Pick("Select key", "选择按键");
+    private string _keyDisplayName = ResourceStringService.GetString("Mapping.SelectKey", "Select key");
 
     public MappingDefinitionViewModel(KeyActionMappingConfiguration model)
     {
@@ -106,18 +107,18 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         {
             return string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("{0} Also shows an OSD.", "{0} 还会显示 OSD。"),
+                ResourceStringService.GetString("Mapping.Summary.WithOsd", "{0} Also shows an OSD."),
                 Action.ActionDescription);
         }
 
         if (SupportsConfigurableOsd && Osd.Enabled)
         {
-            return LocalizedText.Pick("Shows an OSD.", "显示 OSD。");
+            return ResourceStringService.GetString("Mapping.Summary.OsdOnly", "Shows an OSD.");
         }
 
         if (!Enabled)
         {
-            return LocalizedText.Pick("This mapping is disabled.", "这个映射已禁用。");
+            return ResourceStringService.GetString("Mapping.Summary.Disabled", "This mapping is disabled.");
         }
 
         return Action.ActionDescription;

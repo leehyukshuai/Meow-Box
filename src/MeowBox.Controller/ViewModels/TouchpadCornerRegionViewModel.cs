@@ -1,4 +1,5 @@
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -17,33 +18,27 @@ public sealed class TouchpadCornerRegionViewModel : ObservableObject
 
         var isRightTop = string.Equals(regionId, TouchpadCornerRegionId.RightTop, StringComparison.OrdinalIgnoreCase);
         var regionLabel = isRightTop
-            ? LocalizedText.Pick("Right top", "右上角")
-            : LocalizedText.Pick("Left top", "左上角");
+            ? ResourceStringService.GetString("Touchpad.Corner.RightTop", "Right top")
+            : ResourceStringService.GetString("Touchpad.Corner.LeftTop", "Left top");
         Title = isRightTop
-            ? LocalizedText.Pick("Right top corner", "右上角")
-            : LocalizedText.Pick("Left top corner", "左上角");
-        Description = LocalizedText.Pick(
-            "A touch that starts inside this corner can run its own deep-press or long-press action.",
-            "从这个角落开始的触控可以运行独立的重按或长按动作。");
+            ? ResourceStringService.GetString("Touchpad.Corner.RightTopTitle", "Right top corner")
+            : ResourceStringService.GetString("Touchpad.Corner.LeftTopTitle", "Left top corner");
+        Description = ResourceStringService.GetString("Touchpad.Corner.Description", "A touch that starts inside this corner can run its own deep-press or long-press action.");
 
         DeepPress = new TouchpadTriggerActionEditorViewModel(
             string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("{0} · Deep press", "{0} · 重按"),
+                ResourceStringService.GetString("Touchpad.Corner.DeepPressFormat", "{0} · Deep press"),
                 regionLabel),
-            LocalizedText.Pick(
-                "Runs once when a touch that starts in this corner reaches the built-in deep press level.",
-                "当从这个角落开始的触控达到内置重按力度时执行一次。"),
+            ResourceStringService.GetString("Touchpad.Corner.DeepPressDescription", "Runs once when a touch that starts in this corner reaches the built-in deep press level."),
             null,
             model.DeepPressAction);
         LongPress = new TouchpadTriggerActionEditorViewModel(
             string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
-                LocalizedText.Pick("{0} · Long press", "{0} · 长按"),
+                ResourceStringService.GetString("Touchpad.Corner.LongPressFormat", "{0} · Long press"),
                 regionLabel),
-            LocalizedText.Pick(
-                "Runs after a touch that starts in this corner keeps holding until the configured long-press duration is reached.",
-                "当从这个角落开始的触控持续按住，直到达到已配置的长按时长后执行。"),
+            ResourceStringService.GetString("Touchpad.Corner.LongPressDescription", "Runs after a touch that starts in this corner keeps holding until the configured long-press duration is reached."),
             null,
             model.LongPressAction);
     }

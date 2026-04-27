@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -163,26 +164,26 @@ public sealed class TouchpadLiveStateViewModel : ObservableObject
     public bool IsVisualizerEmpty => !ServiceAvailable || !HasReceivedInput;
 
     public string StatusText => !ServiceAvailable
-        ? LocalizedText.Pick("Service offline", "服务未连接")
+        ? ResourceStringService.GetString("Touchpad.Status.ServiceOffline", "Service offline")
         : DeepPressed
-            ? LocalizedText.Pick("Deep press triggered", "重按已触发")
+            ? ResourceStringService.GetString("Touchpad.Status.DeepPressTriggered", "Deep press triggered")
             : ButtonPressed
-                ? LocalizedText.Pick("Pressing", "按压中")
+                ? ResourceStringService.GetString("Touchpad.Status.Pressing", "Pressing")
                 : HasInteraction
-                    ? LocalizedText.Pick("Touching", "触摸中")
+                    ? ResourceStringService.GetString("Touchpad.Status.Touching", "Touching")
                     : HasReceivedInput
-                        ? LocalizedText.Pick("Idle", "空闲")
-                        : LocalizedText.Pick("Waiting for touchpad input", "等待触控板输入");
+                        ? ResourceStringService.GetString("Touchpad.Status.Idle", "Idle")
+                        : ResourceStringService.GetString("Touchpad.Status.Waiting", "Waiting for touchpad input");
 
     public string StatusDescription => !ServiceAvailable
-        ? LocalizedText.Pick("Start the worker to receive raw touchpad reports.", "启动后台服务后才会接收触控板原始报文。")
+        ? ResourceStringService.GetString("Touchpad.StatusDesc.Offline", "Start the worker to receive raw touchpad reports.")
         : !IsRegistered
-            ? LocalizedText.Pick("Touchpad raw input registration failed.", "触控板 Raw Input 注册失败。")
+            ? ResourceStringService.GetString("Touchpad.StatusDesc.NotRegistered", "Touchpad raw input registration failed.")
             : !HasReceivedInput
-                ? LocalizedText.Pick("No touchpad frame has been received yet.", "尚未收到触控板帧。")
+                ? ResourceStringService.GetString("Touchpad.StatusDesc.NoFrame", "No touchpad frame has been received yet.")
                 : SupportsPressure
-                    ? LocalizedText.Pick("Live pressure comes from raw HID contact pressure.", "实时压感来自原始 HID 触点压力字段。")
-                    : LocalizedText.Pick("Pressure is unavailable for the current touchpad report.", "当前触控板报文未能提供压力数据。");
+                    ? ResourceStringService.GetString("Touchpad.StatusDesc.HasPressure", "Live pressure comes from raw HID contact pressure.")
+                    : ResourceStringService.GetString("Touchpad.StatusDesc.NoPressure", "Pressure is unavailable for the current touchpad report.");
 
     public void Update(TouchpadLiveStateSnapshot? snapshot, bool serviceAvailable, int fallbackThreshold)
     {

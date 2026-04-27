@@ -15,24 +15,6 @@
   <data name="App.Title" xml:space="preserve">
     <value>Meow Box</value>
   </data>
-  <data name="Navigation.Keys" xml:space="preserve">
-    <value>按键</value>
-  </data>
-  <data name="Navigation.Mappings" xml:space="preserve">
-    <value>键盘</value>
-  </data>
-  <data name="Navigation.Settings" xml:space="preserve">
-    <value>设置</value>
-  </data>
-  <data name="PageTitle.Keys" xml:space="preserve">
-    <value>按键</value>
-  </data>
-  <data name="PageTitle.Mappings" xml:space="preserve">
-    <value>键盘</value>
-  </data>
-  <data name="PageTitle.Settings" xml:space="preserve">
-    <value>设置</value>
-  </data>
   <data name="ServiceStatus.Running" xml:space="preserve">
     <value>服务运行中</value>
   </data>
@@ -66,17 +48,11 @@
   <data name="Dialog.Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
-  <data name="Dialog.Delete" xml:space="preserve">
-    <value>删除</value>
-  </data>
   <data name="Dialog.Later" xml:space="preserve">
     <value>稍后</value>
   </data>
   <data name="Dialog.RestartNow" xml:space="preserve">
     <value>立即重启</value>
-  </data>
-  <data name="Dialog.RestartService" xml:space="preserve">
-    <value>重启服务</value>
   </data>
   <data name="Settings.Messages.StartServiceFailed.Title" xml:space="preserve">
     <value>无法启动服务</value>
@@ -84,74 +60,14 @@
   <data name="Settings.Messages.StartServiceFailed.Body" xml:space="preserve">
     <value>后台 Worker 无法启动，或启动后没有响应。</value>
   </data>
-  <data name="Settings.Messages.ImportFailed.Title" xml:space="preserve">
-    <value>无法导入配置</value>
-  </data>
-  <data name="Settings.Messages.ImportApplied.Title" xml:space="preserve">
-    <value>配置已导入</value>
-  </data>
-  <data name="Settings.Messages.ImportApplied.BodyServiceRunning" xml:space="preserve">
-    <value>文件已导入。请重启服务以应用该配置。</value>
-  </data>
-  <data name="Settings.Messages.ImportApplied.BodyServiceStopped" xml:space="preserve">
-    <value>文件已导入。准备好后启动服务即可应用该配置。</value>
-  </data>
-  <data name="Settings.Messages.RestartServiceFailed.Title" xml:space="preserve">
-    <value>无法重启服务</value>
-  </data>
-  <data name="Settings.Messages.RestartServiceFailed.Body" xml:space="preserve">
-    <value>后台 Worker 无法重启。</value>
-  </data>
   <data name="Settings.Messages.LanguageRestart.Title" xml:space="preserve">
     <value>需要重启</value>
   </data>
   <data name="Settings.Messages.LanguageRestart.Body" xml:space="preserve">
     <value>重启 Meow Box 后，语言更改才会生效。</value>
   </data>
-  <data name="Keys.Messages.ServiceStopped.Title" xml:space="preserve">
-    <value>后台服务未运行</value>
-  </data>
-  <data name="Keys.Messages.ServiceStopped.Body" xml:space="preserve">
-    <value>请先在“设置”中启动后台服务，再捕获新的按键。</value>
-  </data>
-  <data name="Keys.Messages.AddFailed.Title" xml:space="preserve">
-    <value>无法添加按键</value>
-  </data>
-  <data name="Keys.Messages.SaveFailed.Title" xml:space="preserve">
-    <value>无法保存按键</value>
-  </data>
-  <data name="Keys.Messages.Delete.Title" xml:space="preserve">
-    <value>删除按键</value>
-  </data>
-  <data name="Keys.Messages.Delete.Body" xml:space="preserve">
-    <value>这也会删除所有使用该按键的映射。</value>
-  </data>
-  <data name="Mappings.Messages.AddFailed.Title" xml:space="preserve">
-    <value>无法添加映射</value>
-  </data>
-  <data name="Mappings.Messages.Delete.Title" xml:space="preserve">
-    <value>删除映射</value>
-  </data>
-  <data name="Mappings.Messages.Delete.Body" xml:space="preserve">
-    <value>要删除当前选中的映射吗？</value>
-  </data>
   <data name="Mappings.Messages.SaveFailed.Title" xml:space="preserve">
     <value>无法保存映射</value>
-  </data>
-  <data name="Mappings.NoIcon" xml:space="preserve">
-    <value>无图标</value>
-  </data>
-  <data name="AddKey.CaptureWaiting" xml:space="preserve">
-    <value>正在等待下一个硬件按键……</value>
-  </data>
-  <data name="AddKey.CaptureCancelled" xml:space="preserve">
-    <value>捕获已取消或超时。</value>
-  </data>
-  <data name="AddKey.CaptureSuccess" xml:space="preserve">
-    <value>按键已捕获。</value>
-  </data>
-  <data name="AddKey.NameExists" xml:space="preserve">
-    <value>这个按键名称已存在。</value>
   </data>
   <data name="AppPicker.NoInstalledApps" xml:space="preserve">
     <value>Get-StartApps 没有返回任何已安装应用。</value>
@@ -162,53 +78,11 @@
   <data name="AppTitleTextBlock.Text" xml:space="preserve">
     <value>Meow Box</value>
   </data>
-  <data name="KeysItem.Content" xml:space="preserve">
-    <value>按键</value>
-  </data>
   <data name="MappingsItem.Content" xml:space="preserve">
-    <value>映射</value>
-  </data>
-  <data name="KeysPageSavedKeysText.Text" xml:space="preserve">
-    <value>已保存的按键</value>
-  </data>
-  <data name="KeysPageCaptureButtonText.Text" xml:space="preserve">
-    <value>捕获按键</value>
-  </data>
-  <data name="KeysPageCapturedVendorEventText.Text" xml:space="preserve">
-    <value>已捕获的厂商事件</value>
-  </data>
-  <data name="KeysPageEmptyTitleText.Text" xml:space="preserve">
-    <value>还没有按键</value>
-  </data>
-  <data name="KeysPageEmptyBodyText.Text" xml:space="preserve">
-    <value>先捕获一个按键开始使用。</value>
-  </data>
-  <data name="KeyDetailsTitleText.Text" xml:space="preserve">
-    <value>按键详情</value>
-  </data>
-  <data name="KeyDeleteButtonText.Text" xml:space="preserve">
-    <value>删除</value>
-  </data>
-  <data name="KeyNameTextBox.Header" xml:space="preserve">
-    <value>名称</value>
-  </data>
-  <data name="KeyNameTextBox.PlaceholderText" xml:space="preserve">
-    <value>按键名称</value>
-  </data>
-  <data name="KeyTriggerTextBox.Header" xml:space="preserve">
-    <value>捕获到的事件</value>
-  </data>
-  <data name="KeyDetailsEmptyTitleText.Text" xml:space="preserve">
-    <value>未选择按键</value>
-  </data>
-  <data name="KeyDetailsEmptyBodyText.Text" xml:space="preserve">
-    <value>从列表中选择一个按键，或捕获一个新的按键。</value>
+    <value>键盘</value>
   </data>
   <data name="MappingsPageListTitleText.Text" xml:space="preserve">
     <value>键盘</value>
-  </data>
-  <data name="MappingsPageAddMappingButtonText.Text" xml:space="preserve">
-    <value>添加映射</value>
   </data>
   <data name="MappingsPageEmptyTitleText.Text" xml:space="preserve">
     <value>还没有映射</value>
@@ -218,21 +92,6 @@
   </data>
   <data name="MappingDetailsTitleText.Text" xml:space="preserve">
     <value>键盘动作</value>
-  </data>
-  <data name="MappingDeleteButtonText.Text" xml:space="preserve">
-    <value>删除</value>
-  </data>
-  <data name="ChooseKeyEyebrowText.Text" xml:space="preserve">
-    <value>选择按键</value>
-  </data>
-  <data name="ChooseKeyDescriptionText.Text" xml:space="preserve">
-    <value>选择这个映射要响应的 OEM 按键事件。</value>
-  </data>
-  <data name="KeySelectorCombo.Header" xml:space="preserve">
-    <value>选择按键</value>
-  </data>
-  <data name="ChooseActionEyebrowText.Text" xml:space="preserve">
-    <value>选择动作</value>
   </data>
   <data name="ChooseActionDescriptionText.Text" xml:space="preserve">
     <value>选择按下该按键后要执行的动作。</value>
@@ -257,12 +116,6 @@
   </data>
   <data name="ArgumentsTextBox.PlaceholderText" xml:space="preserve">
     <value>可选的启动参数</value>
-  </data>
-  <data name="StandardKeyTitleText.Text" xml:space="preserve">
-    <value>按键或快捷键</value>
-  </data>
-  <data name="StandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>选择这个 OEM 按键应发送的修饰键和主键。</value>
   </data>
   <data name="StandardKeyGroupComboBox.Header" xml:space="preserve">
     <value>主键分组</value>
@@ -336,24 +189,6 @@
   <data name="OsdEnabledToggleSwitch.Header" xml:space="preserve">
     <value>显示 OSD</value>
   </data>
-  <data name="OsdTitleLabelText.Text" xml:space="preserve">
-    <value>标题</value>
-  </data>
-  <data name="OsdTitleTextBox.Header" xml:space="preserve">
-    <value>标题</value>
-  </data>
-  <data name="OsdTitleHintText.Text" xml:space="preserve">
-    <value>最多 32 个字符。</value>
-  </data>
-  <data name="OsdIconLabelText.Text" xml:space="preserve">
-    <value>图标</value>
-  </data>
-  <data name="OsdIconComboBox.Header" xml:space="preserve">
-    <value>图标</value>
-  </data>
-  <data name="OsdIconHintText.Text" xml:space="preserve">
-    <value>可在“设置”中管理 OSD 图标文件。</value>
-  </data>
   <data name="MappingDetailsEmptyTitleText.Text" xml:space="preserve">
     <value>未选择映射</value>
   </data>
@@ -381,33 +216,6 @@
   <data name="ActionPickerSearchTextBox.PlaceholderText" xml:space="preserve">
     <value>输入动作名称中的部分文字</value>
   </data>
-  <data name="AddKeyDialog.PrimaryButtonText" xml:space="preserve">
-    <value>添加按键</value>
-  </data>
-  <data name="AddKeyDialog.CloseButtonText" xml:space="preserve">
-    <value>取消</value>
-  </data>
-  <data name="AddKeyCaptureEyebrowText.Text" xml:space="preserve">
-    <value>捕获</value>
-  </data>
-  <data name="AddKeyTitleText.Text" xml:space="preserve">
-    <value>捕获一个硬件按键</value>
-  </data>
-  <data name="AddKeyDescriptionText.Text" xml:space="preserve">
-    <value>点击“开始捕获”，按下硬件按键，然后为它命名。</value>
-  </data>
-  <data name="CaptureInfoBar.Title" xml:space="preserve">
-    <value>捕获状态</value>
-  </data>
-  <data name="AddKeyNameTextBox.Header" xml:space="preserve">
-    <value />
-  </data>
-  <data name="AddKeyNameTextBox.PlaceholderText" xml:space="preserve">
-    <value>请输入这个按键的名称</value>
-  </data>
-  <data name="AddKeyTriggerTextBox.Header" xml:space="preserve">
-    <value>捕获到的事件</value>
-  </data>
   <data name="AppPickerDialog.PrimaryButtonText" xml:space="preserve">
     <value>选择应用</value>
   </data>
@@ -431,9 +239,6 @@
   </data>
   <data name="LoadingInfoBar.Title" xml:space="preserve">
     <value>已安装应用</value>
-  </data>
-  <data name="SettingsPageTitleText.Text" xml:space="preserve">
-    <value>设置</value>
   </data>
   <data name="ServiceCardTitleText.Text" xml:space="preserve">
     <value>服务</value>
@@ -498,84 +303,6 @@
   <data name="OsdScaleNumberBox.Header" xml:space="preserve">
     <value>OSD 大小（%）</value>
   </data>
-  <data name="TouchpadLongPressDurationNumberBox.Header" xml:space="preserve">
-    <value>触控板长按时长（毫秒）</value>
-  </data>
-  <data name="OsdIconFolderTextBox.Header" xml:space="preserve">
-    <value>OSD 图标文件夹</value>
-  </data>
-  <data name="OpenOsdIconFolderButton.Content" xml:space="preserve">
-    <value>打开图标文件夹</value>
-  </data>
-  <data name="RefreshOsdIconFolderButton.Content" xml:space="preserve">
-    <value>刷新图标</value>
-  </data>
-  <data name="OsdIconSpecText.Text" xml:space="preserve">
-    <value>图标规范：透明 PNG、方形画布，建议 256×256，单色 glyph，并在边缘保留一定留白。</value>
-  </data>
-  <data name="FilesCardTitleText.Text" xml:space="preserve">
-    <value>文件</value>
-  </data>
-  <data name="PresetDescriptionText.Text" xml:space="preserve">
-    <value>预设文件存放在独立文件夹中。把 JSON 预设复制进去，刷新列表后即可加载。</value>
-  </data>
-  <data name="PresetDirectoryTextBox.Header" xml:space="preserve">
-    <value>预设文件夹</value>
-  </data>
-  <data name="OpenPresetFolderButton.Content" xml:space="preserve">
-    <value>打开预设文件夹</value>
-  </data>
-  <data name="RefreshConfigFilesButton.Content" xml:space="preserve">
-    <value>刷新列表</value>
-  </data>
-  <data name="ConfigFilesComboBox.Header" xml:space="preserve">
-    <value>预设文件</value>
-  </data>
-  <data name="ConfigFilesComboBox.PlaceholderText" xml:space="preserve">
-    <value>未找到预设 JSON 文件</value>
-  </data>
-  <data name="LoadPresetButton.Content" xml:space="preserve">
-    <value>加载预设</value>
-  </data>
-  <data name="AddKey.CaptureReady" xml:space="preserve">
-    <value>已准备好捕获硬件按键。</value>
-  </data>
-  <data name="AddKeyCaptureCardTitleText.Text" xml:space="preserve">
-    <value>开始捕获</value>
-  </data>
-  <data name="AddKeyCaptureCardBodyText.Text" xml:space="preserve">
-    <value>点击下方按钮后，你下一次按下的硬件按键就会被捕获。</value>
-  </data>
-  <data name="StartCaptureButtonText.Text" xml:space="preserve">
-    <value>开始捕获</value>
-  </data>
-  <data name="CaptureAgainButtonText.Text" xml:space="preserve">
-    <value>重新捕获</value>
-  </data>
-  <data name="CaptureWaitingInlineText.Text" xml:space="preserve">
-    <value>正在等待下一个硬件按键……</value>
-  </data>
-  <data name="AddKeyNameCardTitleText.Text" xml:space="preserve">
-    <value>按键名称</value>
-  </data>
-  <data name="AddKeyNameCardBodyText.Text" xml:space="preserve">
-    <value>这是之后在映射和预设里最常看到的名称，请尽量简洁明确。</value>
-  </data>
-  <data name="AddKeyTriggerCardTitleText.Text" xml:space="preserve">
-    <value>捕获到的事件</value>
-  </data>
-  <data name="AddKeyTriggerCardBodyText.Text" xml:space="preserve">
-    <value>这里只保留精简预览，用来快速确认是否抓对了按键。</value>
-  </data>
-  <data name="AddKeyNameLabelText.Text" xml:space="preserve">
-    <value>为这个按键命名</value>
-  </data>
-  <data name="MappingFixedKeyEyebrowText.Text" xml:space="preserve">
-    <value>触发条件</value>
-  </data>
-  <data name="MappingFixedKeyDescriptionText.Text" xml:space="preserve">
-    <value>这个小米 Book Pro 的硬件按键是固定的，你只能修改它执行的动作。</value>
-  </data>
   <data name="ClearActionButtonText.Content" xml:space="preserve">
     <value>清空动作</value>
   </data>
@@ -594,62 +321,11 @@
   <data name="OpenConfigFolderButton.Content" xml:space="preserve">
     <value>打开配置文件夹</value>
   </data>
-  <data name="Navigation.Touchpad" xml:space="preserve">
-    <value>&#x89E6;&#x63A7;</value>
-  </data>
-  <data name="PageTitle.Touchpad" xml:space="preserve">
-    <value>&#x89E6;&#x63A7;</value>
-  </data>
-  <data name="TouchpadPageTitleText.Text" xml:space="preserve">
-    <value>&#x89E6;&#x63A7;</value>
-  </data>
-  <data name="TouchpadStatusTitleText.Text" xml:space="preserve">
-    <value>实时压感</value>
-  </data>
-  <data name="TouchpadStatusDescriptionText.Text" xml:space="preserve">
-    <value>实时压力与触点状态来自触控板原始 HID 报文。</value>
-  </data>
-  <data name="TouchpadMetricPressureLabelText.Text" xml:space="preserve">
-    <value>压力</value>
-  </data>
-  <data name="TouchpadMetricPeakLabelText.Text" xml:space="preserve">
-    <value>峰值</value>
-  </data>
-  <data name="TouchpadMetricThresholdLabelText.Text" xml:space="preserve">
-    <value>阈值</value>
-  </data>
-  <data name="TouchpadMetricContactsLabelText.Text" xml:space="preserve">
-    <value>触点</value>
-  </data>
-  <data name="TouchpadVisualizerTitleText.Text" xml:space="preserve">
-    <value>触控板表面</value>
-  </data>
-  <data name="TouchpadVisualizerDescriptionText.Text" xml:space="preserve">
-    <value>每个触点都会显示自己的实时压力，右侧计量条则固定使用 0-2500 刻度。</value>
-  </data>
   <data name="TouchpadVisualizerEmptyTitleText.Text" xml:space="preserve">
     <value>等待触控板输入</value>
   </data>
   <data name="TouchpadVisualizerEmptyBodyText.Text" xml:space="preserve">
     <value>启动服务后触摸或按压触控板，即可看到实时压力。</value>
-  </data>
-  <data name="TouchpadEnableTitleText.Text" xml:space="preserve">
-    <value>启用重按动作</value>
-  </data>
-  <data name="TouchpadEnableDescriptionText.Text" xml:space="preserve">
-    <value>重按使用内置阈值，到达后只触发一次所选动作。</value>
-  </data>
-  <data name="TouchpadThresholdNumberBox.Header" xml:space="preserve">
-    <value>重按阈值</value>
-  </data>
-  <data name="TouchpadActionCardTitleText.Text" xml:space="preserve">
-    <value>当前动作</value>
-  </data>
-  <data name="TouchpadActionTitleText.Text" xml:space="preserve">
-    <value>重按动作</value>
-  </data>
-  <data name="TouchpadActionDescriptionText.Text" xml:space="preserve">
-    <value>选择触控板达到内置重按力度后要执行的动作。</value>
   </data>
   <data name="TouchpadChooseActionButtonText.Text" xml:space="preserve">
     <value>选择动作</value>
@@ -675,12 +351,6 @@
   <data name="TouchpadArgumentsTextBox.PlaceholderText" xml:space="preserve">
     <value>可选的启动参数</value>
   </data>
-  <data name="TouchpadStandardKeyTitleText.Text" xml:space="preserve">
-    <value>按键或快捷键</value>
-  </data>
-  <data name="TouchpadStandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>选择需要发送的修饰键和主键。</value>
-  </data>
   <data name="TouchpadStandardKeyGroupComboBox.Header" xml:space="preserve">
     <value>主键分组</value>
   </data>
@@ -689,15 +359,6 @@
   </data>
   <data name="OsdSettingsTitleText.Text" xml:space="preserve">
     <value>OSD</value>
-  </data>
-  <data name="TouchpadSettingsTitleText.Text" xml:space="preserve">
-    <value>触控板</value>
-  </data>
-  <data name="TouchpadLightPressThresholdNumberBox.Header" xml:space="preserve">
-    <value>触控板轻按力度</value>
-  </data>
-  <data name="TouchpadLightPressThresholdDescriptionText.Text" xml:space="preserve">
-    <value>仅仅影响本软件对于轻按的判定阈值，和震动反馈无关。调整直到它刚好达到能够触发你的电脑上轻按振动的力度（一般是105、125或者150）。</value>
   </data>
   <data name="Dialog.RestoreDefaults" xml:space="preserve">
     <value>恢复默认</value>
@@ -714,70 +375,697 @@
   <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
     <value>无法恢复默认设置</value>
   </data>
-  <data name="Navigation.Battery" xml:space="preserve">
-    <value>电池</value>
-  </data>
-  <data name="PageTitle.Battery" xml:space="preserve">
-    <value>电池</value>
-  </data>
   <data name="BatteryRefreshButton.Content" xml:space="preserve">
     <value>重新读取</value>
   </data>
   <data name="BatteryPerformanceTitleText.Text" xml:space="preserve">
-    <value>&#x6027;&#x80FD;&#x6A21;&#x5F0F;</value>
+    <value>性能模式</value>
   </data>
   <data name="BatteryChargeTitleText.Text" xml:space="preserve">
-    <value>&#x5145;&#x7535;&#x4E0A;&#x9650;</value>
+    <value>充电上限</value>
   </data>
   <data name="BatteryChargeInfoBar.Message" xml:space="preserve">
-    <value>&#x5C06;&#x5145;&#x7535;&#x4FDD;&#x6301;&#x5728;&#x8F83;&#x4F4E;&#x4E0A;&#x9650;&#xFF0C;&#x6709;&#x52A9;&#x4E8E;&#x5EF6;&#x957F;&#x7535;&#x6C60;&#x5BFF;&#x547D;&#xFF1B;&#x5728;&#x9AD8;&#x6E29;&#x73AF;&#x5883;&#x4E0B;&#xFF0C;&#x957F;&#x65F6;&#x95F4;&#x6EE1;&#x7535;&#x4F1A;&#x66F4;&#x5BB9;&#x6613;&#x5BFC;&#x81F4;&#x7535;&#x6C60;&#x8001;&#x5316;&#x3002;</value>
+    <value>将充电保持在较低上限，有助于延长电池寿命；在高温环境下，长时间满电会更容易导致电池老化。</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
-    <value>&#x89E6;&#x63A7;&#x7075;&#x654F;&#x5EA6;</value>
+    <value>触控灵敏度</value>
   </data>
   <data name="TouchpadPressSensitivityLowItem.Content" xml:space="preserve">
-    <value>&#x4F4E;</value>
+    <value>低</value>
   </data>
   <data name="TouchpadPressSensitivityMediumItem.Content" xml:space="preserve">
-    <value>&#x4E2D;</value>
+    <value>中</value>
   </data>
   <data name="TouchpadPressSensitivityHighItem.Content" xml:space="preserve">
-    <value>&#x9AD8;</value>
+    <value>高</value>
   </data>
   <data name="TouchpadFeedbackLabelText.Text" xml:space="preserve">
-    <value>&#x9707;&#x52A8;&#x53CD;&#x9988;&#x5EA6;</value>
+    <value>震动反馈度</value>
   </data>
   <data name="TouchpadFeedbackWeakItem.Content" xml:space="preserve">
-    <value>&#x5F31;</value>
+    <value>弱</value>
   </data>
   <data name="TouchpadFeedbackMediumItem.Content" xml:space="preserve">
-    <value>&#x4E2D;</value>
+    <value>中</value>
   </data>
   <data name="TouchpadFeedbackStrongItem.Content" xml:space="preserve">
-    <value>&#x5F3A;</value>
+    <value>强</value>
   </data>
   <data name="TouchpadDeepPressFeedbackLabelText.Text" xml:space="preserve">
-    <value>&#x542F;&#x7528;&#x91CD;&#x6309;&#x53CD;&#x9988;</value>
+    <value>启用重按反馈</value>
   </data>
   <data name="TouchpadDeepPressFeedbackOffItem.Content" xml:space="preserve">
-    <value>&#x5173;&#x95ED;</value>
+    <value>关闭</value>
   </data>
   <data name="TouchpadDeepPressFeedbackOnItem.Content" xml:space="preserve">
-    <value>&#x5F00;&#x542F;</value>
-  </data>
-  <data name="TouchpadEdgeSlideLabelText.Text" xml:space="preserve">
-    <value>&#x542F;&#x7528;&#x8FB9;&#x7F18;&#x6ED1;&#x52A8;</value>
-  </data>
-  <data name="TouchpadEdgeSlideOffItem.Content" xml:space="preserve">
-    <value>&#x5173;&#x95ED;</value>
-  </data>
-  <data name="TouchpadEdgeSlideOnItem.Content" xml:space="preserve">
-    <value>&#x5F00;&#x542F;</value>
+    <value>开启</value>
   </data>
   <data name="TouchpadLongPressLabelText.Text" xml:space="preserve">
-    <value>&#x957F;&#x6309;&#x89E6;&#x53D1;&#x65F6;&#x957F;</value>
+    <value>长按触发时长</value>
   </data>
-  <data name="TouchpadPressureTextBlock.Text" xml:space="preserve">
-    <value>&#x538B;&#x529B;&#xFF1A;0</value>
+  <data name="StandardKeyGroup.Navigation" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="StandardKeyGroup.Editing" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="StandardKeyGroup.Modifiers" xml:space="preserve">
+    <value>修饰键</value>
+  </data>
+  <data name="StandardKeyGroup.Function" xml:space="preserve">
+    <value>功能键</value>
+  </data>
+  <data name="StandardKeyGroup.Letters" xml:space="preserve">
+    <value>字母</value>
+  </data>
+  <data name="StandardKeyGroup.Numbers" xml:space="preserve">
+    <value>数字</value>
+  </data>
+  <data name="StandardKeyGroup.Symbols" xml:space="preserve">
+    <value>符号</value>
+  </data>
+  <data name="StandardKeyGroup.Numpad" xml:space="preserve">
+    <value>数字小键盘</value>
+  </data>
+  <data name="StandardKeyGroup.Browser" xml:space="preserve">
+    <value>浏览器</value>
+  </data>
+  <data name="KeyChordModifier.Win" xml:space="preserve">
+    <value>Win</value>
+  </data>
+  <data name="StandardKey.LeftArrow" xml:space="preserve">
+    <value>左方向键</value>
+  </data>
+  <data name="StandardKey.UpArrow" xml:space="preserve">
+    <value>上方向键</value>
+  </data>
+  <data name="StandardKey.RightArrow" xml:space="preserve">
+    <value>右方向键</value>
+  </data>
+  <data name="StandardKey.DownArrow" xml:space="preserve">
+    <value>下方向键</value>
+  </data>
+  <data name="StandardKey.Apps" xml:space="preserve">
+    <value>菜单</value>
+  </data>
+  <data name="StandardKey.ScrollLock" xml:space="preserve">
+    <value>滚动锁定</value>
+  </data>
+  <data name="StandardKey.Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="StandardKey.Space" xml:space="preserve">
+    <value>空格</value>
+  </data>
+  <data name="StandardKey.Backspace" xml:space="preserve">
+    <value>退格</value>
+  </data>
+  <data name="StandardKey.Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="StandardKey.Insert" xml:space="preserve">
+    <value>插入</value>
+  </data>
+  <data name="StandardKey.CapsLock" xml:space="preserve">
+    <value>大写锁定</value>
+  </data>
+  <data name="StandardKey.NumLock" xml:space="preserve">
+    <value>数字锁定</value>
+  </data>
+  <data name="StandardKey.LeftWindows" xml:space="preserve">
+    <value>左 Windows</value>
+  </data>
+  <data name="StandardKey.RightWindows" xml:space="preserve">
+    <value>右 Windows</value>
+  </data>
+  <data name="StandardKey.NumPad0" xml:space="preserve">
+    <value>小键盘 0</value>
+  </data>
+  <data name="StandardKey.NumPad1" xml:space="preserve">
+    <value>小键盘 1</value>
+  </data>
+  <data name="StandardKey.NumPad2" xml:space="preserve">
+    <value>小键盘 2</value>
+  </data>
+  <data name="StandardKey.NumPad3" xml:space="preserve">
+    <value>小键盘 3</value>
+  </data>
+  <data name="StandardKey.NumPad4" xml:space="preserve">
+    <value>小键盘 4</value>
+  </data>
+  <data name="StandardKey.NumPad5" xml:space="preserve">
+    <value>小键盘 5</value>
+  </data>
+  <data name="StandardKey.NumPad6" xml:space="preserve">
+    <value>小键盘 6</value>
+  </data>
+  <data name="StandardKey.NumPad7" xml:space="preserve">
+    <value>小键盘 7</value>
+  </data>
+  <data name="StandardKey.NumPad8" xml:space="preserve">
+    <value>小键盘 8</value>
+  </data>
+  <data name="StandardKey.NumPad9" xml:space="preserve">
+    <value>小键盘 9</value>
+  </data>
+  <data name="StandardKey.Multiply" xml:space="preserve">
+    <value>小键盘 *</value>
+  </data>
+  <data name="StandardKey.Add" xml:space="preserve">
+    <value>小键盘 +</value>
+  </data>
+  <data name="StandardKey.Subtract" xml:space="preserve">
+    <value>小键盘 -</value>
+  </data>
+  <data name="StandardKey.Decimal" xml:space="preserve">
+    <value>小键盘 .</value>
+  </data>
+  <data name="StandardKey.Divide" xml:space="preserve">
+    <value>小键盘 /</value>
+  </data>
+  <data name="StandardKey.BrowserBack" xml:space="preserve">
+    <value>后退</value>
+  </data>
+  <data name="StandardKey.BrowserForward" xml:space="preserve">
+    <value>前进</value>
+  </data>
+  <data name="StandardKey.BrowserRefresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="StandardKey.BrowserStop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="StandardKey.BrowserSearch" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="StandardKey.BrowserFavorites" xml:space="preserve">
+    <value>收藏夹</value>
+  </data>
+  <data name="StandardKey.BrowserHome" xml:space="preserve">
+    <value>浏览器主页</value>
+  </data>
+  <data name="StandardKey.ChoosePrimaryKey" xml:space="preserve">
+    <value>选择主键</value>
+  </data>
+  <data name="HardwareKey.PerformanceMode" xml:space="preserve">
+    <value>性能模式键</value>
+  </data>
+  <data name="HardwareKey.FnLock" xml:space="preserve">
+    <value>Fn Lock 键</value>
+  </data>
+  <data name="HardwareKey.CapsLock" xml:space="preserve">
+    <value>Caps Lock 键</value>
+  </data>
+  <data name="HardwareKey.MicMuted" xml:space="preserve">
+    <value>麦克风 · 静音</value>
+  </data>
+  <data name="HardwareKey.MicLive" xml:space="preserve">
+    <value>麦克风 · 开启</value>
+  </data>
+  <data name="HardwareKey.XiaoAi" xml:space="preserve">
+    <value>小爱键</value>
+  </data>
+  <data name="HardwareKey.Settings" xml:space="preserve">
+    <value>设置键</value>
+  </data>
+  <data name="HardwareKey.Manager" xml:space="preserve">
+    <value>电脑管家键</value>
+  </data>
+  <data name="HardwareKey.Backlight" xml:space="preserve">
+    <value>键盘背光键</value>
+  </data>
+  <data name="HardwareKey.Projection" xml:space="preserve">
+    <value>投影键</value>
+  </data>
+  <data name="HardwareKey.Unnamed" xml:space="preserve">
+    <value>未命名按键</value>
+  </data>
+  <data name="HardwareKey.Desc.PerformanceMode" xml:space="preserve">
+    <value>按下性能模式键（Fn+K）。这个条目会在按下时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.FnLock" xml:space="preserve">
+    <value>同时按下 Fn + Esc 可切换 Fn Lock。这个条目会在固件上报新的 Fn Lock 状态时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.CapsLock" xml:space="preserve">
+    <value>按下 Caps Lock 可切换大写锁定。这个条目会在固件上报新的 Caps Lock 状态时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.MicMutedOn" xml:space="preserve">
+    <value>按下 F4 的麦克风功能键可切换静音。这个条目对应麦克风静音切换到开启时。</value>
+  </data>
+  <data name="HardwareKey.Desc.MicMutedOff" xml:space="preserve">
+    <value>按下 F4 的麦克风功能键可切换静音。这个条目对应麦克风静音切换到关闭时。</value>
+  </data>
+  <data name="HardwareKey.Desc.XiaoAi" xml:space="preserve">
+    <value>按下小爱键（F7）。这个条目会在按下时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.Settings" xml:space="preserve">
+    <value>按下设置键（F9）。这个条目会在按下时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.Manager" xml:space="preserve">
+    <value>按下右上角的硬质电脑管家键。这个条目会在按下时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.Backlight" xml:space="preserve">
+    <value>按下键盘背光键可轮流切换模式。这个条目会在固件上报新的背光状态时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.Projection" xml:space="preserve">
+    <value>按下投影键（F8）。这个条目会在按下时触发。</value>
+  </data>
+  <data name="HardwareKey.Desc.Default" xml:space="preserve">
+    <value>这个硬件按键由设备固件提供，你可以在这里修改它触发后的动作。</value>
+  </data>
+  <data name="Action.NoSelection" xml:space="preserve">
+    <value>未选择动作</value>
+  </data>
+  <data name="Action.NoSelectionDescription" xml:space="preserve">
+    <value>这个映射还没有分配动作。</value>
+  </data>
+  <data name="ActionTag.All" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="ActionTag.System" xml:space="preserve">
+    <value>系统</value>
+  </data>
+  <data name="ActionTag.Keyboard" xml:space="preserve">
+    <value>键盘</value>
+  </data>
+  <data name="ActionTag.Display" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="ActionTag.Audio" xml:space="preserve">
+    <value>音频</value>
+  </data>
+  <data name="ActionTag.Media" xml:space="preserve">
+    <value>媒体</value>
+  </data>
+  <data name="ActionTag.Application" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="ActionTag.Other" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="Action.SendKey.Label" xml:space="preserve">
+    <value>发送按键或快捷键</value>
+  </data>
+  <data name="Action.SendKey.Description" xml:space="preserve">
+    <value>发送你配置的键盘按键或修饰键快捷键。</value>
+  </data>
+  <data name="Action.OpenSettings.Label" xml:space="preserve">
+    <value>打开 Windows 设置</value>
+  </data>
+  <data name="Action.OpenSettings.Description" xml:space="preserve">
+    <value>启动系统设置应用。</value>
+  </data>
+  <data name="Action.OpenProjection.Label" xml:space="preserve">
+    <value>打开投影切换器</value>
+  </data>
+  <data name="Action.OpenProjection.Description" xml:space="preserve">
+    <value>打开系统投影切换界面。</value>
+  </data>
+  <data name="Action.ToggleTouchpad.Label" xml:space="preserve">
+    <value>切换触控板开关</value>
+  </data>
+  <data name="Action.ToggleTouchpad.Description" xml:space="preserve">
+    <value>在支持的设备上关闭或重新开启 Windows 触控板。</value>
+  </data>
+  <data name="Action.MicMuteOn.Label" xml:space="preserve">
+    <value>麦克风静音</value>
+  </data>
+  <data name="Action.MicMuteOn.Description" xml:space="preserve">
+    <value>关闭默认麦克风采集设备。</value>
+  </data>
+  <data name="Action.MicMuteOff.Label" xml:space="preserve">
+    <value>取消麦克风静音</value>
+  </data>
+  <data name="Action.MicMuteOff.Description" xml:space="preserve">
+    <value>重新打开默认麦克风采集设备。</value>
+  </data>
+  <data name="Action.VolumeUp.Label" xml:space="preserve">
+    <value>音量增加</value>
+  </data>
+  <data name="Action.VolumeUp.Description" xml:space="preserve">
+    <value>提高系统主音量。</value>
+  </data>
+  <data name="Action.VolumeDown.Label" xml:space="preserve">
+    <value>音量减小</value>
+  </data>
+  <data name="Action.VolumeDown.Description" xml:space="preserve">
+    <value>降低系统主音量。</value>
+  </data>
+  <data name="Action.VolumeMute.Label" xml:space="preserve">
+    <value>切换静音</value>
+  </data>
+  <data name="Action.VolumeMute.Description" xml:space="preserve">
+    <value>切换系统扬声器静音状态。</value>
+  </data>
+  <data name="Action.MediaPrevious.Label" xml:space="preserve">
+    <value>上一曲</value>
+  </data>
+  <data name="Action.MediaPrevious.Description" xml:space="preserve">
+    <value>发送上一曲媒体按键。</value>
+  </data>
+  <data name="Action.MediaNext.Label" xml:space="preserve">
+    <value>下一曲</value>
+  </data>
+  <data name="Action.MediaNext.Description" xml:space="preserve">
+    <value>发送下一曲媒体按键。</value>
+  </data>
+  <data name="Action.MediaPlayPause.Label" xml:space="preserve">
+    <value>播放或暂停</value>
+  </data>
+  <data name="Action.MediaPlayPause.Description" xml:space="preserve">
+    <value>发送媒体播放/暂停按键。</value>
+  </data>
+  <data name="Action.BrightnessUp.Label" xml:space="preserve">
+    <value>亮度增加</value>
+  </data>
+  <data name="Action.BrightnessUp.Description" xml:space="preserve">
+    <value>提高内置显示器亮度。</value>
+  </data>
+  <data name="Action.BrightnessDown.Label" xml:space="preserve">
+    <value>亮度减小</value>
+  </data>
+  <data name="Action.BrightnessDown.Description" xml:space="preserve">
+    <value>降低内置显示器亮度。</value>
+  </data>
+  <data name="Action.ToggleAirplaneMode.Label" xml:space="preserve">
+    <value>切换飞行模式</value>
+  </data>
+  <data name="Action.ToggleAirplaneMode.Description" xml:space="preserve">
+    <value>关闭或重新开启支持的无线设备。</value>
+  </data>
+  <data name="Action.LockWindows.Label" xml:space="preserve">
+    <value>锁定 Windows</value>
+  </data>
+  <data name="Action.LockWindows.Description" xml:space="preserve">
+    <value>锁定当前 Windows 会话。</value>
+  </data>
+  <data name="Action.Screenshot.Label" xml:space="preserve">
+    <value>截图</value>
+  </data>
+  <data name="Action.Screenshot.Description" xml:space="preserve">
+    <value>打开系统截图浮层。</value>
+  </data>
+  <data name="Action.OpenCalculator.Label" xml:space="preserve">
+    <value>打开计算器</value>
+  </data>
+  <data name="Action.OpenCalculator.Description" xml:space="preserve">
+    <value>启动计算器。</value>
+  </data>
+  <data name="Action.OpenApplication.Label" xml:space="preserve">
+    <value>打开应用</value>
+  </data>
+  <data name="Action.OpenApplication.Description" xml:space="preserve">
+    <value>启动已安装应用、快捷方式或可执行文件。</value>
+  </data>
+  <data name="Action.CyclePerformanceMode.Label" xml:space="preserve">
+    <value>切换性能模式</value>
+  </data>
+  <data name="Action.CyclePerformanceMode.Description" xml:space="preserve">
+    <value>在静谧、智能和狂暴模式之间循环切换。</value>
+  </data>
+  <data name="Mapping.ShowOsd" xml:space="preserve">
+    <value>显示 OSD</value>
+  </data>
+  <data name="Mapping.Summary.WithOsd" xml:space="preserve">
+    <value>{0} 还会显示 OSD。</value>
+  </data>
+  <data name="Mapping.Summary.OsdOnly" xml:space="preserve">
+    <value>显示 OSD。</value>
+  </data>
+  <data name="Mapping.Summary.Disabled" xml:space="preserve">
+    <value>这个映射已禁用。</value>
+  </data>
+  <data name="OsdDisplayMode.IconAndTitle" xml:space="preserve">
+    <value>图标 + 标题</value>
+  </data>
+  <data name="OsdDisplayMode.IconOnly" xml:space="preserve">
+    <value>仅图标</value>
+  </data>
+  <data name="OsdDisplayMode.TextOnly" xml:space="preserve">
+    <value>仅标题</value>
+  </data>
+  <data name="Battery.ChargeLimit.Off" xml:space="preserve">
+    <value>100%（关闭）</value>
+  </data>
+  <data name="Touchpad.Trigger.MainDeepPress.Title" xml:space="preserve">
+    <value>主区域 · 重按</value>
+  </data>
+  <data name="Touchpad.Trigger.MainDeepPress.Description" xml:space="preserve">
+    <value>当主区域内的触控达到内置重按力度时执行一次。L、R、LT、RT 区域不会触发这个动作。</value>
+  </data>
+  <data name="Touchpad.Trigger.LeftSlide.Title" xml:space="preserve">
+    <value>左侧 · 拖动</value>
+  </data>
+  <data name="Touchpad.Trigger.LeftSlide.Description" xml:space="preserve">
+    <value>选择在左侧边缘区域上下拖动时要控制的目标。</value>
+  </data>
+  <data name="Touchpad.Trigger.RightSlide.Title" xml:space="preserve">
+    <value>右侧 · 拖动</value>
+  </data>
+  <data name="Touchpad.Trigger.RightSlide.Description" xml:space="preserve">
+    <value>选择在右侧边缘区域上下拖动时要控制的目标。</value>
+  </data>
+  <data name="Touchpad.Guidance.MainExcludesCorners" xml:space="preserve">
+    <value>主区域重按会排除 L、R、LT、RT 区域。</value>
+  </data>
+  <data name="Touchpad.Guidance.EdgeSlideMapping" xml:space="preserve">
+    <value>左侧和右侧拖动都可以分别映射到音量或亮度。</value>
+  </data>
+  <data name="Touchpad.Guidance.CornerActions" xml:space="preserve">
+    <value>LT 和 RT 区域也可以分别设置重按和长按两种动作。</value>
+  </data>
+  <data name="Touchpad.Guidance.LongPressAdjustable" xml:space="preserve">
+    <value>长按需要的触发时间可以在中间的触控板设置面板中调整。</value>
+  </data>
+  <data name="Touchpad.Status.ServiceOffline" xml:space="preserve">
+    <value>服务未连接</value>
+  </data>
+  <data name="Touchpad.Status.DeepPressTriggered" xml:space="preserve">
+    <value>重按已触发</value>
+  </data>
+  <data name="Touchpad.Status.Pressing" xml:space="preserve">
+    <value>按压中</value>
+  </data>
+  <data name="Touchpad.Status.Touching" xml:space="preserve">
+    <value>触摸中</value>
+  </data>
+  <data name="Touchpad.Status.Idle" xml:space="preserve">
+    <value>空闲</value>
+  </data>
+  <data name="Touchpad.Status.Waiting" xml:space="preserve">
+    <value>等待触控板输入</value>
+  </data>
+  <data name="Touchpad.StatusDesc.Offline" xml:space="preserve">
+    <value>启动后台服务后才会接收触控板原始报文。</value>
+  </data>
+  <data name="Touchpad.StatusDesc.NotRegistered" xml:space="preserve">
+    <value>触控板 Raw Input 注册失败。</value>
+  </data>
+  <data name="Touchpad.StatusDesc.NoFrame" xml:space="preserve">
+    <value>尚未收到触控板帧。</value>
+  </data>
+  <data name="Touchpad.StatusDesc.HasPressure" xml:space="preserve">
+    <value>实时压感来自原始 HID 触点压力字段。</value>
+  </data>
+  <data name="Touchpad.StatusDesc.NoPressure" xml:space="preserve">
+    <value>当前触控板报文未能提供压力数据。</value>
+  </data>
+  <data name="Touchpad.Corner.RightTop" xml:space="preserve">
+    <value>右上角</value>
+  </data>
+  <data name="Touchpad.Corner.LeftTop" xml:space="preserve">
+    <value>左上角</value>
+  </data>
+  <data name="Touchpad.Corner.RightTopTitle" xml:space="preserve">
+    <value>右上角</value>
+  </data>
+  <data name="Touchpad.Corner.LeftTopTitle" xml:space="preserve">
+    <value>左上角</value>
+  </data>
+  <data name="Touchpad.Corner.Description" xml:space="preserve">
+    <value>从这个角落开始的触控可以运行独立的重按或长按动作。</value>
+  </data>
+  <data name="Touchpad.Corner.DeepPressFormat" xml:space="preserve">
+    <value>{0} · 重按</value>
+  </data>
+  <data name="Touchpad.Corner.DeepPressDescription" xml:space="preserve">
+    <value>当从这个角落开始的触控达到内置重按力度时执行一次。</value>
+  </data>
+  <data name="Touchpad.Corner.LongPressFormat" xml:space="preserve">
+    <value>{0} · 长按</value>
+  </data>
+  <data name="Touchpad.Corner.LongPressDescription" xml:space="preserve">
+    <value>当从这个角落开始的触控持续按住，直到达到已配置的长按时长后执行。</value>
+  </data>
+  <data name="Mapping.SelectKey" xml:space="preserve">
+    <value>选择按键</value>
+  </data>
+  <data name="Mapping.UnknownKey" xml:space="preserve">
+    <value>未知按键</value>
+  </data>
+  <data name="Action.SendKey.WithChord" xml:space="preserve">
+    <value>发送按键或快捷键 {0}。</value>
+  </data>
+  <data name="Action.SendKey.ChooseKey" xml:space="preserve">
+    <value>请再选择一个主键来完成 {0}。</value>
+  </data>
+  <data name="Action.SendKey.NoKey" xml:space="preserve">
+    <value>发送你在下方选择的键盘按键或快捷键。</value>
+  </data>
+  <data name="KeyChord.Modifiers.Header" xml:space="preserve">
+    <value>修饰键</value>
+  </data>
+  <data name="KeyChord.Preview.Header" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="Battery.Status.DefaultMessage" xml:space="preserve">
+    <value>请先启动后台服务，才能查看或修改当前电源状态。</value>
+  </data>
+  <data name="Battery.Status.Preparing" xml:space="preserve">
+    <value>正在准备电池控制……</value>
+  </data>
+  <data name="Battery.Status.CouldNotStartElevated" xml:space="preserve">
+    <value>无法启动管理员后台服务。</value>
+  </data>
+  <data name="Battery.Status.NotElevated" xml:space="preserve">
+    <value>后台服务未进入管理员模式。</value>
+  </data>
+  <data name="Battery.Status.Reading" xml:space="preserve">
+    <value>正在读取电池控制……</value>
+  </data>
+  <data name="Battery.Status.UpdatingPerformance" xml:space="preserve">
+    <value>正在切换性能模式……</value>
+  </data>
+  <data name="Battery.Status.CouldNotChangePerformance" xml:space="preserve">
+    <value>无法切换性能模式。</value>
+  </data>
+  <data name="Battery.Status.PerformanceUpdated" xml:space="preserve">
+    <value>性能模式已更新。</value>
+  </data>
+  <data name="Battery.Status.UpdatingCharge" xml:space="preserve">
+    <value>正在切换充电限制……</value>
+  </data>
+  <data name="Battery.Status.CouldNotChangeCharge" xml:space="preserve">
+    <value>无法切换充电限制。</value>
+  </data>
+  <data name="Battery.Status.ChargeUpdated" xml:space="preserve">
+    <value>充电限制已更新。</value>
+  </data>
+  <data name="Battery.Status.WaitingReport" xml:space="preserve">
+    <value>正在等待后台服务上报当前电源状态……</value>
+  </data>
+  <data name="Battery.Status.Stopping" xml:space="preserve">
+    <value>后台服务正在停止……</value>
+  </data>
+  <data name="Battery.Status.NeedAdmin" xml:space="preserve">
+    <value>请以管理员权限重新启动后台服务，才能查看或修改当前电源状态。</value>
+  </data>
+  <data name="Battery.Status.CouldNotRead" xml:space="preserve">
+    <value>无法读取电池控制。</value>
+  </data>
+  <data name="Battery.Status.Connected" xml:space="preserve">
+    <value>已连接到底层电池控制。</value>
+  </data>
+  <data name="Battery.Status.NotSupported" xml:space="preserve">
+    <value>这台设备没有暴露所需的电池控制接口。</value>
+  </data>
+  <data name="ServiceStatusShort.Running" xml:space="preserve">
+    <value>运行中</value>
+  </data>
+  <data name="ServiceStatusShort.Starting" xml:space="preserve">
+    <value>启动中</value>
+  </data>
+  <data name="ServiceStatusShort.Stopping" xml:space="preserve">
+    <value>停止中</value>
+  </data>
+  <data name="ServiceStatusShort.WorkerStopped" xml:space="preserve">
+    <value>后台已停止运行</value>
+  </data>
+  <data name="ServiceStatusShort.Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="Battery.Runtime.Preparing" xml:space="preserve">
+    <value>正在准备管理员后台……</value>
+  </data>
+  <data name="Battery.Runtime.NotRunning" xml:space="preserve">
+    <value>后台服务未运行。</value>
+  </data>
+  <data name="Battery.Runtime.WorkerStarting" xml:space="preserve">
+    <value>后台服务启动中。</value>
+  </data>
+  <data name="Battery.Runtime.WorkerStopping" xml:space="preserve">
+    <value>后台服务停止中。</value>
+  </data>
+  <data name="Battery.Runtime.NeedsAdmin" xml:space="preserve">
+    <value>后台服务需要管理员权限。</value>
+  </data>
+  <data name="Battery.Runtime.WaitingStatus" xml:space="preserve">
+    <value>正在等待当前电源状态……</value>
+  </data>
+  <data name="Battery.Runtime.AdminActive" xml:space="preserve">
+    <value>管理员后台已启用。</value>
+  </data>
+  <data name="Battery.Runtime.AdminInactive" xml:space="preserve">
+    <value>管理员后台尚未启用。</value>
+  </data>
+  <data name="Battery.Error.Failed" xml:space="preserve">
+    <value>电池控制失败</value>
+  </data>
+  <data name="Battery.Error.CouldNotChangePerformance" xml:space="preserve">
+    <value>无法切换性能模式</value>
+  </data>
+  <data name="Battery.Error.CouldNotChangeCharge" xml:space="preserve">
+    <value>无法切换充电限制</value>
+  </data>
+  <data name="Error.UIThread" xml:space="preserve">
+    <value>无法切换到 UI 线程。</value>
+  </data>
+  <data name="Touchpad.SettingsFailed.Title" xml:space="preserve">
+    <value>触控板设置失败</value>
+  </data>
+  <data name="Touchpad.Pressure.Format" xml:space="preserve">
+    <value>压力：{0}</value>
+  </data>
+  <data name="Key.Unnamed" xml:space="preserve">
+    <value>未命名按键</value>
+  </data>
+  <data name="Worker.DeviceNotSupported" xml:space="preserve">
+    <value>设备没有暴露性能模式控制接口。</value>
+  </data>
+  <data name="TouchpadItem.Content" xml:space="preserve">
+    <value>触控板</value>
+  </data>
+  <data name="BatteryItem.Content" xml:space="preserve">
+    <value>电池</value>
+  </data>
+  <data name="SettingsItem.Content" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="PerformanceStartupResetLabelTextBlock.Text" xml:space="preserve">
+    <value>启动时切换到智能模式</value>
+  </data>
+  <data name="ChargeStartupResetLabelTextBlock.Text" xml:space="preserve">
+    <value>启动时关闭充电限制保护</value>
+  </data>
+  <data name="MappingEnabledToggleSwitch.Header" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="TouchpadLongPress500Item.Content" xml:space="preserve">
+    <value>500 毫秒</value>
+  </data>
+  <data name="TouchpadLongPress600Item.Content" xml:space="preserve">
+    <value>600 毫秒</value>
+  </data>
+  <data name="TouchpadLongPress700Item.Content" xml:space="preserve">
+    <value>700 毫秒</value>
+  </data>
+  <data name="TouchpadLongPress800Item.Content" xml:space="preserve">
+    <value>800 毫秒</value>
+  </data>
+  <data name="TouchpadLongPress900Item.Content" xml:space="preserve">
+    <value>900 毫秒</value>
+  </data>
+  <data name="TouchpadLongPress1000Item.Content" xml:space="preserve">
+    <value>1000 毫秒</value>
   </data>
 </root>

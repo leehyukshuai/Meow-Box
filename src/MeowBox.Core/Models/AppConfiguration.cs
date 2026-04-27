@@ -378,43 +378,43 @@ public sealed class IconAssetOption
 
 public static class ActionCatalog
 {
-    public static string NoActionLabel => LocalizedText.Pick("No action selected", "未选择动作");
-    public static string NoActionDescription => LocalizedText.Pick("No action is assigned to this mapping.", "这个映射还没有分配动作。");
+    public static string NoActionLabel => ResourceStringService.GetString("Action.NoSelection", "No action selected");
+    public static string NoActionDescription => ResourceStringService.GetString("Action.NoSelectionDescription", "No action is assigned to this mapping.");
     public const string NoActionIconGlyph = "";
 
     public static IReadOnlyList<ActionTagOption> TagOptions { get; } =
     [
-        new(ActionTag.All, LocalizedText.Pick("All", "全部")),
-        new(ActionTag.System, LocalizedText.Pick("System", "系统")),
-        new(ActionTag.Keyboard, LocalizedText.Pick("Keyboard", "键盘")),
-        new(ActionTag.Display, LocalizedText.Pick("Display", "显示")),
-        new(ActionTag.Audio, LocalizedText.Pick("Audio", "音频")),
-        new(ActionTag.Media, LocalizedText.Pick("Media", "媒体")),
-        new(ActionTag.Application, LocalizedText.Pick("Application", "应用"))
+        new(ActionTag.All, ResourceStringService.GetString("ActionTag.All", "All")),
+        new(ActionTag.System, ResourceStringService.GetString("ActionTag.System", "System")),
+        new(ActionTag.Keyboard, ResourceStringService.GetString("ActionTag.Keyboard", "Keyboard")),
+        new(ActionTag.Display, ResourceStringService.GetString("ActionTag.Display", "Display")),
+        new(ActionTag.Audio, ResourceStringService.GetString("ActionTag.Audio", "Audio")),
+        new(ActionTag.Media, ResourceStringService.GetString("ActionTag.Media", "Media")),
+        new(ActionTag.Application, ResourceStringService.GetString("ActionTag.Application", "Application"))
     ];
 
     public static IReadOnlyList<ActionOption> All { get; } = new[]
     {
-        new ActionOption(HotkeyActionType.SendStandardKey, LocalizedText.Pick("Send key or shortcut", "发送按键或快捷键"), LocalizedText.Pick("Sends the keyboard key or modifier shortcut that you configure.", "发送你配置的键盘按键或修饰键快捷键。"), "", ActionTag.Keyboard, ActionTag.System),
-        new ActionOption(HotkeyActionType.OpenSettings, LocalizedText.Pick("Open Windows Settings", "打开 Windows 设置"), LocalizedText.Pick("Launches the native Settings app.", "启动系统设置应用。"), "", ActionTag.System),
-        new ActionOption(HotkeyActionType.OpenProjection, LocalizedText.Pick("Open projection switcher", "打开投影切换器"), LocalizedText.Pick("Launches the native projection overlay.", "打开系统投影切换界面。"), "", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.ToggleTouchpad, LocalizedText.Pick("Toggle touchpad", "切换触控板开关"), LocalizedText.Pick("Turns the Windows touchpad off or back on on supported devices.", "在支持的设备上关闭或重新开启 Windows 触控板。"), "\uEFA5", ActionTag.System),
-        new ActionOption(HotkeyActionType.MicrophoneMuteOn, LocalizedText.Pick("Mute microphone input", "麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device off.", "关闭默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),
-        new ActionOption(HotkeyActionType.MicrophoneMuteOff, LocalizedText.Pick("Unmute microphone input", "取消麦克风静音"), LocalizedText.Pick("Turns the default microphone capture device back on.", "重新打开默认麦克风采集设备。"), "", ActionTag.System, ActionTag.Audio),
-        new ActionOption(HotkeyActionType.VolumeUp, LocalizedText.Pick("Volume up", "音量增加"), LocalizedText.Pick("Raises the master output volume.", "提高系统主音量。"), "", ActionTag.Audio, ActionTag.Media),
-        new ActionOption(HotkeyActionType.VolumeDown, LocalizedText.Pick("Volume down", "音量减小"), LocalizedText.Pick("Lowers the master output volume.", "降低系统主音量。"), "", ActionTag.Audio, ActionTag.Media),
-        new ActionOption(HotkeyActionType.VolumeMute, LocalizedText.Pick("Toggle volume mute", "切换静音"), LocalizedText.Pick("Toggles the system speaker mute state.", "切换系统扬声器静音状态。"), "", ActionTag.Audio, ActionTag.Media),
-        new ActionOption(HotkeyActionType.MediaPrevious, LocalizedText.Pick("Previous track", "上一曲"), LocalizedText.Pick("Sends the previous-track media key.", "发送上一曲媒体按键。"), "", ActionTag.Media),
-        new ActionOption(HotkeyActionType.MediaNext, LocalizedText.Pick("Next track", "下一曲"), LocalizedText.Pick("Sends the next-track media key.", "发送下一曲媒体按键。"), "", ActionTag.Media),
-        new ActionOption(HotkeyActionType.MediaPlayPause, LocalizedText.Pick("Play or pause", "播放或暂停"), LocalizedText.Pick("Sends the media play-pause key.", "发送媒体播放/暂停按键。"), "", ActionTag.Media),
-        new ActionOption(HotkeyActionType.BrightnessUp, LocalizedText.Pick("Brightness up", "亮度增加"), LocalizedText.Pick("Raises the internal display brightness.", "提高内置显示器亮度。"), "", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.BrightnessDown, LocalizedText.Pick("Brightness down", "亮度减小"), LocalizedText.Pick("Lowers the internal display brightness.", "降低内置显示器亮度。"), "", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.ToggleAirplaneMode, LocalizedText.Pick("Toggle airplane mode", "切换飞行模式"), LocalizedText.Pick("Turns supported radios off or back on.", "关闭或重新开启支持的无线设备。"), "", ActionTag.System),
-        new ActionOption(HotkeyActionType.LockWindows, LocalizedText.Pick("Lock Windows", "锁定 Windows"), LocalizedText.Pick("Locks the current Windows session.", "锁定当前 Windows 会话。"), "", ActionTag.System),
-        new ActionOption(HotkeyActionType.Screenshot, LocalizedText.Pick("Take screenshot", "截图"), LocalizedText.Pick("Opens the native snipping overlay.", "打开系统截图浮层。"), "", ActionTag.System, ActionTag.Display),
-        new ActionOption(HotkeyActionType.OpenCalculator, LocalizedText.Pick("Open Calculator", "打开计算器"), LocalizedText.Pick("Launches Calculator.", "启动计算器。"), "", ActionTag.System, ActionTag.Application),
-        new ActionOption(HotkeyActionType.OpenApplication, LocalizedText.Pick("Open application", "打开应用"), LocalizedText.Pick("Launches an installed app, shortcut, or executable.", "启动已安装应用、快捷方式或可执行文件。"), "", ActionTag.Application),
-        new ActionOption(HotkeyActionType.CyclePerformanceMode, LocalizedText.Pick("Toggle performance mode", "切换性能模式"), LocalizedText.Pick("Cycles between Silent, Smart, and Beast modes.", "在静谧、智能和狂暴模式之间循环切换。"), "", ActionTag.System)
+        new ActionOption(HotkeyActionType.SendStandardKey, ResourceStringService.GetString("Action.SendKey.Label", "Send key or shortcut"), ResourceStringService.GetString("Action.SendKey.Description", "Sends the keyboard key or modifier shortcut that you configure."), "", ActionTag.Keyboard, ActionTag.System),
+        new ActionOption(HotkeyActionType.OpenSettings, ResourceStringService.GetString("Action.OpenSettings.Label", "Open Windows Settings"), ResourceStringService.GetString("Action.OpenSettings.Description", "Launches the native Settings app."), "", ActionTag.System),
+        new ActionOption(HotkeyActionType.OpenProjection, ResourceStringService.GetString("Action.OpenProjection.Label", "Open projection switcher"), ResourceStringService.GetString("Action.OpenProjection.Description", "Launches the native projection overlay."), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.ToggleTouchpad, ResourceStringService.GetString("Action.ToggleTouchpad.Label", "Toggle touchpad"), ResourceStringService.GetString("Action.ToggleTouchpad.Description", "Turns the Windows touchpad off or back on on supported devices."), "\uEFA5", ActionTag.System),
+        new ActionOption(HotkeyActionType.MicrophoneMuteOn, ResourceStringService.GetString("Action.MicMuteOn.Label", "Mute microphone input"), ResourceStringService.GetString("Action.MicMuteOn.Description", "Turns the default microphone capture device off."), "", ActionTag.System, ActionTag.Audio),
+        new ActionOption(HotkeyActionType.MicrophoneMuteOff, ResourceStringService.GetString("Action.MicMuteOff.Label", "Unmute microphone input"), ResourceStringService.GetString("Action.MicMuteOff.Description", "Turns the default microphone capture device back on."), "", ActionTag.System, ActionTag.Audio),
+        new ActionOption(HotkeyActionType.VolumeUp, ResourceStringService.GetString("Action.VolumeUp.Label", "Volume up"), ResourceStringService.GetString("Action.VolumeUp.Description", "Raises the master output volume."), "", ActionTag.Audio, ActionTag.Media),
+        new ActionOption(HotkeyActionType.VolumeDown, ResourceStringService.GetString("Action.VolumeDown.Label", "Volume down"), ResourceStringService.GetString("Action.VolumeDown.Description", "Lowers the master output volume."), "", ActionTag.Audio, ActionTag.Media),
+        new ActionOption(HotkeyActionType.VolumeMute, ResourceStringService.GetString("Action.VolumeMute.Label", "Toggle volume mute"), ResourceStringService.GetString("Action.VolumeMute.Description", "Toggles the system speaker mute state."), "", ActionTag.Audio, ActionTag.Media),
+        new ActionOption(HotkeyActionType.MediaPrevious, ResourceStringService.GetString("Action.MediaPrevious.Label", "Previous track"), ResourceStringService.GetString("Action.MediaPrevious.Description", "Sends the previous-track media key."), "", ActionTag.Media),
+        new ActionOption(HotkeyActionType.MediaNext, ResourceStringService.GetString("Action.MediaNext.Label", "Next track"), ResourceStringService.GetString("Action.MediaNext.Description", "Sends the next-track media key."), "", ActionTag.Media),
+        new ActionOption(HotkeyActionType.MediaPlayPause, ResourceStringService.GetString("Action.MediaPlayPause.Label", "Play or pause"), ResourceStringService.GetString("Action.MediaPlayPause.Description", "Sends the media play-pause key."), "", ActionTag.Media),
+        new ActionOption(HotkeyActionType.BrightnessUp, ResourceStringService.GetString("Action.BrightnessUp.Label", "Brightness up"), ResourceStringService.GetString("Action.BrightnessUp.Description", "Raises the internal display brightness."), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.BrightnessDown, ResourceStringService.GetString("Action.BrightnessDown.Label", "Brightness down"), ResourceStringService.GetString("Action.BrightnessDown.Description", "Lowers the internal display brightness."), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.ToggleAirplaneMode, ResourceStringService.GetString("Action.ToggleAirplaneMode.Label", "Toggle airplane mode"), ResourceStringService.GetString("Action.ToggleAirplaneMode.Description", "Turns supported radios off or back on."), "", ActionTag.System),
+        new ActionOption(HotkeyActionType.LockWindows, ResourceStringService.GetString("Action.LockWindows.Label", "Lock Windows"), ResourceStringService.GetString("Action.LockWindows.Description", "Locks the current Windows session."), "", ActionTag.System),
+        new ActionOption(HotkeyActionType.Screenshot, ResourceStringService.GetString("Action.Screenshot.Label", "Take screenshot"), ResourceStringService.GetString("Action.Screenshot.Description", "Opens the native snipping overlay."), "", ActionTag.System, ActionTag.Display),
+        new ActionOption(HotkeyActionType.OpenCalculator, ResourceStringService.GetString("Action.OpenCalculator.Label", "Open Calculator"), ResourceStringService.GetString("Action.OpenCalculator.Description", "Launches Calculator."), "", ActionTag.System, ActionTag.Application),
+        new ActionOption(HotkeyActionType.OpenApplication, ResourceStringService.GetString("Action.OpenApplication.Label", "Open application"), ResourceStringService.GetString("Action.OpenApplication.Description", "Launches an installed app, shortcut, or executable."), "", ActionTag.Application),
+        new ActionOption(HotkeyActionType.CyclePerformanceMode, ResourceStringService.GetString("Action.CyclePerformanceMode.Label", "Toggle performance mode"), ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles between Silent, Smart, and Beast modes."), "", ActionTag.System)
     };
 
     public static bool IsKnownActionType(string? key)
@@ -432,7 +432,7 @@ public static class ActionCatalog
     {
         if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
         {
-            return LocalizedText.Pick("Toggle performance mode", "切换性能模式");
+            return ResourceStringService.GetString("Action.CyclePerformanceMode.Label", "Toggle performance mode");
         }
 
         return GetOption(key)?.Label ?? NoActionLabel;
@@ -442,7 +442,7 @@ public static class ActionCatalog
     {
         if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
         {
-            return LocalizedText.Pick("Cycles between Silent, Smart, and Beast modes.", "在静谧、智能和狂暴模式之间循环切换。");
+            return ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles between Silent, Smart, and Beast modes.");
         }
 
         return GetOption(key)?.Description ?? NoActionDescription;
@@ -487,7 +487,7 @@ public static class ActionCatalog
 
     public static string GetTagLabel(string key)
     {
-        return TagOptions.FirstOrDefault(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase))?.Label ?? LocalizedText.Pick("Other", "其他");
+        return TagOptions.FirstOrDefault(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase))?.Label ?? ResourceStringService.GetString("ActionTag.Other", "Other");
     }
 }
 
@@ -495,7 +495,7 @@ public static class MappingDisplayCatalog
 {
     private const string OsdIconGlyph = "";
 
-    public static string ShowOsdLabel => LocalizedText.Pick("Show OSD", "显示 OSD");
+    public static string ShowOsdLabel => ResourceStringService.GetString("Mapping.ShowOsd", "Show OSD");
 
     public static string BuildListActionLabel(string actionType, bool osdEnabled)
     {
@@ -528,9 +528,9 @@ public static class IconAssetCatalog
 {
     public static IReadOnlyList<ChoiceOption> OsdDisplayModes { get; } =
     [
-        new(OsdDisplayMode.IconAndText, LocalizedText.Pick("Icon + title", "图标 + 标题")),
-        new(OsdDisplayMode.IconOnly, LocalizedText.Pick("Icon only", "仅图标")),
-        new(OsdDisplayMode.TextOnly, LocalizedText.Pick("Title only", "仅标题"))
+        new(OsdDisplayMode.IconAndText, ResourceStringService.GetString("OsdDisplayMode.IconAndTitle", "Icon + title")),
+        new(OsdDisplayMode.IconOnly, ResourceStringService.GetString("OsdDisplayMode.IconOnly", "Icon only")),
+        new(OsdDisplayMode.TextOnly, ResourceStringService.GetString("OsdDisplayMode.TextOnly", "Title only"))
     ];
 }
 

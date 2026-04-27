@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -226,7 +227,7 @@ public sealed class ActionDefinitionViewModel : ObservableObject
             {
                 return string.Format(
                     System.Globalization.CultureInfo.CurrentCulture,
-                    LocalizedText.Pick("Sends the key shortcut {0}.", "发送按键或快捷键 {0}。"),
+                    ResourceStringService.GetString("Action.SendKey.WithChord", "Sends the key shortcut {0}."),
                     chordText);
             }
 
@@ -234,13 +235,11 @@ public sealed class ActionDefinitionViewModel : ObservableObject
             {
                 return string.Format(
                     System.Globalization.CultureInfo.CurrentCulture,
-                    LocalizedText.Pick("Choose a primary key to complete {0}.", "请再选择一个主键来完成 {0}。"),
+                    ResourceStringService.GetString("Action.SendKey.ChooseKey", "Choose a primary key to complete {0}."),
                     chordText);
             }
 
-            return LocalizedText.Pick(
-                "Sends the keyboard key or shortcut that you choose below.",
-                "发送你在下方选择的键盘按键或快捷键。");
+            return ResourceStringService.GetString("Action.SendKey.NoKey", "Sends the keyboard key or shortcut that you choose below.");
         }
 
         return ActionCatalog.GetDescription(Type);

@@ -847,7 +847,7 @@ internal sealed class WorkerHost : IDisposable
                 : _batteryControlService.QueryState();
             if (!state.Supported)
             {
-                throw new InvalidOperationException(LocalizedText.Pick("The device does not expose the performance mode controls.", "设备没有暴露性能模式控制接口。"));
+                throw new InvalidOperationException(ResourceStringService.GetString("Worker.DeviceNotSupported", "The device does not expose the performance mode controls."));
             }
 
             var nextModeKey = BatteryControlCatalog.GetNextCyclePerformanceModeKey(state.PerformanceModeKey);

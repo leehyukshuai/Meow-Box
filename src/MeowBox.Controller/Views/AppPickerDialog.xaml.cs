@@ -20,8 +20,8 @@ public sealed partial class AppPickerDialog : ContentDialog
         FilteredApps = new ObservableCollection<InstalledAppEntry>(_allApps);
         AppsListView.ItemsSource = FilteredApps;
         LoadingInfoBar.Message = _allApps.Count == 0
-            ? Localizer.GetString("AppPicker.NoInstalledApps")
-            : Localizer.Format("AppPicker.FoundInstalledApps", _allApps.Count);
+            ? ResourceStringService.GetString("AppPicker.NoInstalledApps", "No installed apps were returned by Get-StartApps.")
+            : string.Format(System.Globalization.CultureInfo.CurrentCulture, ResourceStringService.GetString("AppPicker.FoundInstalledApps", "Found {0} installed apps."), _allApps.Count);
         LoadingInfoBar.Severity = _allApps.Count == 0 ? InfoBarSeverity.Warning : InfoBarSeverity.Success;
     }
 

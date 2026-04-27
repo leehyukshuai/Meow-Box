@@ -1,3 +1,4 @@
+using MeowBox.Core.Services;
 namespace MeowBox.Core.Models;
 
 public static class StandardKeyGroup
@@ -65,15 +66,15 @@ public static class StandardKeyCatalog
 {
     public static IReadOnlyList<StandardKeyGroupOption> GroupOptions { get; } =
     [
-        new(StandardKeyGroup.Navigation, LocalizedText.Pick("Navigation", "导航")),
-        new(StandardKeyGroup.Editing, LocalizedText.Pick("Editing", "编辑")),
-        new(StandardKeyGroup.Modifiers, LocalizedText.Pick("Modifiers", "修饰键")),
-        new(StandardKeyGroup.Function, LocalizedText.Pick("Function", "功能键")),
-        new(StandardKeyGroup.Letters, LocalizedText.Pick("Letters", "字母")),
-        new(StandardKeyGroup.Numbers, LocalizedText.Pick("Numbers", "数字")),
-        new(StandardKeyGroup.Symbols, LocalizedText.Pick("Symbols", "符号")),
-        new(StandardKeyGroup.Numpad, LocalizedText.Pick("Numpad", "数字小键盘")),
-        new(StandardKeyGroup.Browser, LocalizedText.Pick("Browser", "浏览器"))
+        new(StandardKeyGroup.Navigation, ResourceStringService.GetString("StandardKeyGroup.Navigation", "Navigation")),
+        new(StandardKeyGroup.Editing, ResourceStringService.GetString("StandardKeyGroup.Editing", "Editing")),
+        new(StandardKeyGroup.Modifiers, ResourceStringService.GetString("StandardKeyGroup.Modifiers", "Modifiers")),
+        new(StandardKeyGroup.Function, ResourceStringService.GetString("StandardKeyGroup.Function", "Function")),
+        new(StandardKeyGroup.Letters, ResourceStringService.GetString("StandardKeyGroup.Letters", "Letters")),
+        new(StandardKeyGroup.Numbers, ResourceStringService.GetString("StandardKeyGroup.Numbers", "Numbers")),
+        new(StandardKeyGroup.Symbols, ResourceStringService.GetString("StandardKeyGroup.Symbols", "Symbols")),
+        new(StandardKeyGroup.Numpad, ResourceStringService.GetString("StandardKeyGroup.Numpad", "Numpad")),
+        new(StandardKeyGroup.Browser, ResourceStringService.GetString("StandardKeyGroup.Browser", "Browser"))
     ];
 
     public static IReadOnlyList<KeyChordModifierOption> ModifierOptions { get; } =
@@ -81,38 +82,38 @@ public static class StandardKeyCatalog
         new(KeyChordModifier.Control, "Ctrl", 0x11, 0),
         new(KeyChordModifier.Shift, "Shift", 0x10, 1),
         new(KeyChordModifier.Alt, "Alt", 0x12, 2),
-        new(KeyChordModifier.Windows, LocalizedText.Pick("Win", "Win"), 0x5B, 3)
+        new(KeyChordModifier.Windows, ResourceStringService.GetString("KeyChordModifier.Win", "Win"), 0x5B, 3)
     ];
 
     public static IReadOnlyList<StandardKeyOption> All { get; } =
     [
         new("Escape", "Esc", 0x1B, StandardKeyGroup.Navigation),
-        new("Left", LocalizedText.Pick("Left Arrow", "左方向键"), 0x25, StandardKeyGroup.Navigation),
-        new("Up", LocalizedText.Pick("Up Arrow", "上方向键"), 0x26, StandardKeyGroup.Navigation),
-        new("Right", LocalizedText.Pick("Right Arrow", "右方向键"), 0x27, StandardKeyGroup.Navigation),
-        new("Down", LocalizedText.Pick("Down Arrow", "下方向键"), 0x28, StandardKeyGroup.Navigation),
-        new("Apps", LocalizedText.Pick("Menu", "菜单"), 0x5D, StandardKeyGroup.Navigation),
-        new("ScrollLock", LocalizedText.Pick("Scroll Lock", "滚动锁定"), 0x91, StandardKeyGroup.Navigation),
-        new("Pause", LocalizedText.Pick("Pause", "暂停"), 0x13, StandardKeyGroup.Navigation),
+        new("Left", ResourceStringService.GetString("StandardKey.LeftArrow", "Left Arrow"), 0x25, StandardKeyGroup.Navigation),
+        new("Up", ResourceStringService.GetString("StandardKey.UpArrow", "Up Arrow"), 0x26, StandardKeyGroup.Navigation),
+        new("Right", ResourceStringService.GetString("StandardKey.RightArrow", "Right Arrow"), 0x27, StandardKeyGroup.Navigation),
+        new("Down", ResourceStringService.GetString("StandardKey.DownArrow", "Down Arrow"), 0x28, StandardKeyGroup.Navigation),
+        new("Apps", ResourceStringService.GetString("StandardKey.Apps", "Menu"), 0x5D, StandardKeyGroup.Navigation),
+        new("ScrollLock", ResourceStringService.GetString("StandardKey.ScrollLock", "Scroll Lock"), 0x91, StandardKeyGroup.Navigation),
+        new("Pause", ResourceStringService.GetString("StandardKey.Pause", "Pause"), 0x13, StandardKeyGroup.Navigation),
 
         new("Tab", "Tab", 0x09, StandardKeyGroup.Editing),
         new("Enter", "Enter", 0x0D, StandardKeyGroup.Editing),
-        new("Space", LocalizedText.Pick("Space", "空格"), 0x20, StandardKeyGroup.Editing),
-        new("Backspace", LocalizedText.Pick("Backspace", "退格"), 0x08, StandardKeyGroup.Editing),
-        new("Delete", LocalizedText.Pick("Delete", "删除"), 0x2E, StandardKeyGroup.Editing),
-        new("Insert", LocalizedText.Pick("Insert", "插入"), 0x2D, StandardKeyGroup.Editing),
+        new("Space", ResourceStringService.GetString("StandardKey.Space", "Space"), 0x20, StandardKeyGroup.Editing),
+        new("Backspace", ResourceStringService.GetString("StandardKey.Backspace", "Backspace"), 0x08, StandardKeyGroup.Editing),
+        new("Delete", ResourceStringService.GetString("StandardKey.Delete", "Delete"), 0x2E, StandardKeyGroup.Editing),
+        new("Insert", ResourceStringService.GetString("StandardKey.Insert", "Insert"), 0x2D, StandardKeyGroup.Editing),
         new("Home", "Home", 0x24, StandardKeyGroup.Editing),
         new("End", "End", 0x23, StandardKeyGroup.Editing),
         new("PageUp", "Page Up", 0x21, StandardKeyGroup.Editing),
         new("PageDown", "Page Down", 0x22, StandardKeyGroup.Editing),
-        new("CapsLock", LocalizedText.Pick("Caps Lock", "大写锁定"), 0x14, StandardKeyGroup.Editing),
-        new("NumLock", LocalizedText.Pick("Num Lock", "数字锁定"), 0x90, StandardKeyGroup.Editing),
+        new("CapsLock", ResourceStringService.GetString("StandardKey.CapsLock", "Caps Lock"), 0x14, StandardKeyGroup.Editing),
+        new("NumLock", ResourceStringService.GetString("StandardKey.NumLock", "Num Lock"), 0x90, StandardKeyGroup.Editing),
 
         new("Shift", "Shift", 0x10, StandardKeyGroup.Modifiers),
         new("Control", "Ctrl", 0x11, StandardKeyGroup.Modifiers),
         new("Alt", "Alt", 0x12, StandardKeyGroup.Modifiers),
-        new("LeftWindows", LocalizedText.Pick("Left Windows", "左 Windows"), 0x5B, StandardKeyGroup.Modifiers),
-        new("RightWindows", LocalizedText.Pick("Right Windows", "右 Windows"), 0x5C, StandardKeyGroup.Modifiers),
+        new("LeftWindows", ResourceStringService.GetString("StandardKey.LeftWindows", "Left Windows"), 0x5B, StandardKeyGroup.Modifiers),
+        new("RightWindows", ResourceStringService.GetString("StandardKey.RightWindows", "Right Windows"), 0x5C, StandardKeyGroup.Modifiers),
 
         new("F1", "F1", 0x70, StandardKeyGroup.Function),
         new("F2", "F2", 0x71, StandardKeyGroup.Function),
@@ -189,29 +190,29 @@ public static class StandardKeyCatalog
         new("OemCloseBrackets", "]", 0xDD, StandardKeyGroup.Symbols),
         new("OemQuotes", "'", 0xDE, StandardKeyGroup.Symbols),
 
-        new("NumPad0", LocalizedText.Pick("NumPad 0", "小键盘 0"), 0x60, StandardKeyGroup.Numpad),
-        new("NumPad1", LocalizedText.Pick("NumPad 1", "小键盘 1"), 0x61, StandardKeyGroup.Numpad),
-        new("NumPad2", LocalizedText.Pick("NumPad 2", "小键盘 2"), 0x62, StandardKeyGroup.Numpad),
-        new("NumPad3", LocalizedText.Pick("NumPad 3", "小键盘 3"), 0x63, StandardKeyGroup.Numpad),
-        new("NumPad4", LocalizedText.Pick("NumPad 4", "小键盘 4"), 0x64, StandardKeyGroup.Numpad),
-        new("NumPad5", LocalizedText.Pick("NumPad 5", "小键盘 5"), 0x65, StandardKeyGroup.Numpad),
-        new("NumPad6", LocalizedText.Pick("NumPad 6", "小键盘 6"), 0x66, StandardKeyGroup.Numpad),
-        new("NumPad7", LocalizedText.Pick("NumPad 7", "小键盘 7"), 0x67, StandardKeyGroup.Numpad),
-        new("NumPad8", LocalizedText.Pick("NumPad 8", "小键盘 8"), 0x68, StandardKeyGroup.Numpad),
-        new("NumPad9", LocalizedText.Pick("NumPad 9", "小键盘 9"), 0x69, StandardKeyGroup.Numpad),
-        new("Multiply", LocalizedText.Pick("NumPad *", "小键盘 *"), 0x6A, StandardKeyGroup.Numpad),
-        new("Add", LocalizedText.Pick("NumPad +", "小键盘 +"), 0x6B, StandardKeyGroup.Numpad),
-        new("Subtract", LocalizedText.Pick("NumPad -", "小键盘 -"), 0x6D, StandardKeyGroup.Numpad),
-        new("Decimal", LocalizedText.Pick("NumPad .", "小键盘 ."), 0x6E, StandardKeyGroup.Numpad),
-        new("Divide", LocalizedText.Pick("NumPad /", "小键盘 /"), 0x6F, StandardKeyGroup.Numpad),
+        new("NumPad0", ResourceStringService.GetString("StandardKey.NumPad0", "NumPad 0"), 0x60, StandardKeyGroup.Numpad),
+        new("NumPad1", ResourceStringService.GetString("StandardKey.NumPad1", "NumPad 1"), 0x61, StandardKeyGroup.Numpad),
+        new("NumPad2", ResourceStringService.GetString("StandardKey.NumPad2", "NumPad 2"), 0x62, StandardKeyGroup.Numpad),
+        new("NumPad3", ResourceStringService.GetString("StandardKey.NumPad3", "NumPad 3"), 0x63, StandardKeyGroup.Numpad),
+        new("NumPad4", ResourceStringService.GetString("StandardKey.NumPad4", "NumPad 4"), 0x64, StandardKeyGroup.Numpad),
+        new("NumPad5", ResourceStringService.GetString("StandardKey.NumPad5", "NumPad 5"), 0x65, StandardKeyGroup.Numpad),
+        new("NumPad6", ResourceStringService.GetString("StandardKey.NumPad6", "NumPad 6"), 0x66, StandardKeyGroup.Numpad),
+        new("NumPad7", ResourceStringService.GetString("StandardKey.NumPad7", "NumPad 7"), 0x67, StandardKeyGroup.Numpad),
+        new("NumPad8", ResourceStringService.GetString("StandardKey.NumPad8", "NumPad 8"), 0x68, StandardKeyGroup.Numpad),
+        new("NumPad9", ResourceStringService.GetString("StandardKey.NumPad9", "NumPad 9"), 0x69, StandardKeyGroup.Numpad),
+        new("Multiply", ResourceStringService.GetString("StandardKey.Multiply", "NumPad *"), 0x6A, StandardKeyGroup.Numpad),
+        new("Add", ResourceStringService.GetString("StandardKey.Add", "NumPad +"), 0x6B, StandardKeyGroup.Numpad),
+        new("Subtract", ResourceStringService.GetString("StandardKey.Subtract", "NumPad -"), 0x6D, StandardKeyGroup.Numpad),
+        new("Decimal", ResourceStringService.GetString("StandardKey.Decimal", "NumPad ."), 0x6E, StandardKeyGroup.Numpad),
+        new("Divide", ResourceStringService.GetString("StandardKey.Divide", "NumPad /"), 0x6F, StandardKeyGroup.Numpad),
 
-        new("BrowserBack", LocalizedText.Pick("Back", "后退"), 0xA6, StandardKeyGroup.Browser),
-        new("BrowserForward", LocalizedText.Pick("Forward", "前进"), 0xA7, StandardKeyGroup.Browser),
-        new("BrowserRefresh", LocalizedText.Pick("Refresh", "刷新"), 0xA8, StandardKeyGroup.Browser),
-        new("BrowserStop", LocalizedText.Pick("Stop", "停止"), 0xA9, StandardKeyGroup.Browser),
-        new("BrowserSearch", LocalizedText.Pick("Search", "搜索"), 0xAA, StandardKeyGroup.Browser),
-        new("BrowserFavorites", LocalizedText.Pick("Favorites", "收藏夹"), 0xAB, StandardKeyGroup.Browser),
-        new("BrowserHome", LocalizedText.Pick("Browser Home", "浏览器主页"), 0xAC, StandardKeyGroup.Browser)
+        new("BrowserBack", ResourceStringService.GetString("StandardKey.BrowserBack", "Back"), 0xA6, StandardKeyGroup.Browser),
+        new("BrowserForward", ResourceStringService.GetString("StandardKey.BrowserForward", "Forward"), 0xA7, StandardKeyGroup.Browser),
+        new("BrowserRefresh", ResourceStringService.GetString("StandardKey.BrowserRefresh", "Refresh"), 0xA8, StandardKeyGroup.Browser),
+        new("BrowserStop", ResourceStringService.GetString("StandardKey.BrowserStop", "Stop"), 0xA9, StandardKeyGroup.Browser),
+        new("BrowserSearch", ResourceStringService.GetString("StandardKey.BrowserSearch", "Search"), 0xAA, StandardKeyGroup.Browser),
+        new("BrowserFavorites", ResourceStringService.GetString("StandardKey.BrowserFavorites", "Favorites"), 0xAB, StandardKeyGroup.Browser),
+        new("BrowserHome", ResourceStringService.GetString("StandardKey.BrowserHome", "Browser Home"), 0xAC, StandardKeyGroup.Browser)
     ];
 
     public static StandardKeyOption? GetOption(string? key)
@@ -241,7 +242,7 @@ public static class StandardKeyCatalog
 
     public static string GetLabel(string? key)
     {
-        return GetOption(key)?.Label ?? LocalizedText.Pick("Choose primary key", "选择主键");
+        return GetOption(key)?.Label ?? ResourceStringService.GetString("StandardKey.ChoosePrimaryKey", "Choose primary key");
     }
 
     public static string GetGroupLabel(string? key)

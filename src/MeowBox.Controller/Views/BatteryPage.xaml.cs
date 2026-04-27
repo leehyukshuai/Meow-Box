@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using MeowBox.Controller.Services;
 using MeowBox.Core.Models;
 using Windows.System;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
 
@@ -81,8 +82,6 @@ public sealed partial class BatteryPage : Page
         PerformanceSilentRadioButton.Content = BatteryControlCatalog.GetPerformanceModeLabel(BatteryControlCatalog.Silent);
         PerformanceSmartRadioButton.Content = BatteryControlCatalog.GetPerformanceModeLabel(BatteryControlCatalog.Smart);
         PerformanceBeastRadioButton.Content = BatteryControlCatalog.GetPerformanceModeLabel(BatteryControlCatalog.Beast);
-        PerformanceStartupResetLabelTextBlock.Text = LocalizedText.Pick("Switch to Smart mode on startup", "开机时自动切换至智能模式");
-        ChargeStartupResetLabelTextBlock.Text = LocalizedText.Pick("Disable charge limit protection on startup", "开机时关闭充电上限保护");
         UpdateChargeLimitTickLabelsLayout();
     }
 
@@ -154,7 +153,7 @@ public sealed partial class BatteryPage : Page
             }
 
             await ShowMessageAsync(
-                LocalizedText.Pick("Battery controls failed", "电池控制失败"),
+                ResourceStringService.GetString("Battery.Error.Failed", "Battery controls failed"),
                 exception.Message);
         }
     }
@@ -190,7 +189,7 @@ public sealed partial class BatteryPage : Page
         {
             SyncState();
             await ShowMessageAsync(
-                LocalizedText.Pick("Could not change performance mode", "无法切换性能模式"),
+                ResourceStringService.GetString("Battery.Error.CouldNotChangePerformance", "Could not change performance mode"),
                 exception.Message);
         }
     }
@@ -356,7 +355,7 @@ public sealed partial class BatteryPage : Page
             _requestedChargeLimitPercent = null;
             SyncState();
             await ShowMessageAsync(
-                LocalizedText.Pick("Could not change charge limit", "无法切换充电限制"),
+                ResourceStringService.GetString("Battery.Error.CouldNotChangeCharge", "Could not change charge limit"),
                 exception.Message);
         }
         finally
@@ -441,40 +440,40 @@ public sealed partial class BatteryPage : Page
     {
         if (Controller.BatteryControlBusy)
         {
-            return LocalizedText.Pick("Preparing admin runtime...", "正在准备管理员后台……");
+            return ResourceStringService.GetString("Battery.Runtime.Preparing", "Preparing admin runtime...");
         }
 
         if (!Controller.ServiceRunning)
         {
-            return LocalizedText.Pick("Background service is not running.", "后台服务未运行。");
+            return ResourceStringService.GetString("Battery.Runtime.NotRunning", "Background service is not running.");
         }
 
         if (Controller.ServiceState == WorkerServiceState.Starting)
         {
-            return LocalizedText.Pick("Worker is starting...", "后台服务启动中。");
+            return ResourceStringService.GetString("Battery.Runtime.WorkerStarting", "Worker is starting...");
         }
 
         if (Controller.ServiceState == WorkerServiceState.Stopping)
         {
-            return LocalizedText.Pick("Worker is stopping...", "后台服务停止中。");
+            return ResourceStringService.GetString("Battery.Runtime.WorkerStopping", "Worker is stopping...");
         }
 
         if (!Controller.WorkerElevated)
         {
-            return LocalizedText.Pick("Background service needs admin rights.", "后台服务需要管理员权限。");
+            return ResourceStringService.GetString("Battery.Runtime.NeedsAdmin", "Background service needs admin rights.");
         }
 
         if (!Controller.BatteryStateKnown)
         {
-            return LocalizedText.Pick("Waiting for current power status...", "正在等待当前电源状态……");
+            return ResourceStringService.GetString("Battery.Runtime.WaitingStatus", "Waiting for current power status...");
         }
 
         if (Controller.WorkerElevated && Controller.ServiceRunning)
         {
-            return LocalizedText.Pick("Admin runtime is active.", "管理员后台已启用。");
+            return ResourceStringService.GetString("Battery.Runtime.AdminActive", "Admin runtime is active.");
         }
 
-        return LocalizedText.Pick("Admin runtime is inactive.", "管理员后台尚未启用。");
+        return ResourceStringService.GetString("Battery.Runtime.AdminInactive", "Admin runtime is inactive.");
     }
 
     private async Task ShowMessageAsync(string title, string message)
@@ -489,7 +488,7 @@ public sealed partial class BatteryPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = Localizer.GetString("Dialog.Close")
+            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
         };
 
         await dialog.ShowAsync();
@@ -511,7 +510,7 @@ public sealed partial class BatteryPage : Page
                 }
             }))
         {
-            completionSource.TrySetException(new InvalidOperationException(LocalizedText.Pick("Could not switch to the UI thread.", "无法切换到 UI 线程。")));
+            completionSource.TrySetException(new InvalidOperationException(ResourceStringService.GetString("Error.UIThread", "Could not switch to the UI thread.")));
         }
 
         return completionSource.Task;

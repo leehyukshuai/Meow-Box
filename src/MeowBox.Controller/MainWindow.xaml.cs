@@ -36,13 +36,6 @@ public sealed partial class MainWindow : Window
         ["settings"] = typeof(SettingsPage)
     };
 
-    private readonly Dictionary<string, string> _pageTitleKeys = new()
-    {
-        ["keyboard"] = "PageTitle.Mappings",
-        ["touchpad"] = "PageTitle.Touchpad",
-        ["battery"] = "PageTitle.Battery",
-        ["settings"] = "PageTitle.Settings"
-    };
 
     private AppWindow? _appWindow;
     private IntPtr _windowHandle;
@@ -81,13 +74,8 @@ public sealed partial class MainWindow : Window
 
     private void ApplyLocalizedShellText()
     {
-        var appTitle = Localizer.GetString("App.Title");
-        Title = appTitle;
-        AppTitleTextBlock.Text = appTitle;
-        MappingsItem.Content = Localizer.GetString("Navigation.Mappings");
-        TouchpadItem.Content = Localizer.GetString("Navigation.Touchpad");
-        BatteryItem.Content = Localizer.GetString("Navigation.Battery");
-        SettingsItem.Content = Localizer.GetString("Navigation.Settings");
+        Title = ResourceStringService.GetString("App.Title", "Meow Box");
+        XamlStringLocalizer.Apply(this);
     }
 
     private void ConfigureWindowChrome()
@@ -192,11 +180,11 @@ public sealed partial class MainWindow : Window
     {
         ServiceStatusTextBlock.Text = Controller.ServiceState switch
         {
-            WorkerServiceState.Running => Localizer.GetString("ServiceStatus.Running"),
-            WorkerServiceState.Starting => Localizer.GetString("ServiceStatus.Starting"),
-            WorkerServiceState.Stopping => Localizer.GetString("ServiceStatus.Stopping"),
-            WorkerServiceState.UnexpectedlyStopped => Localizer.GetString("ServiceStatus.WorkerStopped"),
-            _ => Localizer.GetString("ServiceStatus.Stopped")
+            WorkerServiceState.Running => ResourceStringService.GetString("ServiceStatus.Running", "Service running"),
+            WorkerServiceState.Starting => ResourceStringService.GetString("ServiceStatus.Starting", "Service starting"),
+            WorkerServiceState.Stopping => ResourceStringService.GetString("ServiceStatus.Stopping", "Service stopping"),
+            WorkerServiceState.UnexpectedlyStopped => ResourceStringService.GetString("ServiceStatus.WorkerStopped", "Background worker stopped"),
+            _ => ResourceStringService.GetString("ServiceStatus.Stopped", "Service stopped")
         };
 
         var glowColor = Controller.ServiceState switch
@@ -229,19 +217,28 @@ public sealed partial class MainWindow : Window
     {
         QuickServiceButtonTextBlock.Text = Controller.ServiceState switch
         {
-            WorkerServiceState.Running => Localizer.GetString("QuickService.Stop"),
-            WorkerServiceState.Starting => Localizer.GetString("QuickService.Starting"),
-            WorkerServiceState.Stopping => Localizer.GetString("QuickService.Stopping"),
-            _ => Localizer.GetString("QuickService.Start")
+            WorkerServiceState.Running => ResourceStringService.GetString("QuickService.Stop", "Stop service"),
+            WorkerServiceState.Starting => ResourceStringService.GetString("QuickService.Starting", "Starting..."),
+            WorkerServiceState.Stopping => ResourceStringService.GetString("QuickService.Stopping", "Stopping..."),
+            _ => ResourceStringService.GetString("QuickService.Start", "Start service")
         };
         QuickServiceButton.IsEnabled = Controller.ServiceState is not WorkerServiceState.Starting and not WorkerServiceState.Stopping;
     }
 
     private void UpdatePageChrome(string key)
     {
-        PageContextTextBlock.Text = _pageTitleKeys.TryGetValue(key, out var titleKey)
-            ? Localizer.GetString(titleKey)
-            : Localizer.GetString("App.Title");
+        var title = key switch
+        {
+            "keyboard" => MappingsItem.Content as string,
+            "touchpad" => TouchpadItem.Content as string,
+            "battery" => BatteryItem.Content as string,
+            "settings" => SettingsItem.Content as string,
+            _ => null
+        };
+
+        PageContextTextBlock.Text = string.IsNullOrWhiteSpace(title)
+            ? ResourceStringService.GetString("App.Title", "Meow Box")
+            : title;
     }
 
     private async void OnQuickServiceButtonClick(object sender, RoutedEventArgs e)

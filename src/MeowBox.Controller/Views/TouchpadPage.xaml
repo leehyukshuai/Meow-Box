@@ -43,9 +43,11 @@
                             Visibility="{Binding StandardActionPickerVisibility}">
                         <Button
                             Click="OnChooseTouchpadActionClick"
-                            Content="Choose action"
-                            Style="{StaticResource SubtleButtonStyle}" />
+                            Style="{StaticResource SubtleButtonStyle}">
+                            <TextBlock x:Uid="TouchpadChooseActionButtonText" Text="Choose action" />
+                        </Button>
                         <Button
+                            x:Uid="TouchpadClearActionButtonText"
                             Click="OnClearTouchpadActionClick"
                             Content="Clear action"
                             IsEnabled="{Binding Action.HasAssignedAction}"
@@ -98,6 +100,7 @@
                                 Spacing="12"
                                 Visibility="{Binding Action.TargetVisibility}">
                                 <TextBox
+                                    x:Uid="TouchpadTargetTextBox"
                                     Header="Target"
                                     LostFocus="OnTouchpadEditorLostFocus"
                                     PlaceholderText="Installed app target or executable path"
@@ -107,15 +110,18 @@
                                     Spacing="12"
                                     Visibility="{Binding Action.InstalledAppPickerVisibility}">
                                     <Button
+                                        x:Uid="TouchpadChooseAppButton"
                                         Click="OnPickInstalledAppClick"
                                         Content="Choose app"
                                         Style="{StaticResource SubtleButtonStyle}" />
                                     <Button
+                                        x:Uid="TouchpadBrowseFileButton"
                                         Click="OnBrowseExecutableClick"
                                         Content="Browse file"
                                         Style="{StaticResource SubtleButtonStyle}" />
                                 </StackPanel>
                                 <TextBox
+                                    x:Uid="TouchpadArgumentsTextBox"
                                     Header="Arguments"
                                     LostFocus="OnTouchpadEditorLostFocus"
                                     PlaceholderText="Optional launch arguments"
@@ -173,11 +179,13 @@
                                         </Grid.ColumnDefinitions>
 
                                         <ComboBox
+                                            x:Uid="TouchpadStandardKeyGroupComboBox"
                                             DisplayMemberPath="Label"
                                             Header="Primary key group"
                                             ItemsSource="{Binding Action.KeyChordEditor.Groups}"
                                             SelectedItem="{Binding Action.KeyChordEditor.SelectedGroup, Mode=TwoWay}" />
                                         <ComboBox
+                                            x:Uid="TouchpadStandardKeyComboBox"
                                             Grid.Column="1"
                                             DisplayMemberPath="Label"
                                             Header="Primary key"
@@ -254,7 +262,6 @@
                             </StackPanel>
 
                             <TextBlock
-                                x:Uid="TouchpadPressureTextBlock"
                                 x:Name="TouchpadPressureTextBlock"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Bottom"
@@ -359,12 +366,12 @@
                                     Width="108"
                                     HorizontalAlignment="Left"
                                     SelectionChanged="OnTouchpadLongPressSelectionChanged">
-                                    <ComboBoxItem Content="500 ms" Tag="500" />
-                                    <ComboBoxItem Content="600 ms" Tag="600" />
-                                    <ComboBoxItem Content="700 ms" Tag="700" />
-                                    <ComboBoxItem Content="800 ms" Tag="800" />
-                                    <ComboBoxItem Content="900 ms" Tag="900" />
-                                    <ComboBoxItem Content="1000 ms" Tag="1000" />
+                                    <ComboBoxItem x:Uid="TouchpadLongPress500Item" Content="500 ms" Tag="500" />
+                                    <ComboBoxItem x:Uid="TouchpadLongPress600Item" Content="600 ms" Tag="600" />
+                                    <ComboBoxItem x:Uid="TouchpadLongPress700Item" Content="700 ms" Tag="700" />
+                                    <ComboBoxItem x:Uid="TouchpadLongPress800Item" Content="800 ms" Tag="800" />
+                                    <ComboBoxItem x:Uid="TouchpadLongPress900Item" Content="900 ms" Tag="900" />
+                                    <ComboBoxItem x:Uid="TouchpadLongPress1000Item" Content="1000 ms" Tag="1000" />
                                 </ComboBox>
                             </Grid>
                         </StackPanel>
@@ -385,6 +392,7 @@
                     Grid.Column="0"
                     Style="{StaticResource PanelCardStyle}">
                     <ListView
+                        SelectionChanged="OnTouchpadActionSelectionChanged"
                         Style="{StaticResource ListHostStyle}"
                         ItemContainerStyle="{StaticResource ListHostItemStyle}"
                         ItemsSource="{Binding Touchpad.AllActionEditors}"

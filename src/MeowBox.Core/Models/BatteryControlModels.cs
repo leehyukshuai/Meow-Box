@@ -91,7 +91,7 @@ public static class BatteryControlCatalog
     public static string GetChargeLimitLabel(int percent)
     {
         return percent >= 100
-            ? LocalizedText.Pick("100% (off)", "100%（关闭）")
+            ? ResourceStringService.GetString("Battery.ChargeLimit.Off", "100% (off)")
             : percent.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
     }
 

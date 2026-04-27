@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MeowBox.Controller.Services;
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
 
@@ -24,11 +25,7 @@ public sealed partial class SettingsPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SyncState();
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            XamlStringLocalizer.Apply(this);
-            ApplyExplicitLocalizedLabels();
-        });
+        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -54,7 +51,6 @@ public sealed partial class SettingsPage : Page
     private void SyncState()
     {
         _isLoading = true;
-        ApplyExplicitLocalizedLabels();
         SelectComboItem(ThemeComboBox, Controller.ThemePreference);
         SelectComboItem(LanguageComboBox, Controller.LanguagePreference);
         SelectComboItem(OsdDisplayModeComboBox, Controller.OsdDisplayMode);
@@ -67,12 +63,6 @@ public sealed partial class SettingsPage : Page
         ConfigPathTextBox.Text = Controller.ConfigPath;
         SupportedDeviceNameTextBlock.Text = Controller.SupportedDeviceName;
         _isLoading = false;
-    }
-
-    private void ApplyExplicitLocalizedLabels()
-    {
-        ThemeSystemItem.Content = LocalizedText.Pick("Use system theme", "跟随系统");
-        LanguageSystemItem.Content = LocalizedText.Pick("Use system language", "跟随系统");
     }
 
     private void ApplyOsdSettingsFromControls()
@@ -146,8 +136,8 @@ public sealed partial class SettingsPage : Page
             if (!await Controller.StartWorkerServiceAsync())
             {
                 await ShowMessageAsync(
-                    Localizer.GetString("Settings.Messages.StartServiceFailed.Title"),
-                    Localizer.GetString("Settings.Messages.StartServiceFailed.Body"));
+                    ResourceStringService.GetString("Settings.Messages.StartServiceFailed.Title", "Could not start service"),
+                    ResourceStringService.GetString("Settings.Messages.StartServiceFailed.Body", "The background worker could not be started or did not respond."));
                 SyncState();
             }
         }
@@ -178,10 +168,10 @@ public sealed partial class SettingsPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = Localizer.GetString("Settings.Messages.RestoreDefaults.Title"),
-            Content = Localizer.GetString("Settings.Messages.RestoreDefaults.Body"),
-            PrimaryButtonText = Localizer.GetString("Dialog.RestoreDefaults"),
-            CloseButtonText = Localizer.GetString("Dialog.Cancel"),
+            Title = ResourceStringService.GetString("Settings.Messages.RestoreDefaults.Title", "Restore defaults?"),
+            Content = ResourceStringService.GetString("Settings.Messages.RestoreDefaults.Body", "This will replace the current configuration with the default settings."),
+            PrimaryButtonText = ResourceStringService.GetString("Dialog.RestoreDefaults", "Restore defaults"),
+            CloseButtonText = ResourceStringService.GetString("Dialog.Cancel", "Cancel"),
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -198,7 +188,7 @@ public sealed partial class SettingsPage : Page
         catch (Exception exception)
         {
             await ShowMessageAsync(
-                Localizer.GetString("Settings.Messages.RestoreDefaultsFailed.Title"),
+                ResourceStringService.GetString("Settings.Messages.RestoreDefaultsFailed.Title", "Could not restore defaults"),
                 exception.Message);
         }
     }
@@ -224,7 +214,7 @@ public sealed partial class SettingsPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = Localizer.GetString("Dialog.Close")
+            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
         };
 
         await dialog.ShowAsync();
@@ -235,10 +225,10 @@ public sealed partial class SettingsPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = Localizer.GetString("Settings.Messages.LanguageRestart.Title"),
-            Content = Localizer.GetString("Settings.Messages.LanguageRestart.Body"),
-            PrimaryButtonText = Localizer.GetString("Dialog.RestartNow"),
-            CloseButtonText = Localizer.GetString("Dialog.Later"),
+            Title = ResourceStringService.GetString("Settings.Messages.LanguageRestart.Title", "Restart required"),
+            Content = ResourceStringService.GetString("Settings.Messages.LanguageRestart.Body", "Language changes will apply after restarting Meow Box."),
+            PrimaryButtonText = ResourceStringService.GetString("Dialog.RestartNow", "Restart now"),
+            CloseButtonText = ResourceStringService.GetString("Dialog.Later", "Later"),
             DefaultButton = ContentDialogButton.Primary
         };
 

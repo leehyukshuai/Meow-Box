@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MeowBox.Core.Models;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.ViewModels;
 
@@ -36,9 +37,9 @@ public sealed class KeyChordEditorViewModel : ObservableObject
 
     public KeyChordModifierItemViewModel WindowsModifier { get; }
 
-    public string ModifiersHeader => LocalizedText.Pick("Modifiers", "修饰键");
+    public string ModifiersHeader => ResourceStringService.GetString("KeyChord.Modifiers.Header", "Modifiers");
 
-    public string PreviewHeader => LocalizedText.Pick("Preview", "预览");
+    public string PreviewHeader => ResourceStringService.GetString("KeyChord.Preview.Header", "Preview");
 
     public StandardKeyGroupOption? SelectedGroup
     {

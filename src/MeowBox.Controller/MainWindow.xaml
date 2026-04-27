@@ -138,6 +138,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
+                    x:Uid="TouchpadItem"
                     x:Name="TouchpadItem"
                     Content="Touch"
                     Tag="touchpad">
@@ -146,6 +147,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
+                    x:Uid="BatteryItem"
                     x:Name="BatteryItem"
                     Content="Battery"
                     Tag="battery">
@@ -154,6 +156,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem
+                    x:Uid="SettingsItem"
                     x:Name="SettingsItem"
                     Content="Settings"
                     Icon="Setting"

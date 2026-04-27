@@ -14,6 +14,7 @@ using MeowBox.Core.Models;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using ShapePath = Microsoft.UI.Xaml.Shapes.Path;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
 
@@ -451,7 +452,7 @@ public sealed partial class TouchpadPage : Page
                 }
             }))
         {
-            completionSource.TrySetException(new InvalidOperationException(LocalizedText.Pick("Could not switch to the UI thread.", "无法切换到 UI 线程。")));
+            completionSource.TrySetException(new InvalidOperationException(ResourceStringService.GetString("Error.UIThread", "Could not switch to the UI thread.")));
         }
 
         return completionSource.Task;
@@ -462,9 +463,9 @@ public sealed partial class TouchpadPage : Page
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = LocalizedText.Pick("Touchpad settings failed", "触控板设置失败"),
+            Title = ResourceStringService.GetString("Touchpad.SettingsFailed.Title", "Touchpad settings failed"),
             Content = message,
-            CloseButtonText = Localizer.GetString("Dialog.Close"),
+            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close"),
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -479,6 +480,11 @@ public sealed partial class TouchpadPage : Page
     private void OnTouchpadContactsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         ScheduleTouchpadStateRefresh();
+    }
+
+    private void OnTouchpadActionSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void RefreshVisibleContacts()
@@ -888,7 +894,7 @@ public sealed partial class TouchpadPage : Page
     {
         TouchpadPressureTextBlock.Text = string.Format(
             System.Globalization.CultureInfo.CurrentCulture,
-            LocalizedText.Pick("Pressure: {0}", "压力：{0}"),
+            ResourceStringService.GetString("Touchpad.Pressure.Format", "Pressure: {0}"),
             (int)Math.Round(pressure));
     }
 
@@ -942,7 +948,7 @@ public sealed partial class TouchpadPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync(Localizer.GetString("Mappings.Messages.SaveFailed.Title"), exception.Message);
+            await ShowMessageAsync(ResourceStringService.GetString("Mappings.Messages.SaveFailed.Title", "Could not save mapping"), exception.Message);
         }
     }
 
@@ -975,7 +981,7 @@ public sealed partial class TouchpadPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = Localizer.GetString("Dialog.Close")
+            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
         };
 
         await dialog.ShowAsync();

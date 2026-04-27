@@ -7,6 +7,7 @@ using MeowBox.Controller.ViewModels;
 using MeowBox.Core.Models;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
 
@@ -167,7 +168,7 @@ public sealed partial class MappingsPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = Localizer.GetString("Dialog.Close")
+            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
         };
 
         await dialog.ShowAsync();
@@ -216,7 +217,7 @@ public sealed partial class MappingsPage : Page
         }
         catch (Exception exception)
         {
-            await ShowMessageAsync(Localizer.GetString("Mappings.Messages.SaveFailed.Title"), exception.Message);
+            await ShowMessageAsync(ResourceStringService.GetString("Mappings.Messages.SaveFailed.Title", "Could not save mapping"), exception.Message);
         }
     }
 

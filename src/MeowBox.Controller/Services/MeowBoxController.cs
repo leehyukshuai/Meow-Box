@@ -38,7 +38,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private bool _batteryControlBusy;
     private bool _batteryStateKnown;
     private bool _batteryControlSupported;
-    private string _batteryControlStatusMessage = LocalizedText.Pick("Start the background service to view or change the current power status.", "请先启动后台服务，才能查看或修改当前电源状态。");
+    private string _batteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.DefaultMessage", "Start the background service to view or change the current power status.");
     private bool _resetPerformanceModeToSmartOnStartup = true;
     private string _currentPerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey;
     private bool _resetChargeLimitToFullOnStartup;
@@ -247,11 +247,11 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     public string ServiceStatusLabel => ServiceState switch
     {
-        WorkerServiceState.Running => LocalizedText.Pick("Running", "运行中"),
-        WorkerServiceState.Starting => LocalizedText.Pick("Starting", "启动中"),
-        WorkerServiceState.Stopping => LocalizedText.Pick("Stopping", "停止中"),
-        WorkerServiceState.UnexpectedlyStopped => LocalizedText.Pick("Worker stopped", "后台已停止运行"),
-        _ => LocalizedText.Pick("Stopped", "已停止")
+        WorkerServiceState.Running => ResourceStringService.GetString("ServiceStatusShort.Running", "Running"),
+        WorkerServiceState.Starting => ResourceStringService.GetString("ServiceStatusShort.Starting", "Starting"),
+        WorkerServiceState.Stopping => ResourceStringService.GetString("ServiceStatusShort.Stopping", "Stopping"),
+        WorkerServiceState.UnexpectedlyStopped => ResourceStringService.GetString("ServiceStatusShort.WorkerStopped", "Worker stopped"),
+        _ => ResourceStringService.GetString("ServiceStatusShort.Stopped", "Stopped")
     };
 
     public string ThemePreference => App.ThemeService.CurrentPreference;
@@ -432,7 +432,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public async Task<bool> EnsureBatteryControlReadyAsync()
     {
         BatteryControlBusy = true;
-        BatteryControlStatusMessage = LocalizedText.Pick("Preparing battery controls...", "正在准备电池控制……");
+        BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.Preparing", "Preparing battery controls...");
 
         try
         {
@@ -453,7 +453,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
                 if (!_workerProcessService.StartWorker())
                 {
                     MarkWorkerStopped();
-                    BatteryControlStatusMessage = LocalizedText.Pick("Could not start the elevated worker.", "无法启动管理员后台服务。");
+                    BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.CouldNotStartElevated", "Could not start the elevated worker.");
                     return false;
                 }
 
@@ -463,7 +463,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
             if (!await WaitForWorkerReadyAsync(requireElevated: true))
             {
-                BatteryControlStatusMessage = LocalizedText.Pick("The worker did not enter elevated mode.", "后台服务未进入管理员模式。");
+                BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.NotElevated", "The worker did not enter elevated mode.");
                 return false;
             }
 
@@ -483,7 +483,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public async Task<bool> RefreshBatteryControlStateAsync()
     {
         BatteryControlBusy = true;
-        BatteryControlStatusMessage = LocalizedText.Pick("Reading battery controls...", "正在读取电池控制……");
+        BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.Reading", "Reading battery controls...");
 
         try
         {
@@ -502,7 +502,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         CurrentPerformanceModeKey = normalizedModeKey;
         BatteryStateKnown = true;
         BatteryControlSupported = true;
-        BatteryControlStatusMessage = LocalizedText.Pick("Updating performance mode...", "正在切换性能模式……");
+        BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.UpdatingPerformance", "Updating performance mode...");
         BatteryControlBusy = true;
         try
         {
@@ -514,13 +514,13 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
             if (response?.Success != true)
             {
-                throw new InvalidOperationException(response?.Error ?? LocalizedText.Pick("Could not change the performance mode.", "无法切换性能模式。"));
+                throw new InvalidOperationException(response?.Error ?? ResourceStringService.GetString("Battery.Status.CouldNotChangePerformance", "Could not change the performance mode."));
             }
 
             _configuration.Preferences.PreferredPerformanceModeKey = normalizedModeKey;
             SaveConfiguration();
             ApplyWorkerSnapshot(response.Status);
-            BatteryControlStatusMessage = LocalizedText.Pick("Performance mode updated.", "性能模式已更新。");
+            BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.PerformanceUpdated", "Performance mode updated.");
         }
         catch
         {
@@ -547,7 +547,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         CurrentChargeLimitPercent = normalizedPercent;
         BatteryStateKnown = true;
         BatteryControlSupported = true;
-        BatteryControlStatusMessage = LocalizedText.Pick("Updating charge limit...", "正在切换充电限制……");
+        BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.UpdatingCharge", "Updating charge limit...");
         BatteryControlBusy = true;
         try
         {
@@ -559,13 +559,13 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
             if (response?.Success != true)
             {
-                throw new InvalidOperationException(response?.Error ?? LocalizedText.Pick("Could not change the charge limit.", "无法切换充电限制。"));
+                throw new InvalidOperationException(response?.Error ?? ResourceStringService.GetString("Battery.Status.CouldNotChangeCharge", "Could not change the charge limit."));
             }
 
             _configuration.Preferences.PreferredChargeLimitPercent = normalizedPercent;
             SaveConfiguration();
             ApplyWorkerSnapshot(response.Status);
-            BatteryControlStatusMessage = LocalizedText.Pick("Charge limit updated.", "充电限制已更新。");
+            BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.ChargeUpdated", "Charge limit updated.");
         }
         catch
         {
@@ -588,7 +588,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public async Task<bool> StartWorkerServiceAsync()
     {
         SetServiceState(WorkerServiceState.Starting, false);
-        MarkBatteryStateUnknown(LocalizedText.Pick("Waiting for the background service to report the current power status...", "正在等待后台服务上报当前电源状态……"));
+        MarkBatteryStateUnknown(ResourceStringService.GetString("Battery.Status.WaitingReport", "Waiting for the background service to report the current power status..."));
         await _serviceOperationGate.WaitAsync();
         try
         {
@@ -655,7 +655,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public async Task StopWorkerServiceAsync()
     {
         SetServiceState(WorkerServiceState.Stopping, false);
-        MarkBatteryStateUnknown(LocalizedText.Pick("The background service is stopping...", "后台服务正在停止……"));
+        MarkBatteryStateUnknown(ResourceStringService.GetString("Battery.Status.Stopping", "The background service is stopping..."));
         await _serviceOperationGate.WaitAsync();
         try
         {
@@ -837,7 +837,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             var key = keyLookup.TryGetValue(mapping.KeyId, out var keyVm)
                 ? keyVm
                 : null;
-            mapping.UpdateDisplay(key?.ListTitle ?? LocalizedText.Pick("Unknown key", "未知按键"));
+            mapping.UpdateDisplay(key?.ListTitle ?? ResourceStringService.GetString("Mapping.UnknownKey", "Unknown key"));
         }
 
         UpdateActionSelectionState();
@@ -1058,7 +1058,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
         if (response?.Success != true || response.Battery is null)
         {
-            MarkBatteryStateUnknown(response?.Error ?? LocalizedText.Pick("Could not read the battery controls.", "无法读取电池控制。"));
+            MarkBatteryStateUnknown(response?.Error ?? ResourceStringService.GetString("Battery.Status.CouldNotRead", "Could not read the battery controls."));
             ApplyWorkerSnapshot(response?.Status);
             return false;
         }
@@ -1067,11 +1067,11 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         ApplyBatteryState(response.Battery);
         if (response.Battery.Supported)
         {
-            BatteryControlStatusMessage = LocalizedText.Pick("Connected to low-level battery controls.", "已连接到底层电池控制。");
+            BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.Connected", "Connected to low-level battery controls.");
             return true;
         }
 
-        BatteryControlStatusMessage = LocalizedText.Pick("This device does not expose the required battery controls.", "这台设备没有暴露所需的电池控制接口。");
+        BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.NotSupported", "This device does not expose the required battery controls.");
         return false;
     }
 
@@ -1281,15 +1281,15 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
         if (!isRunning)
         {
-            return LocalizedText.Pick("Start the background service to view or change the current power status.", "请先启动后台服务，才能查看或修改当前电源状态。");
+            return ResourceStringService.GetString("Battery.Status.DefaultMessage", "Start the background service to view or change the current power status.");
         }
 
         if (!isElevated)
         {
-            return LocalizedText.Pick("Restart the background service with admin rights to view or change the current power status.", "请以管理员权限重新启动后台服务，才能查看或修改当前电源状态。");
+            return ResourceStringService.GetString("Battery.Status.NeedAdmin", "Restart the background service with admin rights to view or change the current power status.");
         }
 
-        return LocalizedText.Pick("Waiting for the background service to report the current power status...", "正在等待后台服务上报当前电源状态……");
+        return ResourceStringService.GetString("Battery.Status.WaitingReport", "Waiting for the background service to report the current power status...");
     }
 
     private void ApplyActionType(string type)

@@ -12,8 +12,6 @@ public static class XamlStringLocalizer
     private static readonly object SyncRoot = new();
     private static IReadOnlyDictionary<string, string>? _englishResources;
     private static IReadOnlyDictionary<string, string>? _chineseResources;
-    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? _englishPropertyValueMap;
-    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? _chinesePropertyValueMap;
 
     public static void Apply(object root)
     {
@@ -23,15 +21,14 @@ public static class XamlStringLocalizer
         }
 
         var resources = GetResourcesForCurrentLanguage();
-        var propertyValueMap = GetPropertyValueMapForCurrentLanguage();
-        if (resources.Count == 0 && propertyValueMap.Count == 0)
+        if (resources.Count == 0)
         {
             return;
         }
 
         foreach (var instance in EnumerateObjects(root))
         {
-            ApplyToInstance(instance, resources, propertyValueMap);
+            ApplyToInstance(instance, resources);
         }
     }
 
@@ -82,26 +79,6 @@ public static class XamlStringLocalizer
         }
     }
 
-    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetPropertyValueMapForCurrentLanguage()
-    {
-        var useChinese = CultureInfo.CurrentUICulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
-
-        lock (SyncRoot)
-        {
-            _englishResources ??= LoadFlatResources(AppLanguageService.EnglishTag);
-            _chineseResources ??= LoadFlatResources(AppLanguageService.ChineseTag);
-
-            if (useChinese)
-            {
-                _chinesePropertyValueMap ??= BuildPropertyValueMap(_englishResources, _chineseResources, _chineseResources);
-                return _chinesePropertyValueMap;
-            }
-
-            _englishPropertyValueMap ??= BuildPropertyValueMap(_englishResources, _chineseResources, _englishResources);
-            return _englishPropertyValueMap;
-        }
-    }
-
     private static IReadOnlyDictionary<string, string> LoadFlatResources(string languageTag)
     {
         var path = Path.Combine(AppContext.BaseDirectory, "Strings", languageTag, "Resources.resw");
@@ -129,46 +106,6 @@ public static class XamlStringLocalizer
         }
 
         return resources;
-    }
-
-    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> BuildPropertyValueMap(
-        IReadOnlyDictionary<string, string> englishResources,
-        IReadOnlyDictionary<string, string> chineseResources,
-        IReadOnlyDictionary<string, string> targetResources)
-    {
-        var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
-
-        foreach (var pair in targetResources)
-        {
-            var separatorIndex = pair.Key.IndexOf('.');
-            if (separatorIndex <= 0 || separatorIndex >= pair.Key.Length - 1)
-            {
-                continue;
-            }
-
-            var propertyName = pair.Key[(separatorIndex + 1)..];
-            if (!result.TryGetValue(propertyName, out var values))
-            {
-                values = new Dictionary<string, string>(StringComparer.Ordinal);
-                result[propertyName] = values;
-            }
-
-            values[pair.Value] = pair.Value;
-            if (englishResources.TryGetValue(pair.Key, out var englishValue) && !string.IsNullOrWhiteSpace(englishValue))
-            {
-                values[englishValue] = pair.Value;
-            }
-
-            if (chineseResources.TryGetValue(pair.Key, out var chineseValue) && !string.IsNullOrWhiteSpace(chineseValue))
-            {
-                values[chineseValue] = pair.Value;
-            }
-        }
-
-        return result.ToDictionary(
-            pair => pair.Key,
-            pair => (IReadOnlyDictionary<string, string>)pair.Value,
-            StringComparer.Ordinal);
     }
 
     private static IEnumerable<object> EnumerateObjects(object root)
@@ -223,11 +160,13 @@ public static class XamlStringLocalizer
 
     private static void ApplyToInstance(
         object instance,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> resources,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> propertyValueMap)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> resources)
     {
         var uid = instance.GetType().GetProperty("Uid", BindingFlags.Instance | BindingFlags.Public)?.GetValue(instance) as string;
-        resources.TryGetValue(uid ?? string.Empty, out var uidProperties);
+        if (string.IsNullOrEmpty(uid) || !resources.TryGetValue(uid, out var uidProperties))
+        {
+            return;
+        }
 
         foreach (var property in instance.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
@@ -241,18 +180,9 @@ public static class XamlStringLocalizer
                 continue;
             }
 
-            if (uidProperties is not null && uidProperties.TryGetValue(property.Name, out var explicitValue))
+            if (uidProperties.TryGetValue(property.Name, out var value))
             {
-                property.SetValue(instance, explicitValue);
-                continue;
-            }
-
-            if (property.GetValue(instance) is string currentValue &&
-                propertyValueMap.TryGetValue(property.Name, out var valueMap) &&
-                valueMap.TryGetValue(currentValue, out var localizedValue) &&
-                !string.Equals(currentValue, localizedValue, StringComparison.Ordinal))
-            {
-                property.SetValue(instance, localizedValue);
+                property.SetValue(instance, value);
             }
         }
     }

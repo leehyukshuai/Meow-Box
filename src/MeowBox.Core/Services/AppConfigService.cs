@@ -287,7 +287,7 @@ public sealed class AppConfigService
         return new KeyDefinitionConfiguration
         {
             Id = NormalizeId(key.Id),
-            Name = NormalizeName(key.Name, LocalizedText.Pick("Unnamed key", "未命名按键")),
+            Name = NormalizeName(key.Name, ResourceStringService.GetString("Key.Unnamed", "Unnamed key")),
             Trigger = key.Trigger ?? new EventMatcherConfiguration()
         };
     }

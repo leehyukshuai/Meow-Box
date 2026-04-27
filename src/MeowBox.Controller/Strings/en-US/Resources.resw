@@ -15,24 +15,6 @@
   <data name="App.Title" xml:space="preserve">
     <value>Meow Box</value>
   </data>
-  <data name="Navigation.Keys" xml:space="preserve">
-    <value>Keys</value>
-  </data>
-  <data name="Navigation.Mappings" xml:space="preserve">
-    <value>Keyboard</value>
-  </data>
-  <data name="Navigation.Settings" xml:space="preserve">
-    <value>Settings</value>
-  </data>
-  <data name="PageTitle.Keys" xml:space="preserve">
-    <value>Keys</value>
-  </data>
-  <data name="PageTitle.Mappings" xml:space="preserve">
-    <value>Keyboard</value>
-  </data>
-  <data name="PageTitle.Settings" xml:space="preserve">
-    <value>Settings</value>
-  </data>
   <data name="ServiceStatus.Running" xml:space="preserve">
     <value>Service running</value>
   </data>
@@ -66,17 +48,11 @@
   <data name="Dialog.Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="Dialog.Delete" xml:space="preserve">
-    <value>Delete</value>
-  </data>
   <data name="Dialog.Later" xml:space="preserve">
     <value>Later</value>
   </data>
   <data name="Dialog.RestartNow" xml:space="preserve">
     <value>Restart now</value>
-  </data>
-  <data name="Dialog.RestartService" xml:space="preserve">
-    <value>Restart service</value>
   </data>
   <data name="Settings.Messages.StartServiceFailed.Title" xml:space="preserve">
     <value>Could not start service</value>
@@ -84,77 +60,14 @@
   <data name="Settings.Messages.StartServiceFailed.Body" xml:space="preserve">
     <value>The background worker could not be started or did not respond.</value>
   </data>
-  <data name="Settings.Messages.ImportFailed.Title" xml:space="preserve">
-    <value>Could not import configuration</value>
-  </data>
-  <data name="Settings.Messages.ImportApplied.Title" xml:space="preserve">
-    <value>Configuration imported</value>
-  </data>
-  <data name="Settings.Messages.ImportApplied.BodyServiceRunning" xml:space="preserve">
-    <value>The file has been imported. Restart the service to apply it.</value>
-  </data>
-  <data name="Settings.Messages.ImportApplied.BodyServiceStopped" xml:space="preserve">
-    <value>The file has been imported. Start the service when you are ready to apply it.</value>
-  </data>
-  <data name="Settings.Messages.RestartServiceFailed.Title" xml:space="preserve">
-    <value>Could not restart service</value>
-  </data>
-  <data name="Settings.Messages.RestartServiceFailed.Body" xml:space="preserve">
-    <value>The background worker could not be restarted.</value>
-  </data>
   <data name="Settings.Messages.LanguageRestart.Title" xml:space="preserve">
     <value>Restart required</value>
   </data>
   <data name="Settings.Messages.LanguageRestart.Body" xml:space="preserve">
     <value>Language changes will apply after restarting Meow Box.</value>
   </data>
-  <data name="Keys.Messages.ServiceStopped.Title" xml:space="preserve">
-    <value>Background service is stopped</value>
-  </data>
-  <data name="Keys.Messages.ServiceStopped.Body" xml:space="preserve">
-    <value>Start the background service in Settings before capturing a new key.</value>
-  </data>
-  <data name="Keys.Messages.AddFailed.Title" xml:space="preserve">
-    <value>Could not add key</value>
-  </data>
-  <data name="Keys.Messages.SaveFailed.Title" xml:space="preserve">
-    <value>Could not save key</value>
-  </data>
-  <data name="Keys.Messages.Delete.Title" xml:space="preserve">
-    <value>Delete key</value>
-  </data>
-  <data name="Keys.Messages.Delete.Body" xml:space="preserve">
-    <value>This will also delete mappings that use the selected key.</value>
-  </data>
-  <data name="Mappings.Messages.AddFailed.Title" xml:space="preserve">
-    <value>Could not add mapping</value>
-  </data>
-  <data name="Mappings.Messages.Delete.Title" xml:space="preserve">
-    <value>Delete mapping</value>
-  </data>
-  <data name="Mappings.Messages.Delete.Body" xml:space="preserve">
-    <value>Delete the selected mapping?</value>
-  </data>
   <data name="Mappings.Messages.SaveFailed.Title" xml:space="preserve">
     <value>Could not save mapping</value>
-  </data>
-  <data name="Mappings.NoIcon" xml:space="preserve">
-    <value>No icon</value>
-  </data>
-  <data name="AddKey.CaptureWaiting" xml:space="preserve">
-    <value>Waiting for the next hardware key...</value>
-  </data>
-  <data name="AddKey.CaptureCancelled" xml:space="preserve">
-    <value>Capture was cancelled or timed out.</value>
-  </data>
-  <data name="AddKey.CaptureSuccess" xml:space="preserve">
-    <value>Key captured.</value>
-  </data>
-  <data name="AddKey.NameExists" xml:space="preserve">
-    <value>This key name already exists.</value>
-  </data>
-  <data name="AddKey.CaptureReady" xml:space="preserve">
-    <value>Ready to capture a hardware key.</value>
   </data>
   <data name="AppPicker.NoInstalledApps" xml:space="preserve">
     <value>No installed apps were returned by Get-StartApps.</value>
@@ -165,53 +78,11 @@
   <data name="AppTitleTextBlock.Text" xml:space="preserve">
     <value>Meow Box</value>
   </data>
-  <data name="KeysItem.Content" xml:space="preserve">
-    <value>Keys</value>
-  </data>
   <data name="MappingsItem.Content" xml:space="preserve">
-    <value>Mappings</value>
-  </data>
-  <data name="KeysPageSavedKeysText.Text" xml:space="preserve">
-    <value>Saved keys</value>
-  </data>
-  <data name="KeysPageCaptureButtonText.Text" xml:space="preserve">
-    <value>Capture key</value>
-  </data>
-  <data name="KeysPageCapturedVendorEventText.Text" xml:space="preserve">
-    <value>Captured vendor event</value>
-  </data>
-  <data name="KeysPageEmptyTitleText.Text" xml:space="preserve">
-    <value>No keys yet</value>
-  </data>
-  <data name="KeysPageEmptyBodyText.Text" xml:space="preserve">
-    <value>Capture a key to get started.</value>
-  </data>
-  <data name="KeyDetailsTitleText.Text" xml:space="preserve">
-    <value>Key details</value>
-  </data>
-  <data name="KeyDeleteButtonText.Text" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="KeyNameTextBox.Header" xml:space="preserve">
-    <value>Name</value>
-  </data>
-  <data name="KeyNameTextBox.PlaceholderText" xml:space="preserve">
-    <value>Key name</value>
-  </data>
-  <data name="KeyTriggerTextBox.Header" xml:space="preserve">
-    <value>Captured event</value>
-  </data>
-  <data name="KeyDetailsEmptyTitleText.Text" xml:space="preserve">
-    <value>No key selected</value>
-  </data>
-  <data name="KeyDetailsEmptyBodyText.Text" xml:space="preserve">
-    <value>Pick a key from the list or capture a new one.</value>
+    <value>Keyboard</value>
   </data>
   <data name="MappingsPageListTitleText.Text" xml:space="preserve">
     <value>Keyboard</value>
-  </data>
-  <data name="MappingsPageAddMappingButtonText.Text" xml:space="preserve">
-    <value>Add mapping</value>
   </data>
   <data name="MappingsPageEmptyTitleText.Text" xml:space="preserve">
     <value>No mappings yet</value>
@@ -221,21 +92,6 @@
   </data>
   <data name="MappingDetailsTitleText.Text" xml:space="preserve">
     <value>Keyboard action</value>
-  </data>
-  <data name="MappingDeleteButtonText.Text" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="ChooseKeyEyebrowText.Text" xml:space="preserve">
-    <value>Choose key</value>
-  </data>
-  <data name="ChooseKeyDescriptionText.Text" xml:space="preserve">
-    <value>Pick the OEM key event this mapping should respond to.</value>
-  </data>
-  <data name="KeySelectorCombo.Header" xml:space="preserve">
-    <value>Choose key</value>
-  </data>
-  <data name="ChooseActionEyebrowText.Text" xml:space="preserve">
-    <value>Choose action</value>
   </data>
   <data name="ChooseActionDescriptionText.Text" xml:space="preserve">
     <value>Choose what happens after that key is pressed.</value>
@@ -260,12 +116,6 @@
   </data>
   <data name="ArgumentsTextBox.PlaceholderText" xml:space="preserve">
     <value>Optional launch arguments</value>
-  </data>
-  <data name="StandardKeyTitleText.Text" xml:space="preserve">
-    <value>Key or shortcut</value>
-  </data>
-  <data name="StandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>Choose the modifiers and primary key this OEM key should emit.</value>
   </data>
   <data name="StandardKeyGroupComboBox.Header" xml:space="preserve">
     <value>Primary key group</value>
@@ -339,24 +189,6 @@
   <data name="OsdEnabledToggleSwitch.Header" xml:space="preserve">
     <value>Show OSD</value>
   </data>
-  <data name="OsdTitleLabelText.Text" xml:space="preserve">
-    <value>Title</value>
-  </data>
-  <data name="OsdTitleTextBox.Header" xml:space="preserve">
-    <value>Title</value>
-  </data>
-  <data name="OsdTitleHintText.Text" xml:space="preserve">
-    <value>Up to 32 characters.</value>
-  </data>
-  <data name="OsdIconLabelText.Text" xml:space="preserve">
-    <value>Icon</value>
-  </data>
-  <data name="OsdIconComboBox.Header" xml:space="preserve">
-    <value>Icon</value>
-  </data>
-  <data name="OsdIconHintText.Text" xml:space="preserve">
-    <value>Manage OSD icon files from Settings.</value>
-  </data>
   <data name="MappingDetailsEmptyTitleText.Text" xml:space="preserve">
     <value>No mapping selected</value>
   </data>
@@ -384,48 +216,6 @@
   <data name="ActionPickerSearchTextBox.PlaceholderText" xml:space="preserve">
     <value>Type part of the action name</value>
   </data>
-  <data name="AddKeyDialog.PrimaryButtonText" xml:space="preserve">
-    <value>Add key</value>
-  </data>
-  <data name="AddKeyDialog.CloseButtonText" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
-  <data name="AddKeyCaptureEyebrowText.Text" xml:space="preserve">
-    <value>Capture</value>
-  </data>
-  <data name="AddKeyTitleText.Text" xml:space="preserve">
-    <value>Capture a hardware key</value>
-  </data>
-  <data name="AddKeyDescriptionText.Text" xml:space="preserve">
-    <value>Click Start capture, press the hardware key, then name it.</value>
-  </data>
-  <data name="AddKeyCaptureCardTitleText.Text" xml:space="preserve">
-    <value>Start capture</value>
-  </data>
-  <data name="AddKeyCaptureCardBodyText.Text" xml:space="preserve">
-    <value>Press the button below. The next hardware key you press will be captured.</value>
-  </data>
-  <data name="StartCaptureButtonText.Text" xml:space="preserve">
-    <value>Start capture</value>
-  </data>
-  <data name="CaptureAgainButtonText.Text" xml:space="preserve">
-    <value>Capture again</value>
-  </data>
-  <data name="CaptureWaitingInlineText.Text" xml:space="preserve">
-    <value>Waiting for the next hardware key...</value>
-  </data>
-  <data name="CaptureInfoBar.Title" xml:space="preserve">
-    <value>Capture status</value>
-  </data>
-  <data name="AddKeyNameTextBox.Header" xml:space="preserve">
-    <value />
-  </data>
-  <data name="AddKeyNameTextBox.PlaceholderText" xml:space="preserve">
-    <value>Enter a name for this key</value>
-  </data>
-  <data name="AddKeyTriggerTextBox.Header" xml:space="preserve">
-    <value>Captured event</value>
-  </data>
   <data name="AppPickerDialog.PrimaryButtonText" xml:space="preserve">
     <value>Choose app</value>
   </data>
@@ -449,9 +239,6 @@
   </data>
   <data name="LoadingInfoBar.Title" xml:space="preserve">
     <value>Installed apps</value>
-  </data>
-  <data name="SettingsPageTitleText.Text" xml:space="preserve">
-    <value>Settings</value>
   </data>
   <data name="ServiceCardTitleText.Text" xml:space="preserve">
     <value>Service</value>
@@ -516,66 +303,6 @@
   <data name="OsdScaleNumberBox.Header" xml:space="preserve">
     <value>OSD size (%)</value>
   </data>
-  <data name="TouchpadLongPressDurationNumberBox.Header" xml:space="preserve">
-    <value>Touchpad long press (ms)</value>
-  </data>
-  <data name="OsdIconFolderTextBox.Header" xml:space="preserve">
-    <value>OSD icon folder</value>
-  </data>
-  <data name="OpenOsdIconFolderButton.Content" xml:space="preserve">
-    <value>Open icon folder</value>
-  </data>
-  <data name="RefreshOsdIconFolderButton.Content" xml:space="preserve">
-    <value>Refresh icons</value>
-  </data>
-  <data name="OsdIconSpecText.Text" xml:space="preserve">
-    <value>Icon spec: transparent PNG, square canvas, 256x256 recommended, single-color glyph, and leave some padding near the edge.</value>
-  </data>
-  <data name="FilesCardTitleText.Text" xml:space="preserve">
-    <value>Files</value>
-  </data>
-  <data name="PresetDescriptionText.Text" xml:space="preserve">
-    <value>Preset files live in their own folder. Copy JSON presets there, refresh the list, then load one.</value>
-  </data>
-  <data name="PresetDirectoryTextBox.Header" xml:space="preserve">
-    <value>Preset folder</value>
-  </data>
-  <data name="OpenPresetFolderButton.Content" xml:space="preserve">
-    <value>Open preset folder</value>
-  </data>
-  <data name="RefreshConfigFilesButton.Content" xml:space="preserve">
-    <value>Refresh list</value>
-  </data>
-  <data name="ConfigFilesComboBox.Header" xml:space="preserve">
-    <value>Preset files</value>
-  </data>
-  <data name="ConfigFilesComboBox.PlaceholderText" xml:space="preserve">
-    <value>No preset JSON files found</value>
-  </data>
-  <data name="LoadPresetButton.Content" xml:space="preserve">
-    <value>Load preset</value>
-  </data>
-  <data name="AddKeyNameCardTitleText.Text" xml:space="preserve">
-    <value>Key name</value>
-  </data>
-  <data name="AddKeyNameCardBodyText.Text" xml:space="preserve">
-    <value>This is the main label you will see later in mappings and presets.</value>
-  </data>
-  <data name="AddKeyTriggerCardTitleText.Text" xml:space="preserve">
-    <value>Captured event</value>
-  </data>
-  <data name="AddKeyTriggerCardBodyText.Text" xml:space="preserve">
-    <value>Compact preview only. Just enough to confirm the key.</value>
-  </data>
-  <data name="AddKeyNameLabelText.Text" xml:space="preserve">
-    <value>Name this key</value>
-  </data>
-  <data name="MappingFixedKeyEyebrowText.Text" xml:space="preserve">
-    <value>Trigger</value>
-  </data>
-  <data name="MappingFixedKeyDescriptionText.Text" xml:space="preserve">
-    <value>This Xiaomi Book Pro hardware key is fixed. You can only change what it does.</value>
-  </data>
   <data name="ClearActionButtonText.Content" xml:space="preserve">
     <value>Clear action</value>
   </data>
@@ -594,62 +321,11 @@
   <data name="OpenConfigFolderButton.Content" xml:space="preserve">
     <value>Open config folder</value>
   </data>
-  <data name="Navigation.Touchpad" xml:space="preserve">
-    <value>Touch</value>
-  </data>
-  <data name="PageTitle.Touchpad" xml:space="preserve">
-    <value>Touch</value>
-  </data>
-  <data name="TouchpadPageTitleText.Text" xml:space="preserve">
-    <value>Touch</value>
-  </data>
-  <data name="TouchpadStatusTitleText.Text" xml:space="preserve">
-    <value>Live pressure</value>
-  </data>
-  <data name="TouchpadStatusDescriptionText.Text" xml:space="preserve">
-    <value>Live pressure and contact state are read from raw touchpad HID frames.</value>
-  </data>
-  <data name="TouchpadMetricPressureLabelText.Text" xml:space="preserve">
-    <value>Pressure</value>
-  </data>
-  <data name="TouchpadMetricPeakLabelText.Text" xml:space="preserve">
-    <value>Peak</value>
-  </data>
-  <data name="TouchpadMetricThresholdLabelText.Text" xml:space="preserve">
-    <value>Threshold</value>
-  </data>
-  <data name="TouchpadMetricContactsLabelText.Text" xml:space="preserve">
-    <value>Contacts</value>
-  </data>
-  <data name="TouchpadVisualizerTitleText.Text" xml:space="preserve">
-    <value>Touchpad surface</value>
-  </data>
-  <data name="TouchpadVisualizerDescriptionText.Text" xml:space="preserve">
-    <value>Each contact shows its own live pressure, while the right meter stays on a fixed 0-2500 scale.</value>
-  </data>
   <data name="TouchpadVisualizerEmptyTitleText.Text" xml:space="preserve">
     <value>Waiting for touchpad input</value>
   </data>
   <data name="TouchpadVisualizerEmptyBodyText.Text" xml:space="preserve">
     <value>Start the service and touch the pad to see live contact pressure.</value>
-  </data>
-  <data name="TouchpadEnableTitleText.Text" xml:space="preserve">
-    <value>Enable deep press action</value>
-  </data>
-  <data name="TouchpadEnableDescriptionText.Text" xml:space="preserve">
-    <value>A deep press uses the built-in threshold and runs the selected action once.</value>
-  </data>
-  <data name="TouchpadThresholdNumberBox.Header" xml:space="preserve">
-    <value>Deep press threshold</value>
-  </data>
-  <data name="TouchpadActionCardTitleText.Text" xml:space="preserve">
-    <value>Current action</value>
-  </data>
-  <data name="TouchpadActionTitleText.Text" xml:space="preserve">
-    <value>Deep press action</value>
-  </data>
-  <data name="TouchpadActionDescriptionText.Text" xml:space="preserve">
-    <value>Choose what to run when the touchpad reaches the built-in deep press level.</value>
   </data>
   <data name="TouchpadChooseActionButtonText.Text" xml:space="preserve">
     <value>Choose action</value>
@@ -675,12 +351,6 @@
   <data name="TouchpadArgumentsTextBox.PlaceholderText" xml:space="preserve">
     <value>Optional launch arguments</value>
   </data>
-  <data name="TouchpadStandardKeyTitleText.Text" xml:space="preserve">
-    <value>Key or shortcut</value>
-  </data>
-  <data name="TouchpadStandardKeyDescriptionText.Text" xml:space="preserve">
-    <value>Choose the modifiers and primary key that should be emitted.</value>
-  </data>
   <data name="TouchpadStandardKeyGroupComboBox.Header" xml:space="preserve">
     <value>Primary key group</value>
   </data>
@@ -689,15 +359,6 @@
   </data>
   <data name="OsdSettingsTitleText.Text" xml:space="preserve">
     <value>OSD</value>
-  </data>
-  <data name="TouchpadSettingsTitleText.Text" xml:space="preserve">
-    <value>Touch</value>
-  </data>
-  <data name="TouchpadLightPressThresholdNumberBox.Header" xml:space="preserve">
-    <value>Touchpad light press</value>
-  </data>
-  <data name="TouchpadLightPressThresholdDescriptionText.Text" xml:space="preserve">
-    <value>Only affects this app's light-press threshold and is unrelated to vibration feedback. Adjust it until it just reaches the force that triggers your computer's light-press vibration feedback (usually 105, 125, or 150).</value>
   </data>
   <data name="Dialog.RestoreDefaults" xml:space="preserve">
     <value>Restore defaults</value>
@@ -714,4 +375,697 @@
   <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
     <value>Could not restore defaults</value>
   </data>
-<data name="Navigation.Battery" xml:space="preserve"><value>Battery</value></data><data name="PageTitle.Battery" xml:space="preserve"><value>Battery</value></data><data name="BatteryRefreshButton.Content" xml:space="preserve"><value>Refresh</value></data><data name="BatteryPerformanceTitleText.Text" xml:space="preserve"><value>Performance</value></data><data name="BatteryChargeTitleText.Text" xml:space="preserve"><value>Charge limit</value></data><data name="BatteryChargeInfoBar.Message" xml:space="preserve"><value>Keeping a lower charge limit can help extend battery lifespan; in hotter conditions, staying fully charged for long periods can accelerate battery aging.</value></data><data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve"><value>Press sensitivity</value></data><data name="TouchpadPressSensitivityLowItem.Content" xml:space="preserve"><value>Low</value></data><data name="TouchpadPressSensitivityMediumItem.Content" xml:space="preserve"><value>Medium</value></data><data name="TouchpadPressSensitivityHighItem.Content" xml:space="preserve"><value>High</value></data><data name="TouchpadFeedbackLabelText.Text" xml:space="preserve"><value>Vibration strength</value></data><data name="TouchpadFeedbackWeakItem.Content" xml:space="preserve"><value>Weak</value></data><data name="TouchpadFeedbackMediumItem.Content" xml:space="preserve"><value>Medium</value></data><data name="TouchpadFeedbackStrongItem.Content" xml:space="preserve"><value>Strong</value></data><data name="TouchpadDeepPressFeedbackLabelText.Text" xml:space="preserve"><value>Deep press haptics</value></data><data name="TouchpadDeepPressFeedbackOffItem.Content" xml:space="preserve"><value>Off</value></data><data name="TouchpadDeepPressFeedbackOnItem.Content" xml:space="preserve"><value>On</value></data><data name="TouchpadEdgeSlideLabelText.Text" xml:space="preserve"><value>Edge slide</value></data><data name="TouchpadEdgeSlideOffItem.Content" xml:space="preserve"><value>Off</value></data><data name="TouchpadEdgeSlideOnItem.Content" xml:space="preserve"><value>On</value></data><data name="TouchpadLongPressLabelText.Text" xml:space="preserve"><value>Long press duration</value></data><data name="TouchpadPressureTextBlock.Text" xml:space="preserve"><value>Pressure: 0</value></data></root>
+  <data name="BatteryRefreshButton.Content" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="BatteryPerformanceTitleText.Text" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="BatteryChargeTitleText.Text" xml:space="preserve">
+    <value>Charge limit</value>
+  </data>
+  <data name="BatteryChargeInfoBar.Message" xml:space="preserve">
+    <value>Keeping a lower charge limit can help extend battery lifespan; in hotter conditions, staying fully charged for long periods can accelerate battery aging.</value>
+  </data>
+  <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
+    <value>Press sensitivity</value>
+  </data>
+  <data name="TouchpadPressSensitivityLowItem.Content" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="TouchpadPressSensitivityMediumItem.Content" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="TouchpadPressSensitivityHighItem.Content" xml:space="preserve">
+    <value>High</value>
+  </data>
+  <data name="TouchpadFeedbackLabelText.Text" xml:space="preserve">
+    <value>Vibration strength</value>
+  </data>
+  <data name="TouchpadFeedbackWeakItem.Content" xml:space="preserve">
+    <value>Weak</value>
+  </data>
+  <data name="TouchpadFeedbackMediumItem.Content" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="TouchpadFeedbackStrongItem.Content" xml:space="preserve">
+    <value>Strong</value>
+  </data>
+  <data name="TouchpadDeepPressFeedbackLabelText.Text" xml:space="preserve">
+    <value>Deep press haptics</value>
+  </data>
+  <data name="TouchpadDeepPressFeedbackOffItem.Content" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="TouchpadDeepPressFeedbackOnItem.Content" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="TouchpadLongPressLabelText.Text" xml:space="preserve">
+    <value>Long press duration</value>
+  </data>
+  <data name="StandardKeyGroup.Navigation" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="StandardKeyGroup.Editing" xml:space="preserve">
+    <value>Editing</value>
+  </data>
+  <data name="StandardKeyGroup.Modifiers" xml:space="preserve">
+    <value>Modifiers</value>
+  </data>
+  <data name="StandardKeyGroup.Function" xml:space="preserve">
+    <value>Function</value>
+  </data>
+  <data name="StandardKeyGroup.Letters" xml:space="preserve">
+    <value>Letters</value>
+  </data>
+  <data name="StandardKeyGroup.Numbers" xml:space="preserve">
+    <value>Numbers</value>
+  </data>
+  <data name="StandardKeyGroup.Symbols" xml:space="preserve">
+    <value>Symbols</value>
+  </data>
+  <data name="StandardKeyGroup.Numpad" xml:space="preserve">
+    <value>Numpad</value>
+  </data>
+  <data name="StandardKeyGroup.Browser" xml:space="preserve">
+    <value>Browser</value>
+  </data>
+  <data name="KeyChordModifier.Win" xml:space="preserve">
+    <value>Win</value>
+  </data>
+  <data name="StandardKey.LeftArrow" xml:space="preserve">
+    <value>Left Arrow</value>
+  </data>
+  <data name="StandardKey.UpArrow" xml:space="preserve">
+    <value>Up Arrow</value>
+  </data>
+  <data name="StandardKey.RightArrow" xml:space="preserve">
+    <value>Right Arrow</value>
+  </data>
+  <data name="StandardKey.DownArrow" xml:space="preserve">
+    <value>Down Arrow</value>
+  </data>
+  <data name="StandardKey.Apps" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="StandardKey.ScrollLock" xml:space="preserve">
+    <value>Scroll Lock</value>
+  </data>
+  <data name="StandardKey.Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="StandardKey.Space" xml:space="preserve">
+    <value>Space</value>
+  </data>
+  <data name="StandardKey.Backspace" xml:space="preserve">
+    <value>Backspace</value>
+  </data>
+  <data name="StandardKey.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="StandardKey.Insert" xml:space="preserve">
+    <value>Insert</value>
+  </data>
+  <data name="StandardKey.CapsLock" xml:space="preserve">
+    <value>Caps Lock</value>
+  </data>
+  <data name="StandardKey.NumLock" xml:space="preserve">
+    <value>Num Lock</value>
+  </data>
+  <data name="StandardKey.LeftWindows" xml:space="preserve">
+    <value>Left Windows</value>
+  </data>
+  <data name="StandardKey.RightWindows" xml:space="preserve">
+    <value>Right Windows</value>
+  </data>
+  <data name="StandardKey.NumPad0" xml:space="preserve">
+    <value>NumPad 0</value>
+  </data>
+  <data name="StandardKey.NumPad1" xml:space="preserve">
+    <value>NumPad 1</value>
+  </data>
+  <data name="StandardKey.NumPad2" xml:space="preserve">
+    <value>NumPad 2</value>
+  </data>
+  <data name="StandardKey.NumPad3" xml:space="preserve">
+    <value>NumPad 3</value>
+  </data>
+  <data name="StandardKey.NumPad4" xml:space="preserve">
+    <value>NumPad 4</value>
+  </data>
+  <data name="StandardKey.NumPad5" xml:space="preserve">
+    <value>NumPad 5</value>
+  </data>
+  <data name="StandardKey.NumPad6" xml:space="preserve">
+    <value>NumPad 6</value>
+  </data>
+  <data name="StandardKey.NumPad7" xml:space="preserve">
+    <value>NumPad 7</value>
+  </data>
+  <data name="StandardKey.NumPad8" xml:space="preserve">
+    <value>NumPad 8</value>
+  </data>
+  <data name="StandardKey.NumPad9" xml:space="preserve">
+    <value>NumPad 9</value>
+  </data>
+  <data name="StandardKey.Multiply" xml:space="preserve">
+    <value>NumPad *</value>
+  </data>
+  <data name="StandardKey.Add" xml:space="preserve">
+    <value>NumPad +</value>
+  </data>
+  <data name="StandardKey.Subtract" xml:space="preserve">
+    <value>NumPad -</value>
+  </data>
+  <data name="StandardKey.Decimal" xml:space="preserve">
+    <value>NumPad .</value>
+  </data>
+  <data name="StandardKey.Divide" xml:space="preserve">
+    <value>NumPad /</value>
+  </data>
+  <data name="StandardKey.BrowserBack" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="StandardKey.BrowserForward" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="StandardKey.BrowserRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="StandardKey.BrowserStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="StandardKey.BrowserSearch" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="StandardKey.BrowserFavorites" xml:space="preserve">
+    <value>Favorites</value>
+  </data>
+  <data name="StandardKey.BrowserHome" xml:space="preserve">
+    <value>Browser Home</value>
+  </data>
+  <data name="StandardKey.ChoosePrimaryKey" xml:space="preserve">
+    <value>Choose primary key</value>
+  </data>
+  <data name="HardwareKey.PerformanceMode" xml:space="preserve">
+    <value>Performance mode key</value>
+  </data>
+  <data name="HardwareKey.FnLock" xml:space="preserve">
+    <value>Fn Lock key</value>
+  </data>
+  <data name="HardwareKey.CapsLock" xml:space="preserve">
+    <value>Caps Lock key</value>
+  </data>
+  <data name="HardwareKey.MicMuted" xml:space="preserve">
+    <value>Microphone · Muted</value>
+  </data>
+  <data name="HardwareKey.MicLive" xml:space="preserve">
+    <value>Microphone · Live</value>
+  </data>
+  <data name="HardwareKey.XiaoAi" xml:space="preserve">
+    <value>XiaoAi key</value>
+  </data>
+  <data name="HardwareKey.Settings" xml:space="preserve">
+    <value>Settings key</value>
+  </data>
+  <data name="HardwareKey.Manager" xml:space="preserve">
+    <value>PC Manager key</value>
+  </data>
+  <data name="HardwareKey.Backlight" xml:space="preserve">
+    <value>Keyboard backlight key</value>
+  </data>
+  <data name="HardwareKey.Projection" xml:space="preserve">
+    <value>Projection key</value>
+  </data>
+  <data name="HardwareKey.Unnamed" xml:space="preserve">
+    <value>Unnamed key</value>
+  </data>
+  <data name="HardwareKey.Desc.PerformanceMode" xml:space="preserve">
+    <value>Press the performance mode key (Fn + K). This entry runs on key press.</value>
+  </data>
+  <data name="HardwareKey.Desc.FnLock" xml:space="preserve">
+    <value>Press Fn + Esc to toggle Fn Lock. This entry runs whenever the firmware reports the new Fn Lock state.</value>
+  </data>
+  <data name="HardwareKey.Desc.CapsLock" xml:space="preserve">
+    <value>Press Caps Lock to toggle capitalization. This entry runs whenever the firmware reports the new Caps Lock state.</value>
+  </data>
+  <data name="HardwareKey.Desc.MicMutedOn" xml:space="preserve">
+    <value>Press the F4 microphone key to toggle mute. This entry runs when microphone mute switches to On.</value>
+  </data>
+  <data name="HardwareKey.Desc.MicMutedOff" xml:space="preserve">
+    <value>Press the F4 microphone key to toggle mute. This entry runs when microphone mute switches to Off.</value>
+  </data>
+  <data name="HardwareKey.Desc.XiaoAi" xml:space="preserve">
+    <value>Press the XiaoAi key (F7). This entry runs on key press.</value>
+  </data>
+  <data name="HardwareKey.Desc.Settings" xml:space="preserve">
+    <value>Press the Settings key (F9). This entry runs on key press.</value>
+  </data>
+  <data name="HardwareKey.Desc.Manager" xml:space="preserve">
+    <value>Press the hard top-right PC Manager key. This entry runs on key press.</value>
+  </data>
+  <data name="HardwareKey.Desc.Backlight" xml:space="preserve">
+    <value>Press the keyboard backlight key to cycle lighting modes. This entry runs whenever the firmware reports the new backlight state.</value>
+  </data>
+  <data name="HardwareKey.Desc.Projection" xml:space="preserve">
+    <value>Press the projection key (F8). This entry runs on key press.</value>
+  </data>
+  <data name="HardwareKey.Desc.Default" xml:space="preserve">
+    <value>This hardware key is provided by the device firmware. You can change what it does here.</value>
+  </data>
+  <data name="Action.NoSelection" xml:space="preserve">
+    <value>No action selected</value>
+  </data>
+  <data name="Action.NoSelectionDescription" xml:space="preserve">
+    <value>No action is assigned to this mapping.</value>
+  </data>
+  <data name="ActionTag.All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ActionTag.System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ActionTag.Keyboard" xml:space="preserve">
+    <value>Keyboard</value>
+  </data>
+  <data name="ActionTag.Display" xml:space="preserve">
+    <value>Display</value>
+  </data>
+  <data name="ActionTag.Audio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="ActionTag.Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="ActionTag.Application" xml:space="preserve">
+    <value>Application</value>
+  </data>
+  <data name="ActionTag.Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Action.SendKey.Label" xml:space="preserve">
+    <value>Send key or shortcut</value>
+  </data>
+  <data name="Action.SendKey.Description" xml:space="preserve">
+    <value>Sends the keyboard key or modifier shortcut that you configure.</value>
+  </data>
+  <data name="Action.OpenSettings.Label" xml:space="preserve">
+    <value>Open Windows Settings</value>
+  </data>
+  <data name="Action.OpenSettings.Description" xml:space="preserve">
+    <value>Launches the native Settings app.</value>
+  </data>
+  <data name="Action.OpenProjection.Label" xml:space="preserve">
+    <value>Open projection switcher</value>
+  </data>
+  <data name="Action.OpenProjection.Description" xml:space="preserve">
+    <value>Launches the native projection overlay.</value>
+  </data>
+  <data name="Action.ToggleTouchpad.Label" xml:space="preserve">
+    <value>Toggle touchpad</value>
+  </data>
+  <data name="Action.ToggleTouchpad.Description" xml:space="preserve">
+    <value>Turns the Windows touchpad off or back on on supported devices.</value>
+  </data>
+  <data name="Action.MicMuteOn.Label" xml:space="preserve">
+    <value>Mute microphone input</value>
+  </data>
+  <data name="Action.MicMuteOn.Description" xml:space="preserve">
+    <value>Turns the default microphone capture device off.</value>
+  </data>
+  <data name="Action.MicMuteOff.Label" xml:space="preserve">
+    <value>Unmute microphone input</value>
+  </data>
+  <data name="Action.MicMuteOff.Description" xml:space="preserve">
+    <value>Turns the default microphone capture device back on.</value>
+  </data>
+  <data name="Action.VolumeUp.Label" xml:space="preserve">
+    <value>Volume up</value>
+  </data>
+  <data name="Action.VolumeUp.Description" xml:space="preserve">
+    <value>Raises the master output volume.</value>
+  </data>
+  <data name="Action.VolumeDown.Label" xml:space="preserve">
+    <value>Volume down</value>
+  </data>
+  <data name="Action.VolumeDown.Description" xml:space="preserve">
+    <value>Lowers the master output volume.</value>
+  </data>
+  <data name="Action.VolumeMute.Label" xml:space="preserve">
+    <value>Toggle volume mute</value>
+  </data>
+  <data name="Action.VolumeMute.Description" xml:space="preserve">
+    <value>Toggles the system speaker mute state.</value>
+  </data>
+  <data name="Action.MediaPrevious.Label" xml:space="preserve">
+    <value>Previous track</value>
+  </data>
+  <data name="Action.MediaPrevious.Description" xml:space="preserve">
+    <value>Sends the previous-track media key.</value>
+  </data>
+  <data name="Action.MediaNext.Label" xml:space="preserve">
+    <value>Next track</value>
+  </data>
+  <data name="Action.MediaNext.Description" xml:space="preserve">
+    <value>Sends the next-track media key.</value>
+  </data>
+  <data name="Action.MediaPlayPause.Label" xml:space="preserve">
+    <value>Play or pause</value>
+  </data>
+  <data name="Action.MediaPlayPause.Description" xml:space="preserve">
+    <value>Sends the media play-pause key.</value>
+  </data>
+  <data name="Action.BrightnessUp.Label" xml:space="preserve">
+    <value>Brightness up</value>
+  </data>
+  <data name="Action.BrightnessUp.Description" xml:space="preserve">
+    <value>Raises the internal display brightness.</value>
+  </data>
+  <data name="Action.BrightnessDown.Label" xml:space="preserve">
+    <value>Brightness down</value>
+  </data>
+  <data name="Action.BrightnessDown.Description" xml:space="preserve">
+    <value>Lowers the internal display brightness.</value>
+  </data>
+  <data name="Action.ToggleAirplaneMode.Label" xml:space="preserve">
+    <value>Toggle airplane mode</value>
+  </data>
+  <data name="Action.ToggleAirplaneMode.Description" xml:space="preserve">
+    <value>Turns supported radios off or back on.</value>
+  </data>
+  <data name="Action.LockWindows.Label" xml:space="preserve">
+    <value>Lock Windows</value>
+  </data>
+  <data name="Action.LockWindows.Description" xml:space="preserve">
+    <value>Locks the current Windows session.</value>
+  </data>
+  <data name="Action.Screenshot.Label" xml:space="preserve">
+    <value>Take screenshot</value>
+  </data>
+  <data name="Action.Screenshot.Description" xml:space="preserve">
+    <value>Opens the native snipping overlay.</value>
+  </data>
+  <data name="Action.OpenCalculator.Label" xml:space="preserve">
+    <value>Open Calculator</value>
+  </data>
+  <data name="Action.OpenCalculator.Description" xml:space="preserve">
+    <value>Launches Calculator.</value>
+  </data>
+  <data name="Action.OpenApplication.Label" xml:space="preserve">
+    <value>Open application</value>
+  </data>
+  <data name="Action.OpenApplication.Description" xml:space="preserve">
+    <value>Launches an installed app, shortcut, or executable.</value>
+  </data>
+  <data name="Action.CyclePerformanceMode.Label" xml:space="preserve">
+    <value>Toggle performance mode</value>
+  </data>
+  <data name="Action.CyclePerformanceMode.Description" xml:space="preserve">
+    <value>Cycles between Silent, Smart, and Beast modes.</value>
+  </data>
+  <data name="Mapping.ShowOsd" xml:space="preserve">
+    <value>Show OSD</value>
+  </data>
+  <data name="Mapping.Summary.WithOsd" xml:space="preserve">
+    <value>{0} Also shows an OSD.</value>
+  </data>
+  <data name="Mapping.Summary.OsdOnly" xml:space="preserve">
+    <value>Shows an OSD.</value>
+  </data>
+  <data name="Mapping.Summary.Disabled" xml:space="preserve">
+    <value>This mapping is disabled.</value>
+  </data>
+  <data name="OsdDisplayMode.IconAndTitle" xml:space="preserve">
+    <value>Icon + title</value>
+  </data>
+  <data name="OsdDisplayMode.IconOnly" xml:space="preserve">
+    <value>Icon only</value>
+  </data>
+  <data name="OsdDisplayMode.TextOnly" xml:space="preserve">
+    <value>Title only</value>
+  </data>
+  <data name="Battery.ChargeLimit.Off" xml:space="preserve">
+    <value>100% (off)</value>
+  </data>
+  <data name="Touchpad.Trigger.MainDeepPress.Title" xml:space="preserve">
+    <value>Main region · Deep press</value>
+  </data>
+  <data name="Touchpad.Trigger.MainDeepPress.Description" xml:space="preserve">
+    <value>Runs once when a touch in the main region reaches the built-in deep press level. L, R, LT, and RT are excluded.</value>
+  </data>
+  <data name="Touchpad.Trigger.LeftSlide.Title" xml:space="preserve">
+    <value>Left side · Drag</value>
+  </data>
+  <data name="Touchpad.Trigger.LeftSlide.Description" xml:space="preserve">
+    <value>Choose what vertical dragging in the left edge region controls.</value>
+  </data>
+  <data name="Touchpad.Trigger.RightSlide.Title" xml:space="preserve">
+    <value>Right side · Drag</value>
+  </data>
+  <data name="Touchpad.Trigger.RightSlide.Description" xml:space="preserve">
+    <value>Choose what vertical dragging in the right edge region controls.</value>
+  </data>
+  <data name="Touchpad.Guidance.MainExcludesCorners" xml:space="preserve">
+    <value>Main-region deep press excludes L, R, LT, and RT.</value>
+  </data>
+  <data name="Touchpad.Guidance.EdgeSlideMapping" xml:space="preserve">
+    <value>Left-side and right-side drag can each be mapped to volume or brightness.</value>
+  </data>
+  <data name="Touchpad.Guidance.CornerActions" xml:space="preserve">
+    <value>LT and RT can each run separate deep-press and long-press actions.</value>
+  </data>
+  <data name="Touchpad.Guidance.LongPressAdjustable" xml:space="preserve">
+    <value>Long-press timing can be adjusted from the touchpad settings panel.</value>
+  </data>
+  <data name="Touchpad.Status.ServiceOffline" xml:space="preserve">
+    <value>Service offline</value>
+  </data>
+  <data name="Touchpad.Status.DeepPressTriggered" xml:space="preserve">
+    <value>Deep press triggered</value>
+  </data>
+  <data name="Touchpad.Status.Pressing" xml:space="preserve">
+    <value>Pressing</value>
+  </data>
+  <data name="Touchpad.Status.Touching" xml:space="preserve">
+    <value>Touching</value>
+  </data>
+  <data name="Touchpad.Status.Idle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="Touchpad.Status.Waiting" xml:space="preserve">
+    <value>Waiting for touchpad input</value>
+  </data>
+  <data name="Touchpad.StatusDesc.Offline" xml:space="preserve">
+    <value>Start the worker to receive raw touchpad reports.</value>
+  </data>
+  <data name="Touchpad.StatusDesc.NotRegistered" xml:space="preserve">
+    <value>Touchpad raw input registration failed.</value>
+  </data>
+  <data name="Touchpad.StatusDesc.NoFrame" xml:space="preserve">
+    <value>No touchpad frame has been received yet.</value>
+  </data>
+  <data name="Touchpad.StatusDesc.HasPressure" xml:space="preserve">
+    <value>Live pressure comes from raw HID contact pressure.</value>
+  </data>
+  <data name="Touchpad.StatusDesc.NoPressure" xml:space="preserve">
+    <value>Pressure is unavailable for the current touchpad report.</value>
+  </data>
+  <data name="Touchpad.Corner.RightTop" xml:space="preserve">
+    <value>Right top</value>
+  </data>
+  <data name="Touchpad.Corner.LeftTop" xml:space="preserve">
+    <value>Left top</value>
+  </data>
+  <data name="Touchpad.Corner.RightTopTitle" xml:space="preserve">
+    <value>Right top corner</value>
+  </data>
+  <data name="Touchpad.Corner.LeftTopTitle" xml:space="preserve">
+    <value>Left top corner</value>
+  </data>
+  <data name="Touchpad.Corner.Description" xml:space="preserve">
+    <value>A touch that starts inside this corner can run its own deep-press or long-press action.</value>
+  </data>
+  <data name="Touchpad.Corner.DeepPressFormat" xml:space="preserve">
+    <value>{0} · Deep press</value>
+  </data>
+  <data name="Touchpad.Corner.DeepPressDescription" xml:space="preserve">
+    <value>Runs once when a touch that starts in this corner reaches the built-in deep press level.</value>
+  </data>
+  <data name="Touchpad.Corner.LongPressFormat" xml:space="preserve">
+    <value>{0} · Long press</value>
+  </data>
+  <data name="Touchpad.Corner.LongPressDescription" xml:space="preserve">
+    <value>Runs after a touch that starts in this corner keeps holding until the configured long-press duration is reached.</value>
+  </data>
+  <data name="Mapping.SelectKey" xml:space="preserve">
+    <value>Select key</value>
+  </data>
+  <data name="Mapping.UnknownKey" xml:space="preserve">
+    <value>Unknown key</value>
+  </data>
+  <data name="Action.SendKey.WithChord" xml:space="preserve">
+    <value>Sends the key shortcut {0}.</value>
+  </data>
+  <data name="Action.SendKey.ChooseKey" xml:space="preserve">
+    <value>Choose a primary key to complete {0}.</value>
+  </data>
+  <data name="Action.SendKey.NoKey" xml:space="preserve">
+    <value>Sends the keyboard key or shortcut that you choose below.</value>
+  </data>
+  <data name="KeyChord.Modifiers.Header" xml:space="preserve">
+    <value>Modifiers</value>
+  </data>
+  <data name="KeyChord.Preview.Header" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Battery.Status.DefaultMessage" xml:space="preserve">
+    <value>Start the background service to view or change the current power status.</value>
+  </data>
+  <data name="Battery.Status.Preparing" xml:space="preserve">
+    <value>Preparing battery controls...</value>
+  </data>
+  <data name="Battery.Status.CouldNotStartElevated" xml:space="preserve">
+    <value>Could not start the elevated worker.</value>
+  </data>
+  <data name="Battery.Status.NotElevated" xml:space="preserve">
+    <value>The worker did not enter elevated mode.</value>
+  </data>
+  <data name="Battery.Status.Reading" xml:space="preserve">
+    <value>Reading battery controls...</value>
+  </data>
+  <data name="Battery.Status.UpdatingPerformance" xml:space="preserve">
+    <value>Updating performance mode...</value>
+  </data>
+  <data name="Battery.Status.CouldNotChangePerformance" xml:space="preserve">
+    <value>Could not change the performance mode.</value>
+  </data>
+  <data name="Battery.Status.PerformanceUpdated" xml:space="preserve">
+    <value>Performance mode updated.</value>
+  </data>
+  <data name="Battery.Status.UpdatingCharge" xml:space="preserve">
+    <value>Updating charge limit...</value>
+  </data>
+  <data name="Battery.Status.CouldNotChangeCharge" xml:space="preserve">
+    <value>Could not change the charge limit.</value>
+  </data>
+  <data name="Battery.Status.ChargeUpdated" xml:space="preserve">
+    <value>Charge limit updated.</value>
+  </data>
+  <data name="Battery.Status.WaitingReport" xml:space="preserve">
+    <value>Waiting for the background service to report the current power status...</value>
+  </data>
+  <data name="Battery.Status.Stopping" xml:space="preserve">
+    <value>The background service is stopping...</value>
+  </data>
+  <data name="Battery.Status.NeedAdmin" xml:space="preserve">
+    <value>Restart the background service with admin rights to view or change the current power status.</value>
+  </data>
+  <data name="Battery.Status.CouldNotRead" xml:space="preserve">
+    <value>Could not read the battery controls.</value>
+  </data>
+  <data name="Battery.Status.Connected" xml:space="preserve">
+    <value>Connected to low-level battery controls.</value>
+  </data>
+  <data name="Battery.Status.NotSupported" xml:space="preserve">
+    <value>This device does not expose the required battery controls.</value>
+  </data>
+  <data name="ServiceStatusShort.Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="ServiceStatusShort.Starting" xml:space="preserve">
+    <value>Starting</value>
+  </data>
+  <data name="ServiceStatusShort.Stopping" xml:space="preserve">
+    <value>Stopping</value>
+  </data>
+  <data name="ServiceStatusShort.WorkerStopped" xml:space="preserve">
+    <value>Worker stopped</value>
+  </data>
+  <data name="ServiceStatusShort.Stopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="Battery.Runtime.Preparing" xml:space="preserve">
+    <value>Preparing admin runtime...</value>
+  </data>
+  <data name="Battery.Runtime.NotRunning" xml:space="preserve">
+    <value>Background service is not running.</value>
+  </data>
+  <data name="Battery.Runtime.WorkerStarting" xml:space="preserve">
+    <value>Worker is starting...</value>
+  </data>
+  <data name="Battery.Runtime.WorkerStopping" xml:space="preserve">
+    <value>Worker is stopping...</value>
+  </data>
+  <data name="Battery.Runtime.NeedsAdmin" xml:space="preserve">
+    <value>Background service needs admin rights.</value>
+  </data>
+  <data name="Battery.Runtime.WaitingStatus" xml:space="preserve">
+    <value>Waiting for current power status...</value>
+  </data>
+  <data name="Battery.Runtime.AdminActive" xml:space="preserve">
+    <value>Admin runtime is active.</value>
+  </data>
+  <data name="Battery.Runtime.AdminInactive" xml:space="preserve">
+    <value>Admin runtime is inactive.</value>
+  </data>
+  <data name="Battery.Error.Failed" xml:space="preserve">
+    <value>Battery controls failed</value>
+  </data>
+  <data name="Battery.Error.CouldNotChangePerformance" xml:space="preserve">
+    <value>Could not change performance mode</value>
+  </data>
+  <data name="Battery.Error.CouldNotChangeCharge" xml:space="preserve">
+    <value>Could not change charge limit</value>
+  </data>
+  <data name="Error.UIThread" xml:space="preserve">
+    <value>Could not switch to the UI thread.</value>
+  </data>
+  <data name="Touchpad.SettingsFailed.Title" xml:space="preserve">
+    <value>Touchpad settings failed</value>
+  </data>
+  <data name="Touchpad.Pressure.Format" xml:space="preserve">
+    <value>Pressure: {0}</value>
+  </data>
+  <data name="Key.Unnamed" xml:space="preserve">
+    <value>Unnamed key</value>
+  </data>
+  <data name="Worker.DeviceNotSupported" xml:space="preserve">
+    <value>The device does not expose the performance mode controls.</value>
+  </data>
+  <data name="TouchpadItem.Content" xml:space="preserve">
+    <value>Touch</value>
+  </data>
+  <data name="BatteryItem.Content" xml:space="preserve">
+    <value>Battery</value>
+  </data>
+  <data name="SettingsItem.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="PerformanceStartupResetLabelTextBlock.Text" xml:space="preserve">
+    <value>Switch to Smart mode on startup</value>
+  </data>
+  <data name="ChargeStartupResetLabelTextBlock.Text" xml:space="preserve">
+    <value>Disable charge limit protection on startup</value>
+  </data>
+  <data name="MappingEnabledToggleSwitch.Header" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="TouchpadLongPress500Item.Content" xml:space="preserve">
+    <value>500 ms</value>
+  </data>
+  <data name="TouchpadLongPress600Item.Content" xml:space="preserve">
+    <value>600 ms</value>
+  </data>
+  <data name="TouchpadLongPress700Item.Content" xml:space="preserve">
+    <value>700 ms</value>
+  </data>
+  <data name="TouchpadLongPress800Item.Content" xml:space="preserve">
+    <value>800 ms</value>
+  </data>
+  <data name="TouchpadLongPress900Item.Content" xml:space="preserve">
+    <value>900 ms</value>
+  </data>
+  <data name="TouchpadLongPress1000Item.Content" xml:space="preserve">
+    <value>1000 ms</value>
+  </data>
+</root>
