@@ -15,17 +15,22 @@ public static class ResourceStringService
             return fallback;
         }
 
-        var resources = GetFlatResourcesForCurrentLanguage();
+        var resources = GetFlatResources();
         return resources.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
             ? value
             : fallback;
     }
 
-    private static IReadOnlyDictionary<string, string> GetFlatResourcesForCurrentLanguage()
+    public static string GetCurrentLanguageTag()
     {
-        var languageTag = CultureInfo.CurrentUICulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase)
+        return CultureInfo.CurrentUICulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase)
             ? AppLanguageService.ChineseTag
             : AppLanguageService.EnglishTag;
+    }
+
+    public static IReadOnlyDictionary<string, string> GetFlatResources()
+    {
+        var languageTag = GetCurrentLanguageTag();
 
         lock (SyncRoot)
         {

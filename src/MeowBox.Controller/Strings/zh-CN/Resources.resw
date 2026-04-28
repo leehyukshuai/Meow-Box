@@ -837,6 +837,24 @@
   <data name="Touchpad.Guidance.LongPressAdjustable" xml:space="preserve">
     <value>长按需要的触发时间可以在中间的触控板设置面板中调整。</value>
   </data>
+  <data name="Touchpad.EdgeSlide.Disabled.Label" xml:space="preserve">
+    <value>禁用映射</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Volume.Label" xml:space="preserve">
+    <value>调节音量</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Brightness.Label" xml:space="preserve">
+    <value>调节亮度</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Disabled.Description" xml:space="preserve">
+    <value>这个边缘拖动映射当前已禁用。</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Volume.Description" xml:space="preserve">
+    <value>在这个边缘区域上下拖动会调节系统音量。</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Brightness.Description" xml:space="preserve">
+    <value>在这个边缘区域上下拖动会调节屏幕亮度。</value>
+  </data>
   <data name="Touchpad.Status.ServiceOffline" xml:space="preserve">
     <value>服务未连接</value>
   </data>

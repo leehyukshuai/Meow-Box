@@ -11,11 +11,12 @@ public partial class App : Application
 
     public static ThemeService ThemeService { get; } = new();
 
-    public static MeowBoxController Controller { get; } = new();
+    public static MeowBoxController Controller { get; private set; } = null!;
 
     public App()
     {
         ApplyStoredLanguagePreference();
+        Controller = new MeowBoxController();
         InitializeComponent();
     }
 
@@ -43,11 +44,11 @@ public partial class App : Application
         try
         {
             var storedPreference = new AppConfigService().GetStoredLanguagePreference();
-            Services.AppLanguageService.Apply(storedPreference);
+            AppLanguageService.Apply(storedPreference);
         }
         catch
         {
-            Services.AppLanguageService.Apply(null);
+            AppLanguageService.Apply(null);
         }
     }
 

@@ -1,18 +1,13 @@
-using System.Globalization;
 using System.Reflection;
-using System.Xml.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Services;
 
 public static class XamlStringLocalizer
 {
-    private static readonly object SyncRoot = new();
-    private static IReadOnlyDictionary<string, string>? _englishResources;
-    private static IReadOnlyDictionary<string, string>? _chineseResources;
-
     public static void Apply(object root)
     {
         if (root is null)
@@ -34,7 +29,7 @@ public static class XamlStringLocalizer
 
     private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetResourcesForCurrentLanguage()
     {
-        var resources = GetFlatResourcesForCurrentLanguage();
+        var resources = ResourceStringService.GetFlatResources();
         var grouped = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
 
         foreach (var pair in resources)
@@ -60,52 +55,6 @@ public static class XamlStringLocalizer
             pair => pair.Key,
             pair => (IReadOnlyDictionary<string, string>)pair.Value,
             StringComparer.Ordinal);
-    }
-
-    private static IReadOnlyDictionary<string, string> GetFlatResourcesForCurrentLanguage()
-    {
-        var useChinese = CultureInfo.CurrentUICulture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
-
-        lock (SyncRoot)
-        {
-            if (useChinese)
-            {
-                _chineseResources ??= LoadFlatResources(AppLanguageService.ChineseTag);
-                return _chineseResources;
-            }
-
-            _englishResources ??= LoadFlatResources(AppLanguageService.EnglishTag);
-            return _englishResources;
-        }
-    }
-
-    private static IReadOnlyDictionary<string, string> LoadFlatResources(string languageTag)
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "Strings", languageTag, "Resources.resw");
-        if (!File.Exists(path))
-        {
-            if (!string.Equals(languageTag, AppLanguageService.EnglishTag, StringComparison.OrdinalIgnoreCase))
-            {
-                return LoadFlatResources(AppLanguageService.EnglishTag);
-            }
-
-            return new Dictionary<string, string>(StringComparer.Ordinal);
-        }
-
-        var resources = new Dictionary<string, string>(StringComparer.Ordinal);
-        var document = XDocument.Load(path);
-        foreach (var data in document.Root?.Elements("data") ?? [])
-        {
-            var name = data.Attribute("name")?.Value;
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
-            resources[name] = data.Element("value")?.Value ?? string.Empty;
-        }
-
-        return resources;
     }
 
     private static IEnumerable<object> EnumerateObjects(object root)

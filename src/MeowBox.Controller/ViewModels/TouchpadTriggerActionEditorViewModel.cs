@@ -110,19 +110,19 @@ public sealed class TouchpadTriggerActionEditorViewModel : ObservableObject
         }
     }
 
-    public string EdgeSlideMappingOffLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Disable", "Disable mapping");
+    public string EdgeSlideMappingOffLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Disabled.Label", "Disable mapping");
 
-    public string EdgeSlideMappingVolumeLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Volume", "Adjust volume");
+    public string EdgeSlideMappingVolumeLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Volume.Label", "Adjust volume");
 
-    public string EdgeSlideMappingBrightnessLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Brightness", "Adjust brightness");
+    public string EdgeSlideMappingBrightnessLabel => ResourceStringService.GetString("Touchpad.EdgeSlide.Brightness.Label", "Adjust brightness");
 
     private string GetEdgeSlideMappingLabel()
     {
         return Action.Type switch
         {
-            HotkeyActionType.VolumeUp => ResourceStringService.GetString("Touchpad.EdgeSlide.Volume", "Adjust volume"),
-            HotkeyActionType.BrightnessUp => ResourceStringService.GetString("Touchpad.EdgeSlide.Brightness", "Adjust brightness"),
-            _ => ActionCatalog.NoActionLabel
+            HotkeyActionType.VolumeUp => ResourceStringService.GetString("Touchpad.EdgeSlide.Volume.Label", "Adjust volume"),
+            HotkeyActionType.BrightnessUp => ResourceStringService.GetString("Touchpad.EdgeSlide.Brightness.Label", "Adjust brightness"),
+            _ => ResourceStringService.GetString("Touchpad.EdgeSlide.Disabled.Label", "Disable mapping")
         };
     }
 

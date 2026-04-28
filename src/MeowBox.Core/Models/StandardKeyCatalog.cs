@@ -64,29 +64,40 @@ public sealed class KeyChordModifierOption
 
 public static class StandardKeyCatalog
 {
-    public static IReadOnlyList<StandardKeyGroupOption> GroupOptions { get; } =
-    [
-        new(StandardKeyGroup.Navigation, ResourceStringService.GetString("StandardKeyGroup.Navigation", "Navigation")),
-        new(StandardKeyGroup.Editing, ResourceStringService.GetString("StandardKeyGroup.Editing", "Editing")),
-        new(StandardKeyGroup.Modifiers, ResourceStringService.GetString("StandardKeyGroup.Modifiers", "Modifiers")),
-        new(StandardKeyGroup.Function, ResourceStringService.GetString("StandardKeyGroup.Function", "Function")),
-        new(StandardKeyGroup.Letters, ResourceStringService.GetString("StandardKeyGroup.Letters", "Letters")),
-        new(StandardKeyGroup.Numbers, ResourceStringService.GetString("StandardKeyGroup.Numbers", "Numbers")),
-        new(StandardKeyGroup.Symbols, ResourceStringService.GetString("StandardKeyGroup.Symbols", "Symbols")),
-        new(StandardKeyGroup.Numpad, ResourceStringService.GetString("StandardKeyGroup.Numpad", "Numpad")),
-        new(StandardKeyGroup.Browser, ResourceStringService.GetString("StandardKeyGroup.Browser", "Browser"))
-    ];
+    private static readonly object SyncRoot = new();
+    private static readonly Dictionary<string, IReadOnlyList<StandardKeyGroupOption>> GroupOptionsCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IReadOnlyList<KeyChordModifierOption>> ModifierOptionsCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IReadOnlyList<StandardKeyOption>> AllCache = new(StringComparer.OrdinalIgnoreCase);
 
-    public static IReadOnlyList<KeyChordModifierOption> ModifierOptions { get; } =
-    [
-        new(KeyChordModifier.Control, "Ctrl", 0x11, 0),
-        new(KeyChordModifier.Shift, "Shift", 0x10, 1),
-        new(KeyChordModifier.Alt, "Alt", 0x12, 2),
-        new(KeyChordModifier.Windows, ResourceStringService.GetString("KeyChordModifier.Win", "Win"), 0x5B, 3)
-    ];
+    public static IReadOnlyList<StandardKeyGroupOption> GroupOptions => GetLocalizedList(
+        GroupOptionsCache,
+        static () =>
+        [
+            new(StandardKeyGroup.Navigation, ResourceStringService.GetString("StandardKeyGroup.Navigation", "Navigation")),
+            new(StandardKeyGroup.Editing, ResourceStringService.GetString("StandardKeyGroup.Editing", "Editing")),
+            new(StandardKeyGroup.Modifiers, ResourceStringService.GetString("StandardKeyGroup.Modifiers", "Modifiers")),
+            new(StandardKeyGroup.Function, ResourceStringService.GetString("StandardKeyGroup.Function", "Function")),
+            new(StandardKeyGroup.Letters, ResourceStringService.GetString("StandardKeyGroup.Letters", "Letters")),
+            new(StandardKeyGroup.Numbers, ResourceStringService.GetString("StandardKeyGroup.Numbers", "Numbers")),
+            new(StandardKeyGroup.Symbols, ResourceStringService.GetString("StandardKeyGroup.Symbols", "Symbols")),
+            new(StandardKeyGroup.Numpad, ResourceStringService.GetString("StandardKeyGroup.Numpad", "Numpad")),
+            new(StandardKeyGroup.Browser, ResourceStringService.GetString("StandardKeyGroup.Browser", "Browser"))
+        ]);
 
-    public static IReadOnlyList<StandardKeyOption> All { get; } =
-    [
+    public static IReadOnlyList<KeyChordModifierOption> ModifierOptions => GetLocalizedList(
+        ModifierOptionsCache,
+        static () =>
+        [
+            new(KeyChordModifier.Control, "Ctrl", 0x11, 0),
+            new(KeyChordModifier.Shift, "Shift", 0x10, 1),
+            new(KeyChordModifier.Alt, "Alt", 0x12, 2),
+            new(KeyChordModifier.Windows, ResourceStringService.GetString("KeyChordModifier.Win", "Win"), 0x5B, 3)
+        ]);
+
+    public static IReadOnlyList<StandardKeyOption> All => GetLocalizedList(
+        AllCache,
+        static () =>
+        [
         new("Escape", "Esc", 0x1B, StandardKeyGroup.Navigation),
         new("Left", ResourceStringService.GetString("StandardKey.LeftArrow", "Left Arrow"), 0x25, StandardKeyGroup.Navigation),
         new("Up", ResourceStringService.GetString("StandardKey.UpArrow", "Up Arrow"), 0x26, StandardKeyGroup.Navigation),
@@ -213,7 +224,7 @@ public static class StandardKeyCatalog
         new("BrowserSearch", ResourceStringService.GetString("StandardKey.BrowserSearch", "Search"), 0xAA, StandardKeyGroup.Browser),
         new("BrowserFavorites", ResourceStringService.GetString("StandardKey.BrowserFavorites", "Favorites"), 0xAB, StandardKeyGroup.Browser),
         new("BrowserHome", ResourceStringService.GetString("StandardKey.BrowserHome", "Browser Home"), 0xAC, StandardKeyGroup.Browser)
-    ];
+        ]);
 
     public static StandardKeyOption? GetOption(string? key)
     {
@@ -366,5 +377,21 @@ public static class StandardKeyCatalog
     private static int GetModifierSortOrder(string key)
     {
         return GetModifierOption(key)?.SortOrder ?? int.MaxValue;
+    }
+
+    private static IReadOnlyList<T> GetLocalizedList<T>(Dictionary<string, IReadOnlyList<T>> cache, Func<IReadOnlyList<T>> factory)
+    {
+        var languageTag = ResourceStringService.GetCurrentLanguageTag();
+
+        lock (SyncRoot)
+        {
+            if (!cache.TryGetValue(languageTag, out var items))
+            {
+                items = factory();
+                cache[languageTag] = items;
+            }
+
+            return items;
+        }
     }
 }

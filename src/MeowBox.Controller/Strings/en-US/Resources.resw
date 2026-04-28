@@ -837,6 +837,24 @@
   <data name="Touchpad.Guidance.LongPressAdjustable" xml:space="preserve">
     <value>Long-press timing can be adjusted from the touchpad settings panel.</value>
   </data>
+  <data name="Touchpad.EdgeSlide.Disabled.Label" xml:space="preserve">
+    <value>Disable mapping</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Volume.Label" xml:space="preserve">
+    <value>Adjust volume</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Brightness.Label" xml:space="preserve">
+    <value>Adjust brightness</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Disabled.Description" xml:space="preserve">
+    <value>This edge drag mapping is disabled.</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Volume.Description" xml:space="preserve">
+    <value>Dragging vertically in this edge region adjusts system volume.</value>
+  </data>
+  <data name="Touchpad.EdgeSlide.Brightness.Description" xml:space="preserve">
+    <value>Dragging vertically in this edge region adjusts display brightness.</value>
+  </data>
   <data name="Touchpad.Status.ServiceOffline" xml:space="preserve">
     <value>Service offline</value>
   </data>
