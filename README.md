@@ -73,7 +73,7 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 - `build/bin/MeowBox/`
 - `build/bin/MeowBox/runtime/worker/`
 
-如果需要脚本化本地构建，也可以用：
+发布时使用：
 
 ```powershell
 .\build.ps1
@@ -98,7 +98,7 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 - `build/bin/MeowBox/`
 - `build/bin/MeowBox/runtime/worker/`
 
-只有打包时才会输出到：
+发布输出：
 
 - `artifacts/MeowBox/`
 - `artifacts/MeowBox-portable-v<version>.zip`
@@ -178,7 +178,7 @@ This produces a directly runnable local layout under:
 - `build/bin/MeowBox/`
 - `build/bin/MeowBox/runtime/worker/`
 
-If you still want the script for a local build, use:
+For release packaging, use:
 
 ```powershell
 .\build.ps1
@@ -203,7 +203,7 @@ Local build outputs:
 - `build/bin/MeowBox/`
 - `build/bin/MeowBox/runtime/worker/`
 
-Only packaging emits to:
+Release outputs:
 
 - `artifacts/MeowBox/`
 - `artifacts/MeowBox-portable-v<version>.zip`

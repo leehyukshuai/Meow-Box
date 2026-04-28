@@ -210,8 +210,8 @@ Expected outputs:
 - local runnable binaries under `build/bin/MeowBox/`
 - internal worker runtime under `build/bin/MeowBox/runtime/worker/`
 - hidden/shared intermediate outputs under `build/obj/`
-- packaging staging under `build/`
-- final distributables under `artifacts/` when packaging is requested
+- temporary packaging staging under `build/publish/`
+- final distributables under `artifacts/`
 
 Keep project files simple.
 Keep all transient/intermediate outputs under `build/obj/` via `Directory.Build.props`.
@@ -232,8 +232,9 @@ Packaging rules:
 - package from MSBuild `Publish` outputs
 - normal local debugging should work directly from `build/bin/MeowBox/`
 - `dotnet build` on `MeowBox.Controller` should also produce the local worker runtime payload
-- default `.\build.ps1` should refresh the local runnable Release build under `build/bin/MeowBox/`
-- only packaging modes should emit `artifacts/MeowBox/`, `.zip`, or `.msi`
+- `build.ps1` is for release packaging only; it should not refresh `build/bin/MeowBox/`
+- default `.\build.ps1` should emit `artifacts/MeowBox/`
+- `-Zip` and `-Msi` add extra distributables on top of `artifacts/MeowBox/`
 - default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
 - `build.ps1` only exposes these public switches:
   - `-Version`
