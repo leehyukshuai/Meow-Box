@@ -3,14 +3,12 @@ using Microsoft.UI.Xaml;
 using MeowBox.Controller.Services;
 using MeowBox.Core.Models;
 using MeowBox.Core.Services;
-using Windows.Globalization;
+using Microsoft.Windows.Globalization;
 
 namespace MeowBox.Controller;
 
 public partial class App : Application
 {
-    private static string? _pendingPrimaryLanguageOverride;
-
     public static MainWindow? MainWindow { get; private set; }
 
     public static ThemeService ThemeService { get; } = new();
@@ -61,7 +59,7 @@ public partial class App : Application
         AppLanguageService.Apply(storedPreference);
 
         var normalizedPreference = AppLanguageService.ResolveStoredPreference(storedPreference);
-        _pendingPrimaryLanguageOverride = string.Equals(
+        ApplicationLanguages.PrimaryLanguageOverride = string.Equals(
             normalizedPreference,
             AppLanguagePreference.System,
             StringComparison.OrdinalIgnoreCase)
@@ -71,7 +69,6 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        ApplicationLanguages.PrimaryLanguageOverride = _pendingPrimaryLanguageOverride ?? string.Empty;
         MainWindow = new MainWindow();
         MainWindow.PresentToFront();
         MainWindow.DispatcherQueue.TryEnqueue(static () =>
