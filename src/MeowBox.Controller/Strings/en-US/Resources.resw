@@ -813,6 +813,18 @@
   <data name="Touchpad.Trigger.MainDeepPress.Description" xml:space="preserve">
     <value>Runs once when a touch in the main region reaches the built-in deep press level. L, R, LT, and RT are excluded.</value>
   </data>
+  <data name="Touchpad.Trigger.FiveFingerPinchIn.Title" xml:space="preserve">
+    <value>Five fingers · Pinch in</value>
+  </data>
+  <data name="Touchpad.Trigger.FiveFingerPinchIn.Description" xml:space="preserve">
+    <value>Runs once when five contacts move inward together far enough, then stays latched until all fingers are lifted.</value>
+  </data>
+  <data name="Touchpad.Trigger.FiveFingerPinchOut.Title" xml:space="preserve">
+    <value>Five fingers · Pinch out</value>
+  </data>
+  <data name="Touchpad.Trigger.FiveFingerPinchOut.Description" xml:space="preserve">
+    <value>Runs once when five contacts spread outward together far enough, then stays latched until all fingers are lifted.</value>
+  </data>
   <data name="Touchpad.Trigger.LeftSlide.Title" xml:space="preserve">
     <value>Left side · Drag</value>
   </data>
@@ -827,6 +839,12 @@
   </data>
   <data name="Touchpad.Guidance.MainExcludesCorners" xml:space="preserve">
     <value>Main-region deep press excludes L, R, LT, and RT.</value>
+  </data>
+  <data name="Touchpad.Guidance.FiveFingerPinchIn" xml:space="preserve">
+    <value>Five-finger pinch-in fires once per touch session after the group contracts enough.</value>
+  </data>
+  <data name="Touchpad.Guidance.FiveFingerPinchOut" xml:space="preserve">
+    <value>Five-finger pinch-out also fires once per touch session after the group expands enough.</value>
   </data>
   <data name="Touchpad.Guidance.EdgeSlideMapping" xml:space="preserve">
     <value>Left-side and right-side drag can each be mapped to volume or brightness.</value>

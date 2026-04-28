@@ -383,6 +383,8 @@ public sealed class AppConfigService
             SurfaceWidth = surfaceWidth,
             SurfaceHeight = surfaceHeight,
             DeepPressAction = NormalizeAction(touchpad.DeepPressAction),
+            FiveFingerPinchInAction = NormalizeAction(touchpad.FiveFingerPinchInAction),
+            FiveFingerPinchOutAction = NormalizeAction(touchpad.FiveFingerPinchOutAction),
             LeftEdgeSlideAction = leftEdgeSlideAction,
             RightEdgeSlideAction = rightEdgeSlideAction,
             LeftTopCorner = NormalizeTouchpadCornerRegion(

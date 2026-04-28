@@ -745,6 +745,8 @@ internal sealed class WorkerHost : IDisposable
         return e.TriggerKind switch
         {
             TouchpadGestureTriggerKind.LongPress => ResolveCornerRegion(e.RegionId)?.LongPressAction,
+            TouchpadGestureTriggerKind.FiveFingerPinchIn => touchpad.FiveFingerPinchInAction,
+            TouchpadGestureTriggerKind.FiveFingerPinchOut => touchpad.FiveFingerPinchOutAction,
             TouchpadGestureTriggerKind.DeepPress => ResolveCornerRegion(e.RegionId)?.DeepPressAction is { Type.Length: > 0 } cornerDeepPress
                 ? cornerDeepPress
                 : touchpad.DeepPressAction,
@@ -772,11 +774,13 @@ internal sealed class WorkerHost : IDisposable
         };
 
         return e.TriggerKind switch
-            {
-                TouchpadGestureTriggerKind.LongPress => $"Touchpad long press ({regionLabel})",
-                TouchpadGestureTriggerKind.DeepPress when !string.IsNullOrWhiteSpace(e.RegionId) => $"Touchpad deep press ({regionLabel})",
+        {
+            TouchpadGestureTriggerKind.LongPress => $"Touchpad long press ({regionLabel})",
+            TouchpadGestureTriggerKind.FiveFingerPinchIn => "Touchpad five-finger pinch in",
+            TouchpadGestureTriggerKind.FiveFingerPinchOut => "Touchpad five-finger pinch out",
+            TouchpadGestureTriggerKind.DeepPress when !string.IsNullOrWhiteSpace(e.RegionId) => $"Touchpad deep press ({regionLabel})",
             _ => "Touchpad deep press (main region)"
-            };
+        };
     }
 
     private TouchpadEdgeSlideService.TouchpadEdgeSlideTarget ResolveEdgeSlideTarget(TouchpadEdgeSlideSide side)

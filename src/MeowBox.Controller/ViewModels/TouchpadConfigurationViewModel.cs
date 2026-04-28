@@ -46,6 +46,16 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
             ResourceStringService.GetString("Touchpad.Trigger.MainDeepPress.Description", "Runs once when a touch in the main region reaches the built-in deep press level. L, R, LT, and RT are excluded."),
             null,
             model.DeepPressAction);
+        FiveFingerPinchIn = new TouchpadTriggerActionEditorViewModel(
+            ResourceStringService.GetString("Touchpad.Trigger.FiveFingerPinchIn.Title", "Five fingers · Pinch in"),
+            ResourceStringService.GetString("Touchpad.Trigger.FiveFingerPinchIn.Description", "Runs once when five contacts move inward together far enough, then stays latched until all fingers are lifted."),
+            null,
+            model.FiveFingerPinchInAction);
+        FiveFingerPinchOut = new TouchpadTriggerActionEditorViewModel(
+            ResourceStringService.GetString("Touchpad.Trigger.FiveFingerPinchOut.Title", "Five fingers · Pinch out"),
+            ResourceStringService.GetString("Touchpad.Trigger.FiveFingerPinchOut.Description", "Runs once when five contacts spread outward together far enough, then stays latched until all fingers are lifted."),
+            null,
+            model.FiveFingerPinchOutAction);
         LeftEdgeSlide = new TouchpadTriggerActionEditorViewModel(
             ResourceStringService.GetString("Touchpad.Trigger.LeftSlide.Title", "Left side · Drag"),
             ResourceStringService.GetString("Touchpad.Trigger.LeftSlide.Description", "Choose what vertical dragging in the left edge region controls."),
@@ -67,6 +77,8 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
         GuidanceLines =
         [
             ResourceStringService.GetString("Touchpad.Guidance.MainExcludesCorners", "Main-region deep press excludes L, R, LT, and RT."),
+            ResourceStringService.GetString("Touchpad.Guidance.FiveFingerPinchIn", "Five-finger pinch-in fires once per touch session after the group contracts enough."),
+            ResourceStringService.GetString("Touchpad.Guidance.FiveFingerPinchOut", "Five-finger pinch-out also fires once per touch session after the group expands enough."),
             ResourceStringService.GetString("Touchpad.Guidance.EdgeSlideMapping", "Left-side and right-side drag can each be mapped to volume or brightness."),
             ResourceStringService.GetString("Touchpad.Guidance.CornerActions", "LT and RT can each run separate deep-press and long-press actions."),
             ResourceStringService.GetString("Touchpad.Guidance.LongPressAdjustable", "Long-press timing can be adjusted from the touchpad settings panel.")
@@ -76,6 +88,8 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
         AllActionEditors =
         [
             MainRegionDeepPress,
+            FiveFingerPinchIn,
+            FiveFingerPinchOut,
             LeftEdgeSlide,
             RightEdgeSlide,
             LeftTopCorner.DeepPress,
@@ -162,6 +176,10 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
 
     public ActionDefinitionViewModel DeepPressAction => MainRegionDeepPress.Action;
 
+    public TouchpadTriggerActionEditorViewModel FiveFingerPinchIn { get; }
+
+    public TouchpadTriggerActionEditorViewModel FiveFingerPinchOut { get; }
+
     public TouchpadTriggerActionEditorViewModel LeftEdgeSlide { get; }
 
     public TouchpadTriggerActionEditorViewModel RightEdgeSlide { get; }
@@ -191,6 +209,8 @@ public sealed class TouchpadConfigurationViewModel : ObservableObject
             SurfaceWidth = SurfaceWidth,
             SurfaceHeight = SurfaceHeight,
             DeepPressAction = MainRegionDeepPress.Action.ToConfiguration(),
+            FiveFingerPinchInAction = FiveFingerPinchIn.Action.ToConfiguration(),
+            FiveFingerPinchOutAction = FiveFingerPinchOut.Action.ToConfiguration(),
             LeftEdgeSlideAction = LeftEdgeSlide.Action.ToConfiguration(),
             RightEdgeSlideAction = RightEdgeSlide.Action.ToConfiguration(),
             LeftTopCorner = LeftTopCorner.ToConfiguration(),

@@ -24,6 +24,10 @@ public sealed class TouchpadConfiguration
 
     public ActionDefinitionConfiguration DeepPressAction { get; set; } = new();
 
+    public ActionDefinitionConfiguration FiveFingerPinchInAction { get; set; } = new();
+
+    public ActionDefinitionConfiguration FiveFingerPinchOutAction { get; set; } = new();
+
     public ActionDefinitionConfiguration LeftEdgeSlideAction { get; set; } = new();
 
     public ActionDefinitionConfiguration RightEdgeSlideAction { get; set; } = new();

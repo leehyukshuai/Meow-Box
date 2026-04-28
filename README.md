@@ -12,7 +12,7 @@
 
 ### 🐾 项目介绍
 
-Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控板动作以及电源模式自定义工具。它可以把原本由厂商预设的硬件行为，变成更容易调整的自定义动作，还增加了触控板的角区和重按支持。
+Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控板动作以及电源模式自定义工具。它可以把原本由厂商预设的硬件行为，变成更容易调整的自定义动作，还增加了触控板的角区控制、重按/长按、五指动作支持。
 
 > 当前的代码是基于作者之前的项目 [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) 针对 `Xiaomi Book Pro 14 2026` 进行单独适配得到的，如果你的机型不符合，可以前往 [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) 来获取支持的版本。
 
@@ -25,6 +25,7 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 > 本版本集成了小米电脑管家的除了互联生态之外的大部分重要功能，因此*不再兼容*小米电脑管家。
 
 - 增加了触控板左右区域边缘滑动的功能，可以映射为亮度和音量调节，还有死区防误触
+- 增加了触控板五指内收和外展的自定义动作，相比于重按更加方便好用
 - 增加了厂商设置的三种性能模式：静谧、智能和狂暴模式，可以按Fn+K来切换
 - 增加了智能充电的功能，通过设置充电上限，更好的保护锂电池健康度
 - 删去了过于细节的自定义选项，界面更简洁
@@ -117,7 +118,7 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 
 ### 🐾 Project introduction
 
-Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM keys, touchpad actions and power mode. It turns vendor-defined hardware behavior into something easier to customize, and adds support for touchpad corner regions and deep press actions.
+Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM keys, touchpad actions and power mode. It turns vendor-defined hardware behavior into something easier to customize, and adds support for touchpad corner-region controls, deep press / long press, and five-finger gestures.
 
 > The current codebase is a standalone adaptation of the author's previous project, [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool), specifically tailored for `Xiaomi Book Pro 14 2026`. If your device does not match, you can use [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) for the supported version instead.
 
@@ -130,6 +131,7 @@ Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM
 > This release integrates most of the major Xiaomi PC Manager features except the interconnect ecosystem, so it is *no longer compatible* with Xiaomi PC Manager.
 
 - Added left and right touchpad edge-slide regions, which can be mapped to brightness and volume adjustment, and there is also a dead zone to prevent accidental triggering
+- Added customizable five-finger pinch-in and pinch-out touchpad actions, which are more convenient to use than deep press in many cases
 - Added the three vendor performance modes: **Silent**, **Smart**, and **Beast**, with switching on **Fn + K**
 - Added **Smart charging**, with configurable charge limits to better protect long-term lithium battery health
 - Removed overly granular customization options for a cleaner and simpler UI

@@ -12,6 +12,12 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
     private const double EdgeRegionRatio = 0.06d;
     private const double EdgeStartPercent = 6d;
     private const double EdgeStepPercent = 2d;
+    private const int PinchStartCandidateFrames = 2;
+    private const int PinchTriggerCandidateFramesRequired = 2;
+    private const double PinchInTriggerRelativeSpreadRatio = 0.84d;
+    private const double PinchOutTriggerRelativeSpreadRatio = 1.16d;
+    private const double PinchTriggerAbsoluteTravelRatio = 0.06d;
+    private const double PinchCentroidTravelRatio = 0.10d;
 
     private readonly object _sync = new();
     private readonly Dictionary<nint, RawInputDeviceSnapshot> _deviceCache = [];
@@ -272,8 +278,10 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
         var pressure = TouchpadDecoder.GetCurrentPressure(parsed);
         var hasInteraction = TouchpadDecoder.HasInteraction(parsed);
-        var contacts = parsed.Contacts
+        var activeContacts = parsed.Contacts
             .Where(static contact => contact.Tip || contact.Confidence)
+            .ToList();
+        var contacts = activeContacts
             .Select(static contact => new TouchpadLiveContactSnapshot
             {
                 SlotIndex = contact.SlotIndex,
@@ -290,95 +298,23 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         TouchpadEdgeSlideEventArgs? edgeSlideTriggered = null;
         lock (_sync)
         {
-            var primaryContact = GetPrimaryContact(parsed.Contacts);
+            var primaryContact = GetPrimaryContact(activeContacts);
             var currentRegionId = ResolveRegionId(primaryContact);
             var threshold = _deepPressThreshold;
             var lightPressThreshold = _lightPressThreshold;
-            var gestureRearmPressureThreshold = Math.Max(20, lightPressThreshold - 20);
             if (hasInteraction && (!_context.HasInteraction || timestamp - _context.LastActiveAt > SessionResetThreshold))
             {
                 _context = CreateTrackingContext(timestamp);
             }
 
-            var shouldRearm = !hasInteraction || !parsed.Button1 || pressure <= gestureRearmPressureThreshold;
-            if (shouldRearm)
-            {
-                ResetGestureCycle(timestamp, pressure);
-            }
-            else
-            {
-                if (!_context.GestureCycleActive)
-                {
-                    StartGestureCycle(primaryContact, currentRegionId, pressure, timestamp);
-                }
-                else if (!string.IsNullOrWhiteSpace(currentRegionId) &&
-                         string.IsNullOrWhiteSpace(_context.SessionRegionId) &&
-                         !_context.GestureConsumed)
-                {
-                    _context.SessionRegionId = currentRegionId;
-                    _context.StartX = primaryContact?.X ?? _context.StartX;
-                    _context.StartY = primaryContact?.Y ?? _context.StartY;
-                }
-
-                var pressureDelta = pressure - _context.LastPressure;
-                var pressStartPressure = _context.PressStartPressure > 0 ? _context.PressStartPressure : pressure;
-                var aboveDeepThreshold = parsed.Button1 &&
-                                         pressure >= threshold &&
-                                         pressure - pressStartPressure >= 20;
-                var deepCandidateFrames = aboveDeepThreshold ? _context.DeepCandidateFrames + 1 : 0;
-                var isEdgeSideContact = primaryContact is not null &&
-                                        ResolveEdgeSlideSide(primaryContact.Value, excludeCornerRegions: true) is not null;
-                if (!_context.GestureConsumed &&
-                    parsed.Button1 &&
-                    !_context.DeepPressed &&
-                    deepCandidateFrames >= 2 &&
-                    (!string.IsNullOrWhiteSpace(_context.SessionRegionId) || !isEdgeSideContact))
-                {
-                    _context.DeepPressed = true;
-                    _context.GestureConsumed = true;
-                    _context.LongPressStartedAt = default;
-                    gestureTriggered = new TouchpadGestureTriggerEventArgs(
-                        TouchpadGestureTriggerKind.DeepPress,
-                        _context.SessionRegionId,
-                        _context.StartX,
-                        _context.StartY,
-                        pressure);
-                }
-
-                var releaseFloor = Math.Max(gestureRearmPressureThreshold, threshold - 40);
-                if (_context.DeepPressed &&
-                    (!parsed.Button1 || !hasInteraction || pressure <= releaseFloor || pressureDelta <= -25))
-                {
-                    _context.DeepPressed = false;
-                    deepCandidateFrames = 0;
-                }
-
-                if (!_context.GestureConsumed &&
-                    !string.IsNullOrWhiteSpace(_context.SessionRegionId))
-                {
-                    if (_context.LongPressStartedAt == default &&
-                        pressure >= lightPressThreshold)
-                    {
-                        _context.LongPressStartedAt = timestamp;
-                    }
-
-                    if (_context.LongPressStartedAt != default &&
-                        !_context.LongPressTriggered &&
-                        timestamp - _context.LongPressStartedAt >= TimeSpan.FromMilliseconds(_longPressDurationMs))
-                    {
-                        _context.LongPressTriggered = true;
-                        _context.GestureConsumed = true;
-                        gestureTriggered ??= new TouchpadGestureTriggerEventArgs(
-                            TouchpadGestureTriggerKind.LongPress,
-                            _context.SessionRegionId,
-                            _context.StartX,
-                            _context.StartY,
-                            pressure);
-                    }
-                }
-
-                _context.DeepCandidateFrames = deepCandidateFrames;
-            }
+            gestureTriggered = ProcessSingleGestureSession(
+                activeContacts,
+                primaryContact,
+                currentRegionId,
+                parsed.Button1,
+                hasInteraction,
+                pressure,
+                timestamp);
 
             _context.LastPressure = pressure;
             _context.LastButtonPressed = parsed.Button1;
@@ -620,44 +556,330 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         };
     }
 
-    private void StartGestureCycle(
+    private TouchpadGestureTriggerEventArgs? ProcessSingleGestureSession(
+        IReadOnlyList<TouchpadDecodedContact> activeContacts,
+        TouchpadDecodedContact? primaryContact,
+        string? currentRegionId,
+        bool buttonPressed,
+        bool hasInteraction,
+        int pressure,
+        DateTimeOffset timestamp)
+    {
+        if (!hasInteraction)
+        {
+            ResetSingleGestureSession(timestamp, pressure);
+            return null;
+        }
+
+        if (_context.GestureSessionOwner == TouchpadGestureSessionOwner.None)
+        {
+            if (IsFiveFingerPinchCandidate(activeContacts, buttonPressed))
+            {
+                _context.FiveFingerPinchReadyFrames++;
+                if (_context.FiveFingerPinchReadyFrames >= PinchStartCandidateFrames)
+                {
+                    StartFiveFingerPinchSession(activeContacts, pressure, timestamp);
+                }
+
+                return null;
+            }
+
+            _context.FiveFingerPinchReadyFrames = 0;
+
+            var gestureRearmPressureThreshold = Math.Max(20, _lightPressThreshold - 20);
+            if (buttonPressed && pressure > gestureRearmPressureThreshold)
+            {
+                StartPressGestureSession(primaryContact, currentRegionId, pressure, timestamp);
+            }
+
+            return null;
+        }
+
+        if (_context.GestureSessionPhase == TouchpadGestureSessionPhase.Triggered)
+        {
+            if (_context.GestureSessionOwner == TouchpadGestureSessionOwner.Press)
+            {
+                UpdateTriggeredPressGestureState(buttonPressed, hasInteraction, pressure);
+            }
+
+            return null;
+        }
+
+        return _context.GestureSessionOwner switch
+        {
+            TouchpadGestureSessionOwner.Press => ProcessPressGestureSession(
+                primaryContact,
+                currentRegionId,
+                buttonPressed,
+                hasInteraction,
+                pressure,
+                timestamp),
+            TouchpadGestureSessionOwner.FiveFingerPinch => ProcessFiveFingerPinchSession(
+                activeContacts,
+                buttonPressed,
+                pressure,
+                timestamp),
+            _ => null
+        };
+    }
+
+    private TouchpadGestureTriggerEventArgs? ProcessPressGestureSession(
+        TouchpadDecodedContact? primaryContact,
+        string? currentRegionId,
+        bool buttonPressed,
+        bool hasInteraction,
+        int pressure,
+        DateTimeOffset timestamp)
+    {
+        var threshold = _deepPressThreshold;
+        var lightPressThreshold = _lightPressThreshold;
+        var gestureRearmPressureThreshold = Math.Max(20, lightPressThreshold - 20);
+        if (!buttonPressed || pressure <= gestureRearmPressureThreshold)
+        {
+            ResetSingleGestureSession(timestamp, pressure);
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentRegionId) &&
+            string.IsNullOrWhiteSpace(_context.SessionRegionId))
+        {
+            _context.SessionRegionId = currentRegionId;
+            _context.StartX = primaryContact?.X ?? _context.StartX;
+            _context.StartY = primaryContact?.Y ?? _context.StartY;
+        }
+
+        var pressureDelta = pressure - _context.LastPressure;
+        var pressStartPressure = _context.PressStartPressure > 0 ? _context.PressStartPressure : pressure;
+        var aboveDeepThreshold = pressure >= threshold &&
+                                 pressure - pressStartPressure >= 20;
+        var deepCandidateFrames = aboveDeepThreshold ? _context.DeepCandidateFrames + 1 : 0;
+        var isEdgeSideContact = primaryContact is not null &&
+                                ResolveEdgeSlideSide(primaryContact.Value, excludeCornerRegions: true) is not null;
+        if (!_context.DeepPressed &&
+            deepCandidateFrames >= 2 &&
+            (!string.IsNullOrWhiteSpace(_context.SessionRegionId) || !isEdgeSideContact))
+        {
+            _context.DeepPressed = true;
+            _context.GestureSessionPhase = TouchpadGestureSessionPhase.Triggered;
+            _context.LongPressStartedAt = default;
+            _context.DeepCandidateFrames = deepCandidateFrames;
+            return new TouchpadGestureTriggerEventArgs(
+                TouchpadGestureTriggerKind.DeepPress,
+                _context.SessionRegionId,
+                _context.StartX,
+                _context.StartY,
+                pressure);
+        }
+
+        var releaseFloor = Math.Max(gestureRearmPressureThreshold, threshold - 40);
+        if (_context.DeepPressed &&
+            (!buttonPressed || !hasInteraction || pressure <= releaseFloor || pressureDelta <= -25))
+        {
+            _context.DeepPressed = false;
+            deepCandidateFrames = 0;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_context.SessionRegionId))
+        {
+            if (_context.LongPressStartedAt == default &&
+                pressure >= lightPressThreshold)
+            {
+                _context.LongPressStartedAt = timestamp;
+            }
+
+            if (_context.LongPressStartedAt != default &&
+                timestamp - _context.LongPressStartedAt >= TimeSpan.FromMilliseconds(_longPressDurationMs))
+            {
+                _context.GestureSessionPhase = TouchpadGestureSessionPhase.Triggered;
+                _context.DeepCandidateFrames = deepCandidateFrames;
+                return new TouchpadGestureTriggerEventArgs(
+                    TouchpadGestureTriggerKind.LongPress,
+                    _context.SessionRegionId,
+                    _context.StartX,
+                    _context.StartY,
+                    pressure);
+            }
+        }
+
+        _context.DeepCandidateFrames = deepCandidateFrames;
+        return null;
+    }
+
+    private TouchpadGestureTriggerEventArgs? ProcessFiveFingerPinchSession(
+        IReadOnlyList<TouchpadDecodedContact> activeContacts,
+        bool buttonPressed,
+        int pressure,
+        DateTimeOffset timestamp)
+    {
+        if (!IsFiveFingerPinchCandidate(activeContacts, buttonPressed))
+        {
+            ResetSingleGestureSession(timestamp, pressure);
+            return null;
+        }
+
+        var metrics = CalculateContactMetrics(activeContacts);
+        _context.FiveFingerPinchMaxObservedSpread = Math.Max(_context.FiveFingerPinchMaxObservedSpread, metrics.Spread);
+        _context.FiveFingerPinchMinObservedSpread = Math.Min(_context.FiveFingerPinchMinObservedSpread, metrics.Spread);
+        var pinchInBaselineSpread = Math.Max(_context.FiveFingerPinchBaselineSpread, _context.FiveFingerPinchMaxObservedSpread);
+        var pinchOutBaselineSpread = _context.FiveFingerPinchMinObservedSpread <= 0
+            ? _context.FiveFingerPinchBaselineSpread
+            : Math.Min(_context.FiveFingerPinchBaselineSpread, _context.FiveFingerPinchMinObservedSpread);
+        var minimumSurfaceDimension = Math.Min(_surfaceWidth, _surfaceHeight);
+        var contraction = pinchInBaselineSpread - metrics.Spread;
+        var expansion = metrics.Spread - pinchOutBaselineSpread;
+        var centroidTravel = CalculateDistance(
+            _context.FiveFingerPinchStartCentroidX,
+            _context.FiveFingerPinchStartCentroidY,
+            metrics.CentroidX,
+            metrics.CentroidY);
+        var staysCentered = centroidTravel <= minimumSurfaceDimension * PinchCentroidTravelRatio;
+        var meetsPinchInThreshold = staysCentered &&
+                                    metrics.Spread <= pinchInBaselineSpread * PinchInTriggerRelativeSpreadRatio &&
+                                    contraction >= minimumSurfaceDimension * PinchTriggerAbsoluteTravelRatio;
+        var meetsPinchOutThreshold = staysCentered &&
+                                     metrics.Spread >= pinchOutBaselineSpread * PinchOutTriggerRelativeSpreadRatio &&
+                                     expansion >= minimumSurfaceDimension * PinchTriggerAbsoluteTravelRatio;
+        _context.FiveFingerPinchInTriggerFrames = meetsPinchInThreshold
+            ? _context.FiveFingerPinchInTriggerFrames + 1
+            : 0;
+        _context.FiveFingerPinchOutTriggerFrames = meetsPinchOutThreshold
+            ? _context.FiveFingerPinchOutTriggerFrames + 1
+            : 0;
+        if (_context.FiveFingerPinchInTriggerFrames >= PinchTriggerCandidateFramesRequired)
+        {
+            _context.GestureSessionPhase = TouchpadGestureSessionPhase.Triggered;
+            return new TouchpadGestureTriggerEventArgs(
+                TouchpadGestureTriggerKind.FiveFingerPinchIn,
+                null,
+                (int)Math.Round(_context.FiveFingerPinchStartCentroidX),
+                (int)Math.Round(_context.FiveFingerPinchStartCentroidY),
+                pressure);
+        }
+
+        if (_context.FiveFingerPinchOutTriggerFrames < PinchTriggerCandidateFramesRequired)
+        {
+            return null;
+        }
+
+        _context.GestureSessionPhase = TouchpadGestureSessionPhase.Triggered;
+        return new TouchpadGestureTriggerEventArgs(
+            TouchpadGestureTriggerKind.FiveFingerPinchOut,
+            null,
+            (int)Math.Round(_context.FiveFingerPinchStartCentroidX),
+            (int)Math.Round(_context.FiveFingerPinchStartCentroidY),
+            pressure);
+    }
+
+    private void UpdateTriggeredPressGestureState(bool buttonPressed, bool hasInteraction, int pressure)
+    {
+        var gestureRearmPressureThreshold = Math.Max(20, _lightPressThreshold - 20);
+        var releaseFloor = Math.Max(gestureRearmPressureThreshold, _deepPressThreshold - 40);
+        if (_context.DeepPressed &&
+            (!buttonPressed || !hasInteraction || pressure <= releaseFloor || pressure - _context.LastPressure <= -25))
+        {
+            _context.DeepPressed = false;
+        }
+    }
+
+    private void StartPressGestureSession(
         TouchpadDecodedContact? primaryContact,
         string? currentRegionId,
         int pressure,
         DateTimeOffset timestamp)
     {
-        _context.GestureCycleActive = true;
+        ResetPressGestureTracking();
+        ResetFiveFingerPinchTracking();
+        _context.GestureSessionOwner = TouchpadGestureSessionOwner.Press;
+        _context.GestureSessionPhase = TouchpadGestureSessionPhase.Tracking;
         _context.PressStartPressure = pressure;
         _context.PeakPressure = pressure;
         _context.InteractionStartedAt = timestamp;
         _context.SessionRegionId = currentRegionId;
         _context.StartX = primaryContact?.X ?? 0;
         _context.StartY = primaryContact?.Y ?? 0;
-        _context.DeepPressed = false;
-        _context.GestureConsumed = false;
-        _context.LongPressTriggered = false;
-        _context.LongPressStartedAt = default;
-        _context.DeepCandidateFrames = 0;
     }
 
-    private void ResetGestureCycle(DateTimeOffset timestamp, int pressure)
+    private void StartFiveFingerPinchSession(
+        IReadOnlyList<TouchpadDecodedContact> activeContacts,
+        int pressure,
+        DateTimeOffset timestamp)
     {
-        _context.GestureCycleActive = false;
-        _context.PressStartPressure = 0;
+        var metrics = CalculateContactMetrics(activeContacts);
+        ResetPressGestureTracking();
+        ResetFiveFingerPinchTracking();
+        _context.GestureSessionOwner = TouchpadGestureSessionOwner.FiveFingerPinch;
+        _context.GestureSessionPhase = TouchpadGestureSessionPhase.Tracking;
         _context.PeakPressure = pressure;
+        _context.InteractionStartedAt = timestamp;
+        _context.StartX = (int)Math.Round(metrics.CentroidX);
+        _context.StartY = (int)Math.Round(metrics.CentroidY);
+        _context.FiveFingerPinchStartCentroidX = metrics.CentroidX;
+        _context.FiveFingerPinchStartCentroidY = metrics.CentroidY;
+        _context.FiveFingerPinchBaselineSpread = metrics.Spread;
+        _context.FiveFingerPinchMaxObservedSpread = metrics.Spread;
+        _context.FiveFingerPinchMinObservedSpread = metrics.Spread;
+    }
+
+    private void ResetSingleGestureSession(DateTimeOffset timestamp, int pressure)
+    {
+        _context.GestureSessionOwner = TouchpadGestureSessionOwner.None;
+        _context.GestureSessionPhase = TouchpadGestureSessionPhase.Idle;
+        _context.PeakPressure = pressure;
+        _context.InteractionStartedAt = timestamp;
+        ResetPressGestureTracking();
+        ResetFiveFingerPinchTracking();
+        if (!_edgeSlideEnabled)
+        {
+            ResetEdgeSlide();
+        }
+    }
+
+    private void ResetPressGestureTracking()
+    {
+        _context.PressStartPressure = 0;
         _context.DeepPressed = false;
-        _context.GestureConsumed = false;
-        _context.LongPressTriggered = false;
         _context.LongPressStartedAt = default;
         _context.DeepCandidateFrames = 0;
         _context.SessionRegionId = null;
         _context.StartX = 0;
         _context.StartY = 0;
-        _context.InteractionStartedAt = timestamp;
-        if (!_edgeSlideEnabled)
+    }
+
+    private void ResetFiveFingerPinchTracking()
+    {
+        _context.FiveFingerPinchReadyFrames = 0;
+        _context.FiveFingerPinchInTriggerFrames = 0;
+        _context.FiveFingerPinchOutTriggerFrames = 0;
+        _context.FiveFingerPinchStartCentroidX = 0;
+        _context.FiveFingerPinchStartCentroidY = 0;
+        _context.FiveFingerPinchBaselineSpread = 0;
+        _context.FiveFingerPinchMaxObservedSpread = 0;
+        _context.FiveFingerPinchMinObservedSpread = 0;
+    }
+
+    private static bool IsFiveFingerPinchCandidate(IReadOnlyList<TouchpadDecodedContact> activeContacts, bool buttonPressed)
+    {
+        return !buttonPressed && activeContacts.Count == 5;
+    }
+
+    private static TouchpadContactMetrics CalculateContactMetrics(IReadOnlyList<TouchpadDecodedContact> activeContacts)
+    {
+        if (activeContacts.Count == 0)
         {
-            ResetEdgeSlide();
+            return default;
         }
+
+        var centroidX = activeContacts.Average(static contact => contact.X);
+        var centroidY = activeContacts.Average(static contact => contact.Y);
+        var spread = activeContacts.Average(contact => CalculateDistance(contact.X, contact.Y, centroidX, centroidY));
+        return new TouchpadContactMetrics(centroidX, centroidY, spread);
+    }
+
+    private static double CalculateDistance(double x1, double y1, double x2, double y2)
+    {
+        var dx = x1 - x2;
+        var dy = y1 - y2;
+        return Math.Sqrt((dx * dx) + (dy * dy));
     }
 
     private TouchpadEdgeSlideEventArgs? ProcessEdgeSlide(
@@ -886,11 +1108,15 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         return !string.IsNullOrWhiteSpace(action?.Type);
     }
 
+    private readonly record struct TouchpadContactMetrics(double CentroidX, double CentroidY, double Spread);
+
     private sealed class TouchpadTrackingContext
     {
         public bool HasInteraction { get; set; }
 
-        public bool GestureCycleActive { get; set; }
+        public TouchpadGestureSessionOwner GestureSessionOwner { get; set; }
+
+        public TouchpadGestureSessionPhase GestureSessionPhase { get; set; }
 
         public bool LastButtonPressed { get; set; }
 
@@ -901,10 +1127,6 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         public int LastPressure { get; set; }
 
         public bool DeepPressed { get; set; }
-
-        public bool LongPressTriggered { get; set; }
-
-        public bool GestureConsumed { get; set; }
 
         public DateTimeOffset LongPressStartedAt { get; set; }
 
@@ -919,6 +1141,22 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         public int StartX { get; set; }
 
         public int StartY { get; set; }
+
+        public int FiveFingerPinchReadyFrames { get; set; }
+
+        public int FiveFingerPinchInTriggerFrames { get; set; }
+
+        public int FiveFingerPinchOutTriggerFrames { get; set; }
+
+        public double FiveFingerPinchStartCentroidX { get; set; }
+
+        public double FiveFingerPinchStartCentroidY { get; set; }
+
+        public double FiveFingerPinchBaselineSpread { get; set; }
+
+        public double FiveFingerPinchMaxObservedSpread { get; set; }
+
+        public double FiveFingerPinchMinObservedSpread { get; set; }
 
         public bool EdgeSlideActive { get; set; }
 
@@ -1027,7 +1265,23 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 internal enum TouchpadGestureTriggerKind
 {
     DeepPress,
-    LongPress
+    LongPress,
+    FiveFingerPinchIn,
+    FiveFingerPinchOut
+}
+
+internal enum TouchpadGestureSessionOwner
+{
+    None,
+    Press,
+    FiveFingerPinch
+}
+
+internal enum TouchpadGestureSessionPhase
+{
+    Idle,
+    Tracking,
+    Triggered
 }
 
 internal enum TouchpadEdgeSlideSide
