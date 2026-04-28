@@ -25,7 +25,6 @@ public sealed partial class SettingsPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         SyncState();
-        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)

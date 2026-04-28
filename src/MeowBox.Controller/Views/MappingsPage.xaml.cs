@@ -29,7 +29,6 @@ public sealed partial class MappingsPage : Page
         Controller.MappingItems.CollectionChanged += OnMappingItemsCollectionChanged;
         SubscribeToSelectedMappingAction();
         UpdateEmptyStates();
-        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -186,18 +185,13 @@ public sealed partial class MappingsPage : Page
             {
                 SubscribeToSelectedMappingAction();
                 UpdateEmptyStates();
-                XamlStringLocalizer.Apply(this);
             });
         }
     }
 
     private void OnMappingItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            UpdateEmptyStates();
-            XamlStringLocalizer.Apply(this);
-        });
+        DispatcherQueue.TryEnqueue(UpdateEmptyStates);
     }
 
     private void UpdateEmptyStates()

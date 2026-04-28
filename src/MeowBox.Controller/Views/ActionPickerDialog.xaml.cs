@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using MeowBox.Controller.Services;
 using MeowBox.Core.Models;
 
 namespace MeowBox.Controller.Views;
@@ -13,7 +12,6 @@ public sealed partial class ActionPickerDialog : ContentDialog
     public ActionPickerDialog(string? selectedActionType)
     {
         InitializeComponent();
-        XamlStringLocalizer.Apply(this);
         PrimaryButtonClick += OnPrimaryButtonClick;
         Opened += OnOpened;
         IsPrimaryButtonEnabled = false;

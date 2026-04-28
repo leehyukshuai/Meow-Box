@@ -57,7 +57,6 @@ public sealed partial class TouchpadPage : Page
         SubscribeTouchpadActionEditors();
         SyncTouchpadPreferenceControls();
         ScheduleTouchpadStateRefresh();
-        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -280,7 +279,6 @@ public sealed partial class TouchpadPage : Page
             SyncTouchpadPreferenceControls();
             ScheduleTouchpadStateRefresh();
             RequestRender();
-            XamlStringLocalizer.Apply(this);
         });
     }
 
@@ -463,11 +461,6 @@ public sealed partial class TouchpadPage : Page
     private void OnTouchpadContactsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         ScheduleTouchpadStateRefresh();
-    }
-
-    private void OnTouchpadActionSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        DispatcherQueue.TryEnqueue(() => XamlStringLocalizer.Apply(this));
     }
 
     private void RefreshVisibleContacts()

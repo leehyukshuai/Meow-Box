@@ -40,11 +40,7 @@ public sealed partial class BatteryPage : Page
         ApplyStaticLabels();
         SyncState();
         _ = InitializeBatteryControlsAsync(_pageLifetimeCts.Token);
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            XamlStringLocalizer.Apply(this);
-            UpdateChargeLimitTickLabelsLayout();
-        });
+        DispatcherQueue.TryEnqueue(UpdateChargeLimitTickLabelsLayout);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)

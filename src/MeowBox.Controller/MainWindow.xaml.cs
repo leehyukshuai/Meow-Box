@@ -75,7 +75,6 @@ public sealed partial class MainWindow : Window
     private void ApplyLocalizedShellText()
     {
         Title = ResourceStringService.GetString("App.Title", "Meow Box");
-        XamlStringLocalizer.Apply(this);
     }
 
     private void ConfigureWindowChrome()

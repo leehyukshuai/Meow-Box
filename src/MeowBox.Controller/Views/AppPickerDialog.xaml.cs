@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml.Controls;
-using MeowBox.Controller.Services;
 using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
@@ -13,7 +12,6 @@ public sealed partial class AppPickerDialog : ContentDialog
     {
         _allApps = apps;
         InitializeComponent();
-        XamlStringLocalizer.Apply(this);
         PrimaryButtonClick += OnPrimaryButtonClick;
         IsPrimaryButtonEnabled = false;
 

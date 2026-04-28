@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using Microsoft.UI.Xaml;
 using MeowBox.Controller.Services;
+using MeowBox.Core.Models;
 using MeowBox.Core.Services;
+using Windows.Globalization;
 
 namespace MeowBox.Controller;
 
@@ -44,12 +46,25 @@ public partial class App : Application
         try
         {
             var storedPreference = new AppConfigService().GetStoredLanguagePreference();
-            AppLanguageService.Apply(storedPreference);
+            ApplyLanguagePreference(storedPreference);
         }
         catch
         {
-            AppLanguageService.Apply(null);
+            ApplyLanguagePreference(null);
         }
+    }
+
+    private static void ApplyLanguagePreference(string? storedPreference)
+    {
+        AppLanguageService.Apply(storedPreference);
+
+        var normalizedPreference = AppLanguageService.ResolveStoredPreference(storedPreference);
+        ApplicationLanguages.PrimaryLanguageOverride = string.Equals(
+            normalizedPreference,
+            AppLanguagePreference.System,
+            StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : AppLanguageService.ResolveEffectiveLanguageTag(normalizedPreference);
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

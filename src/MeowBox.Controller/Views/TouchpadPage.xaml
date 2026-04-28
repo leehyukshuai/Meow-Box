@@ -392,7 +392,6 @@
                     Grid.Column="0"
                     Style="{StaticResource PanelCardStyle}">
                     <ListView
-                        SelectionChanged="OnTouchpadActionSelectionChanged"
                         Style="{StaticResource ListHostStyle}"
                         ItemContainerStyle="{StaticResource ListHostItemStyle}"
                         ItemsSource="{Binding Touchpad.AllActionEditors}"
