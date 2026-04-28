@@ -90,9 +90,10 @@ Do not introduce new top-level output folders unless truly necessary.
 ## Current product shape
 
 Controller pages:
-1. `Keys`
-2. `Mappings`
-3. `Settings`
+1. `Mappings`
+2. `Touchpad`
+3. `Battery`
+4. `Settings`
 
 The app should feel like a compact desktop utility, not an admin console.
 
@@ -143,11 +144,52 @@ Config service:
 Current schema centers on:
 - `Theme`
 - `Preferences`
+- `Touchpad`
 - `Keys`
 - `Mappings`
 
 Do not reintroduce legacy config compatibility unless explicitly requested.
 This project currently prefers a single clean schema.
+
+---
+
+## Localization architecture
+
+The current localization system must stay on one lifecycle.
+
+### Source of truth
+
+- localized XAML UI text uses WinUI resource resolution via `x:Uid`
+- localized code-behind / view-model text uses `MeowBox.Core.Services.ResourceStringService`
+- localized language selection / resolution uses:
+  - `src/MeowBox.Core/Services/AppLanguageService.cs`
+  - `Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride`
+
+### Required lifecycle
+
+Always resolve the stored language preference to one concrete effective language tag first.
+
+Current flow:
+1. read stored preference from config
+2. resolve it to a concrete tag (`en-US` or `zh-CN`)
+3. apply that same tag to `.NET` culture through `AppLanguageService`
+4. apply that same tag to WinUI through `Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride`
+
+Rules:
+- do not split localization into separate `.NET` vs WinUI language lifecycles
+- do not keep a special empty-string `System` branch for WinUI after `.NET` already resolved a concrete language
+- do not reintroduce controller-side ad-hoc XAML localization layers such as `XamlStringLocalizer`
+- do not eagerly freeze localized strings in static initialization that depends on whichever culture happened to load first
+- if a catalog or option list is user-visible, its localized text must be resolved against the effective language at access time or via per-language caching
+- when fixing localization, prefer correcting the lifecycle or missing resource keys over adding fallback glue
+
+### Resource files
+
+- Controller loose resources live under:
+  - `src/MeowBox.Controller/Strings/en-US/Resources.resw`
+  - `src/MeowBox.Controller/Strings/zh-CN/Resources.resw`
+- if a user-visible string is referenced by resource key, both languages must define it
+- for unpackaged local runs and publish output, loose `Strings/**/Resources.resw` files must remain copied next to the app
 
 ---
 
