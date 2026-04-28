@@ -4,11 +4,14 @@ using MeowBox.Controller.Services;
 using MeowBox.Core.Models;
 using MeowBox.Core.Services;
 using Microsoft.Windows.Globalization;
+using Microsoft.Windows.AppLifecycle;
 
 namespace MeowBox.Controller;
 
 public partial class App : Application
 {
+    private static bool _pendingWindowActivation;
+
     public static MainWindow? MainWindow { get; private set; }
 
     public static ThemeService ThemeService { get; } = new();
@@ -24,21 +27,43 @@ public partial class App : Application
 
     public static void Restart()
     {
-        var executablePath = Environment.ProcessPath;
-        if (string.IsNullOrWhiteSpace(executablePath) || !File.Exists(executablePath))
+        try
         {
+            _ = AppInstance.Restart(string.Empty);
+            return;
+        }
+        catch
+        {
+            var executablePath = Environment.ProcessPath;
+            if (string.IsNullOrWhiteSpace(executablePath) || !File.Exists(executablePath))
+            {
+                Current.Exit();
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = executablePath,
+                WorkingDirectory = Path.GetDirectoryName(executablePath) ?? AppContext.BaseDirectory,
+                UseShellExecute = true
+            });
+
             Current.Exit();
+        }
+    }
+
+    public static void RequestWindowActivation()
+    {
+        if (MainWindow is null)
+        {
+            _pendingWindowActivation = true;
             return;
         }
 
-        Process.Start(new ProcessStartInfo
+        if (!MainWindow.DispatcherQueue.TryEnqueue(static () => MainWindow?.PresentToFront()))
         {
-            FileName = executablePath,
-            WorkingDirectory = Path.GetDirectoryName(executablePath) ?? AppContext.BaseDirectory,
-            UseShellExecute = true
-        });
-
-        Current.Exit();
+            MainWindow.PresentToFront();
+        }
     }
 
     private static void ApplyStoredLanguagePreference()
@@ -74,6 +99,11 @@ public partial class App : Application
 
             App.Controller.Initialize(App.MainWindow);
             App.MainWindow.PresentToFront();
+            if (_pendingWindowActivation)
+            {
+                _pendingWindowActivation = false;
+                App.MainWindow.PresentToFront();
+            }
         });
     }
 }
