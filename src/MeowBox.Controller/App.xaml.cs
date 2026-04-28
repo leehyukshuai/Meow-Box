@@ -56,15 +56,9 @@ public partial class App : Application
 
     private static void ApplyLanguagePreference(string? storedPreference)
     {
+        var languageTag = AppLanguageService.ResolveEffectiveLanguageTag(storedPreference);
         AppLanguageService.Apply(storedPreference);
-
-        var normalizedPreference = AppLanguageService.ResolveStoredPreference(storedPreference);
-        ApplicationLanguages.PrimaryLanguageOverride = string.Equals(
-            normalizedPreference,
-            AppLanguagePreference.System,
-            StringComparison.OrdinalIgnoreCase)
-            ? string.Empty
-            : AppLanguageService.ResolveEffectiveLanguageTag(normalizedPreference);
+        ApplicationLanguages.PrimaryLanguageOverride = languageTag;
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
