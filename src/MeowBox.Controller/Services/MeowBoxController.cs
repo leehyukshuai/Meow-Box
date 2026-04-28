@@ -1020,7 +1020,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     private async Task PollWorkerHeartbeatAsync()
     {
-        if (!ServiceRunning)
+        if (!ServiceRunning && !await Task.Run(_workerProcessService.IsWorkerProcessRunning))
         {
             return;
         }
@@ -1162,7 +1162,15 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             return;
         }
 
-        WorkerElevated = status.IsElevated;
+        if (status.IsRunning && ServiceState != WorkerServiceState.Stopping)
+        {
+            SetServiceState(WorkerServiceState.Running, status.IsElevated);
+        }
+        else
+        {
+            WorkerElevated = status.IsElevated;
+        }
+
         if (status.Battery is not null)
         {
             ApplyBatteryState(status.Battery);
