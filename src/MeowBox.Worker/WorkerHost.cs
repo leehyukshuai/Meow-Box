@@ -483,7 +483,7 @@ internal sealed class WorkerHost : IDisposable
 
         runtimeMappingsByKeyId.TryGetValue(matchedKey.Id, out var mapping);
 
-        if (mapping is not null && (mapping.Enabled || mapping.Osd.Enabled))
+        if (mapping is not null && mapping.Enabled)
         {
             if (ShouldExecuteOnBackgroundThread(mapping))
             {
@@ -499,24 +499,10 @@ internal sealed class WorkerHost : IDisposable
     {
         try
         {
-            ActionExecutionOsd? actionOsd = null;
-            if (mapping.Enabled)
-            {
-                actionOsd = ExecuteAction(mapping.Action);
-            }
-
-            if (!mapping.Osd.Enabled)
-            {
-                return;
-            }
-
+            var actionOsd = ExecuteAction(mapping.Action, inputEvent);
             if (actionOsd is not null)
             {
                 ShowActionOsd(actionOsd);
-            }
-            else if (ResolveBuiltInMappingOsd(mapping, inputEvent) is { } mappingOsd)
-            {
-                ShowBuiltInOsd(mappingOsd);
             }
         }
         catch (Exception exception)
@@ -540,7 +526,7 @@ internal sealed class WorkerHost : IDisposable
 
         try
         {
-            var actionOsd = ExecuteAction(action);
+            var actionOsd = ExecuteAction(action, inputEvent: null);
             if (actionOsd is not null)
             {
                 ShowActionOsd(actionOsd);
@@ -581,7 +567,7 @@ internal sealed class WorkerHost : IDisposable
         return string.Equals(mapping.Action?.Type, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase);
     }
 
-    private ActionExecutionOsd? ExecuteAction(ActionDefinitionConfiguration action)
+    private ActionExecutionOsd? ExecuteAction(ActionDefinitionConfiguration action, InputEvent? inputEvent)
     {
         switch (action.Type)
         {
@@ -589,6 +575,10 @@ internal sealed class WorkerHost : IDisposable
                 return null;
             case HotkeyActionType.CyclePerformanceMode:
                 return ExecuteCyclePerformanceModeAction();
+            case HotkeyActionType.ShowFnLockOsd:
+            case HotkeyActionType.ShowCapsLockOsd:
+            case HotkeyActionType.ShowKeyboardBacklightOsd:
+                return ResolveBuiltInActionOsd(action.Type, inputEvent?.ReportHex);
             case HotkeyActionType.SendStandardKey:
                 _nativeActionService.SendConfiguredKeyChord(action.KeyChord);
                 return null;
@@ -599,14 +589,13 @@ internal sealed class WorkerHost : IDisposable
                 _nativeActionService.OpenProjection();
                 return null;
             case HotkeyActionType.ToggleTouchpad:
-                _nativeActionService.ToggleTouchpad();
-                return null;
+                return ExecuteToggleTouchpadAction();
             case HotkeyActionType.MicrophoneMuteOn:
                 AudioEndpointController.SetCaptureMute(true);
-                return null;
+                return ResolveBuiltInActionOsd(action.Type);
             case HotkeyActionType.MicrophoneMuteOff:
                 AudioEndpointController.SetCaptureMute(false);
-                return null;
+                return ResolveBuiltInActionOsd(action.Type);
             case HotkeyActionType.VolumeUp:
                 _nativeActionService.VolumeUp();
                 return null;
@@ -680,6 +669,31 @@ internal sealed class WorkerHost : IDisposable
         }
     }
 
+    private ActionExecutionOsd ExecuteToggleTouchpadAction()
+    {
+        var isEnabled = _nativeActionService.ToggleTouchpad();
+        var title = isEnabled switch
+        {
+            true => ResourceStringService.GetString("Osd.Title.TouchpadOn", "Touchpad on"),
+            false => ResourceStringService.GetString("Osd.Title.TouchpadOff", "Touchpad off"),
+            _ => ResourceStringService.GetString("Osd.Title.Touchpad", "Touchpad")
+        };
+        var assetKey = isEnabled switch
+        {
+            true => BuiltInOsdAsset.TouchpadOn,
+            false => BuiltInOsdAsset.TouchpadOff,
+            _ => null
+        };
+
+        return new ActionExecutionOsd(
+            title,
+            new IconConfiguration
+            {
+                Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                Path = assetKey
+            });
+    }
+
     private async Task RefreshBatteryStateAfterMutationAsync()
     {
         try
@@ -693,25 +707,25 @@ internal sealed class WorkerHost : IDisposable
         }
     }
 
-    private static BuiltInOsdDefinition? ResolveBuiltInMappingOsd(KeyActionMappingConfiguration mapping, InputEvent inputEvent)
+    private static ActionExecutionOsd? ResolveBuiltInActionOsd(string? actionType, string? reportHex = null)
     {
-        return BuiltInOsdCatalog.ResolveForKey(mapping.KeyId, inputEvent.ReportHex);
-    }
+        if (BuiltInOsdCatalog.ResolveForAction(actionType, reportHex) is not { } osd)
+        {
+            return null;
+        }
 
-    private void ShowActionOsd(ActionExecutionOsd actionOsd)
-    {
-        ShowOsd(actionOsd.Title, actionOsd.Icon);
-    }
-
-    private void ShowBuiltInOsd(BuiltInOsdDefinition osd)
-    {
-        ShowOsd(
+        return new ActionExecutionOsd(
             osd.Title,
             new IconConfiguration
             {
                 Mode = string.IsNullOrWhiteSpace(osd.AssetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
                 Path = osd.AssetKey
             });
+    }
+
+    private void ShowActionOsd(ActionExecutionOsd actionOsd)
+    {
+        ShowOsd(actionOsd.Title, actionOsd.Icon);
     }
 
     private void ShowOsd(string title, IconConfiguration icon)
@@ -835,10 +849,6 @@ internal sealed class WorkerHost : IDisposable
                     },
                 Target = mapping.Action?.Target,
                 Arguments = mapping.Action?.Arguments
-            },
-            Osd = new MappingOsdConfiguration
-            {
-                Enabled = mapping.Osd?.Enabled == true
             }
         };
     }

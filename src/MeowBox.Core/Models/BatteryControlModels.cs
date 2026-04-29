@@ -81,8 +81,10 @@ public static class BatteryControlCatalog
     {
         return NormalizePerformanceModeKey(modeKey) switch
         {
+            Battery => BuiltInOsdAsset.PerformanceBattery,
             Silent => BuiltInOsdAsset.PerformanceSilent,
             Smart => BuiltInOsdAsset.PerformanceSmart,
+            Turbo => BuiltInOsdAsset.PerformanceTurbo,
             Beast => BuiltInOsdAsset.PerformanceBeast,
             _ => null
         };

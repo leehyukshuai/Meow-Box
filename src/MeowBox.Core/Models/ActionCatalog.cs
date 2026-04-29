@@ -96,8 +96,13 @@ public static class ActionCatalog
             return false;
         }
 
-        return string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase) ||
+        return SupportsIntrinsicOsd(key) ||
                All.Any(option => string.Equals(option.Key, key, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static bool SupportsOsd(string? key)
+    {
+        return SupportsIntrinsicOsd(key);
     }
 
     public static string GetLabel(string key)
@@ -177,37 +182,32 @@ public static class ActionCatalog
             return items;
         }
     }
+
+    private static bool SupportsIntrinsicOsd(string? key)
+    {
+        return string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.ToggleTouchpad, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.ShowFnLockOsd, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.ShowCapsLockOsd, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.ShowKeyboardBacklightOsd, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.MicrophoneMuteOn, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.MicrophoneMuteOff, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public static class MappingDisplayCatalog
 {
-    private const string OsdIconGlyph = "";
-
-    public static string ShowOsdLabel => ResourceStringService.GetString("Mapping.ShowOsd", "Show OSD");
-
-    public static string BuildListActionLabel(string actionType, bool osdEnabled)
+    public static string BuildListActionLabel(string actionType)
     {
-        var hasAction = !string.IsNullOrWhiteSpace(actionType);
-        if (hasAction && osdEnabled)
-        {
-            return string.Format(CultureInfo.CurrentCulture, "{0} + {1}", ActionCatalog.GetLabel(actionType), ShowOsdLabel);
-        }
-
-        if (hasAction)
-        {
-            return ActionCatalog.GetLabel(actionType);
-        }
-
-        return osdEnabled ? ShowOsdLabel : ActionCatalog.NoActionLabel;
+        return !string.IsNullOrWhiteSpace(actionType)
+            ? ActionCatalog.GetLabel(actionType)
+            : ActionCatalog.NoActionLabel;
     }
 
-    public static string GetIconGlyph(string actionType, bool osdEnabled)
+    public static string GetIconGlyph(string actionType)
     {
-        if (!string.IsNullOrWhiteSpace(actionType))
-        {
-            return ActionCatalog.GetIconGlyph(actionType);
-        }
-
-        return osdEnabled ? OsdIconGlyph : ActionCatalog.NoActionIconGlyph;
+        return !string.IsNullOrWhiteSpace(actionType)
+            ? ActionCatalog.GetIconGlyph(actionType)
+            : ActionCatalog.NoActionIconGlyph;
     }
 }

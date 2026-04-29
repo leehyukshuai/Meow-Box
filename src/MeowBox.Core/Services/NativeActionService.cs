@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 using MeowBox.Core.Models;
 
@@ -25,9 +26,11 @@ public sealed class NativeActionService
         Launch("calc.exe");
     }
 
-    public void ToggleTouchpad()
+    public bool? ToggleTouchpad()
     {
         SendKeyChord(VkF24, [VkLeftControl, VkLeftWindows]);
+        Thread.Sleep(120);
+        return TryGetTouchpadEnabled();
     }
 
     public void SendConfiguredKeyChord(KeyChordConfiguration? keyChord)
@@ -206,6 +209,26 @@ public sealed class NativeActionService
         }
 
         return AppContext.BaseDirectory;
+    }
+
+    private static bool? TryGetTouchpadEnabled()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad\Status");
+            var value = key?.GetValue("Enabled");
+            return value switch
+            {
+                int intValue => intValue != 0,
+                uint uintValue => uintValue != 0,
+                long longValue => longValue != 0,
+                _ => null
+            };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static void StepBrightness(int delta)

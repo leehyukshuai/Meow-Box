@@ -62,7 +62,7 @@ public static class SupportedDeviceConfiguration
             CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None),
             CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
             CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection),
-            CreateMapping("mapping-performance-mode-press", DefaultKeyIds.PerformanceModePress, "Fn + K Performance Mode", HotkeyActionType.CyclePerformanceMode, showOsd: true)
+            CreateMapping("mapping-performance-mode-press", DefaultKeyIds.PerformanceModePress, "Fn + K Performance Mode", HotkeyActionType.CyclePerformanceMode)
         ];
     }
 
@@ -83,12 +83,12 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
-            CreateMapping("mapping-performance-mode-press", DefaultKeyIds.PerformanceModePress, "Fn + K Performance Mode", HotkeyActionType.CyclePerformanceMode, showOsd: true),
-            CreateMapping("mapping-fn-lock-toggle", DefaultKeyIds.FnLockToggle, "Fn Lock Toggle", HotkeyActionType.None, showOsd: true, enabled: false),
-            CreateMapping("mapping-caps-lock-toggle", DefaultKeyIds.CapsLockToggle, "Caps Lock Toggle", HotkeyActionType.None, showOsd: true, enabled: false),
-            CreateMapping("mapping-mic-on", DefaultKeyIds.MicrophoneMuteOn, "Microphone Mute On", HotkeyActionType.MicrophoneMuteOn, showOsd: true),
-            CreateMapping("mapping-mic-off", DefaultKeyIds.MicrophoneMuteOff, "Microphone Mute Off", HotkeyActionType.MicrophoneMuteOff, showOsd: true),
-            CreateMapping("mapping-backlight-cycle", DefaultKeyIds.BacklightCycle, "Keyboard Backlight", HotkeyActionType.None, showOsd: true, enabled: false)
+            CreateMapping("mapping-performance-mode-press", DefaultKeyIds.PerformanceModePress, "Fn + K Performance Mode", HotkeyActionType.CyclePerformanceMode),
+            CreateMapping("mapping-fn-lock-toggle", DefaultKeyIds.FnLockToggle, "Fn Lock Toggle", HotkeyActionType.ShowFnLockOsd),
+            CreateMapping("mapping-caps-lock-toggle", DefaultKeyIds.CapsLockToggle, "Caps Lock Toggle", HotkeyActionType.ShowCapsLockOsd),
+            CreateMapping("mapping-mic-on", DefaultKeyIds.MicrophoneMuteOn, "Microphone Mute On", HotkeyActionType.MicrophoneMuteOn),
+            CreateMapping("mapping-mic-off", DefaultKeyIds.MicrophoneMuteOff, "Microphone Mute Off", HotkeyActionType.MicrophoneMuteOff),
+            CreateMapping("mapping-backlight-cycle", DefaultKeyIds.BacklightCycle, "Keyboard Backlight", HotkeyActionType.ShowKeyboardBacklightOsd)
         ];
     }
 
@@ -113,7 +113,6 @@ public static class SupportedDeviceConfiguration
         string keyId,
         string name,
         string actionType,
-        bool showOsd = false,
         bool enabled = true)
     {
         return new KeyActionMappingConfiguration
@@ -125,10 +124,6 @@ public static class SupportedDeviceConfiguration
             Action = new ActionDefinitionConfiguration
             {
                 Type = actionType
-            },
-            Osd = new MappingOsdConfiguration
-            {
-                Enabled = showOsd
             }
         };
     }
@@ -138,8 +133,4 @@ public static class SupportedDeviceConfiguration
         return string.Equals(keyId, DefaultKeyIds.XiaoAiPress, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool ShouldAlwaysEnableOsd(string keyId)
-    {
-        return string.Equals(keyId, DefaultKeyIds.PerformanceModePress, StringComparison.OrdinalIgnoreCase);
-    }
 }

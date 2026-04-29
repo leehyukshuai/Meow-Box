@@ -183,6 +183,15 @@
   <data name="Osd.Title.PerformanceUnknown" xml:space="preserve">
     <value>Unknown Mode</value>
   </data>
+  <data name="Osd.Title.TouchpadOn" xml:space="preserve">
+    <value>Touchpad on</value>
+  </data>
+  <data name="Osd.Title.TouchpadOff" xml:space="preserve">
+    <value>Touchpad off</value>
+  </data>
+  <data name="Osd.Title.Touchpad" xml:space="preserve">
+    <value>Touchpad</value>
+  </data>
   <data name="OsdDescriptionText.Text" xml:space="preserve">
     <value>Optionally show an OSD when this mapping runs.</value>
   </data>

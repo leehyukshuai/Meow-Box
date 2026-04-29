@@ -6,33 +6,15 @@ public readonly record struct BuiltInOsdDefinition(string Title, string? AssetKe
 
 public static class BuiltInOsdCatalog
 {
-    public static bool SupportsToggle(string? keyId, string? actionType)
+    public static BuiltInOsdDefinition? ResolveForAction(string? actionType, string? reportHex = null)
     {
-        return SupportsKey(keyId);
-    }
-
-    public static bool SupportsKey(string? keyId)
-    {
-        return keyId switch
+        return actionType switch
         {
-            DefaultKeyIds.FnLockToggle => true,
-            DefaultKeyIds.CapsLockToggle => true,
-            DefaultKeyIds.MicrophoneMuteOn => true,
-            DefaultKeyIds.MicrophoneMuteOff => true,
-            DefaultKeyIds.BacklightCycle => true,
-            _ => false
-        };
-    }
-
-    public static BuiltInOsdDefinition? ResolveForKey(string? keyId, string? reportHex = null)
-    {
-        return keyId switch
-        {
-            DefaultKeyIds.FnLockToggle => ResolveFnLock(reportHex),
-            DefaultKeyIds.CapsLockToggle => ResolveCapsLock(reportHex),
-            DefaultKeyIds.MicrophoneMuteOn => new BuiltInOsdDefinition(GetString("Osd.Title.MicrophoneOff", "Microphone off"), BuiltInOsdAsset.MicrophoneMute),
-            DefaultKeyIds.MicrophoneMuteOff => new BuiltInOsdDefinition(GetString("Osd.Title.MicrophoneOn", "Microphone on"), BuiltInOsdAsset.MicrophoneOn),
-            DefaultKeyIds.BacklightCycle => ResolveBacklight(reportHex),
+            HotkeyActionType.ShowFnLockOsd => ResolveFnLock(reportHex),
+            HotkeyActionType.ShowCapsLockOsd => ResolveCapsLock(reportHex),
+            HotkeyActionType.MicrophoneMuteOn => new BuiltInOsdDefinition(GetString("Osd.Title.MicrophoneOff", "Microphone off"), BuiltInOsdAsset.MicrophoneMute),
+            HotkeyActionType.MicrophoneMuteOff => new BuiltInOsdDefinition(GetString("Osd.Title.MicrophoneOn", "Microphone on"), BuiltInOsdAsset.MicrophoneOn),
+            HotkeyActionType.ShowKeyboardBacklightOsd => ResolveBacklight(reportHex),
             _ => null
         };
     }

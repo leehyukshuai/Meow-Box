@@ -84,11 +84,6 @@ public sealed class KeyChordConfiguration
     public List<string> Modifiers { get; set; } = [];
 }
 
-public sealed class MappingOsdConfiguration
-{
-    public bool Enabled { get; set; }
-}
-
 public sealed class KeyActionMappingConfiguration
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
@@ -100,8 +95,6 @@ public sealed class KeyActionMappingConfiguration
     public string KeyId { get; set; } = string.Empty;
 
     public ActionDefinitionConfiguration Action { get; set; } = new();
-
-    public MappingOsdConfiguration Osd { get; set; } = new();
 }
 
 public sealed class EventMatcherConfiguration
@@ -254,6 +247,9 @@ public static class HotkeyActionType
 {
     public const string None = "";
     public const string CyclePerformanceMode = "CyclePerformanceMode";
+    public const string ShowFnLockOsd = "ShowFnLockOsd";
+    public const string ShowCapsLockOsd = "ShowCapsLockOsd";
+    public const string ShowKeyboardBacklightOsd = "ShowKeyboardBacklightOsd";
     public const string SendStandardKey = "SendStandardKey";
     public const string OpenSettings = "OpenSettings";
     public const string OpenProjection = "OpenProjection";
@@ -315,8 +311,12 @@ public static class BuiltInOsdAsset
     public const string BacklightLow = "backlight-low";
     public const string BacklightHigh = "backlight-high";
     public const string BacklightAuto = "backlight-auto";
+    public const string TouchpadOff = "touchpad-off";
+    public const string TouchpadOn = "touchpad-on";
+    public const string PerformanceBattery = "performance-battery";
     public const string PerformanceSilent = "performance-silent";
     public const string PerformanceSmart = "performance-smart";
+    public const string PerformanceTurbo = "performance-turbo";
     public const string PerformanceBeast = "performance-beast";
 }
 

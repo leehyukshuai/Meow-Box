@@ -73,7 +73,6 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock x:Uid="MappingDetailsTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping details" />
@@ -191,24 +190,6 @@
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
-                            </Border>
-
-                            <Border Grid.Row="3" Style="{StaticResource SubtlePanelCardStyle}" Visibility="{Binding SelectedMapping.OsdVisibility, Mode=OneWay}">
-                                <Grid ColumnSpacing="12">
-                                    <Grid ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel Spacing="4">
-                                            <TextBlock x:Uid="OsdTitleBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
-                                            <TextBlock x:Uid="OsdDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="Optionally show an OSD when this mapping runs." TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
-
-                                        <ToggleSwitch x:Uid="OsdEnabledToggleSwitch" x:Name="OsdEnabledToggleSwitch" Grid.Column="1" Header="Show OSD" IsOn="{Binding SelectedMapping.Osd.Enabled, Mode=TwoWay}" Toggled="OnOsdEnabledChanged" />
-                                    </Grid>
-                                </Grid>
                             </Border>
                         </Grid>
                     </ScrollViewer>

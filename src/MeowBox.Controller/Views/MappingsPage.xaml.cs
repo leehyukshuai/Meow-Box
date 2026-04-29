@@ -147,16 +147,6 @@ public sealed partial class MappingsPage : Page
         TrySaveMappingAsync();
     }
 
-    private void OnOsdEnabledChanged(object sender, RoutedEventArgs e)
-    {
-        if (Controller.IsReloadingConfiguration || Controller.SelectedMapping is null)
-        {
-            return;
-        }
-
-        TrySaveMappingAsync();
-    }
-
     private async void TrySaveMappingAsync()
     {
         if (Controller.IsReloadingConfiguration || Controller.SelectedMapping is null)

@@ -8,7 +8,6 @@ namespace MeowBox.Controller.ViewModels;
 public sealed class MappingDefinitionViewModel : ObservableObject
 {
     private readonly ActionDefinitionViewModel _action;
-    private readonly MappingOsdViewModel _osd;
     private bool _enabled;
     private string _keyId;
     private string _keyDisplayName = ResourceStringService.GetString("Mapping.SelectKey", "Select key");
@@ -20,12 +19,6 @@ public sealed class MappingDefinitionViewModel : ObservableObject
         _keyId = model.KeyId ?? string.Empty;
         _action = new ActionDefinitionViewModel(model.Action);
         _action.PropertyChanged += OnActionChanged;
-        _osd = new MappingOsdViewModel(model.Osd);
-        _osd.PropertyChanged += OnOsdChanged;
-        if (!SupportsConfigurableOsd && _osd.Enabled)
-        {
-            _osd.Enabled = false;
-        }
     }
 
     public string Id { get; }
@@ -57,8 +50,6 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     public ActionDefinitionViewModel Action => _action;
 
-    public MappingOsdViewModel Osd => _osd;
-
     public string KeyDisplayName
     {
         get => _keyDisplayName;
@@ -77,11 +68,7 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     public string Summary => BuildSummary();
 
-    public string ActionIconGlyph => MappingDisplayCatalog.GetIconGlyph(Action.Type, Osd.Enabled);
-
-    public bool SupportsConfigurableOsd => BuiltInOsdCatalog.SupportsToggle(KeyId, Action.Type);
-
-    public Visibility OsdVisibility => SupportsConfigurableOsd ? Visibility.Visible : Visibility.Collapsed;
+    public string ActionIconGlyph => MappingDisplayCatalog.GetIconGlyph(Action.Type);
 
     public void UpdateDisplay(string keyDisplayName)
     {
@@ -96,24 +83,18 @@ public sealed class MappingDefinitionViewModel : ObservableObject
             Name = KeyDisplayName,
             Enabled = Enabled,
             KeyId = KeyId,
-            Action = Action.ToConfiguration(),
-            Osd = Osd.ToConfiguration()
+            Action = Action.ToConfiguration()
         };
     }
 
     private string BuildSummary()
     {
-        if (SupportsConfigurableOsd && Osd.Enabled && Action.HasAssignedAction)
+        if (ActionCatalog.SupportsOsd(Action.Type) && Action.HasAssignedAction)
         {
             return string.Format(
                 System.Globalization.CultureInfo.CurrentCulture,
                 ResourceStringService.GetString("Mapping.Summary.WithOsd", "{0} Also shows an OSD."),
                 Action.ActionDescription);
-        }
-
-        if (SupportsConfigurableOsd && Osd.Enabled)
-        {
-            return ResourceStringService.GetString("Mapping.Summary.OsdOnly", "Shows an OSD.");
         }
 
         if (!Enabled)
@@ -125,19 +106,6 @@ public sealed class MappingDefinitionViewModel : ObservableObject
     }
 
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (!SupportsConfigurableOsd && Osd.Enabled)
-        {
-            Osd.Enabled = false;
-        }
-
-        OnPropertyChanged(nameof(Summary));
-        OnPropertyChanged(nameof(ActionIconGlyph));
-        OnPropertyChanged(nameof(SupportsConfigurableOsd));
-        OnPropertyChanged(nameof(OsdVisibility));
-    }
-
-    private void OnOsdChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(ActionIconGlyph));

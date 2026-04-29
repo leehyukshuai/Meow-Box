@@ -183,6 +183,15 @@
   <data name="Osd.Title.PerformanceUnknown" xml:space="preserve">
     <value>未知模式</value>
   </data>
+  <data name="Osd.Title.TouchpadOn" xml:space="preserve">
+    <value>触控板已开启</value>
+  </data>
+  <data name="Osd.Title.TouchpadOff" xml:space="preserve">
+    <value>触控板已关闭</value>
+  </data>
+  <data name="Osd.Title.Touchpad" xml:space="preserve">
+    <value>触控板</value>
+  </data>
   <data name="OsdDescriptionText.Text" xml:space="preserve">
     <value>可选：在此映射运行时显示 OSD。</value>
   </data>

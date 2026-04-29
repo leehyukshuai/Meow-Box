@@ -298,12 +298,6 @@ public sealed class AppConfigService
     {
         var source = mapping ?? template;
         var normalizedAction = NormalizeAction(source.Action ?? template.Action ?? new ActionDefinitionConfiguration());
-        var normalizedOsd = NormalizeMappingOsd(source.Osd ?? template.Osd);
-        if (SupportedDeviceConfiguration.ShouldAlwaysEnableOsd(template.KeyId))
-        {
-            normalizedOsd.Enabled = true;
-        }
-
         var hasAssignedAction = !string.IsNullOrWhiteSpace(normalizedAction.Type);
         var allowEnabledWithoutAssignedAction = SupportedDeviceConfiguration.ShouldRemainEnabledWithoutAssignedAction(template.KeyId);
         var shouldEnable = mapping?.Enabled ?? template.Enabled;
@@ -314,8 +308,7 @@ public sealed class AppConfigService
             Name = template.Name,
             Enabled = shouldEnable && (hasAssignedAction || allowEnabledWithoutAssignedAction),
             KeyId = template.KeyId,
-            Action = normalizedAction,
-            Osd = normalizedOsd
+            Action = normalizedAction
         };
     }
 
@@ -447,16 +440,6 @@ public sealed class AppConfigService
     private static bool HasAssignedAction(ActionDefinitionConfiguration? action)
     {
         return !string.IsNullOrWhiteSpace(action?.Type);
-    }
-
-    private static MappingOsdConfiguration NormalizeMappingOsd(MappingOsdConfiguration? osd)
-    {
-        osd ??= new MappingOsdConfiguration();
-
-        return new MappingOsdConfiguration
-        {
-            Enabled = osd.Enabled
-        };
     }
 
     private static string NormalizeId(string? value)
