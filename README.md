@@ -18,6 +18,10 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 
 ### ✨ 更新状况
 
+#### **v2.2.0**
+
+- 优化了触控板左右边缘滑动区域的点击处理：只有在该侧配置了滑动映射时，才会屏蔽按压触发的点击，避免边缘滑动误触；轻触和双击轻触保持正常
+
 #### **v2.1.0**
 
 - 修复了 OSD 显示的逻辑问题，将 OSD 纳入为自定义动作的子模块
@@ -128,6 +132,10 @@ Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM
 > The current codebase is a standalone adaptation of the author's previous project, [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool), specifically tailored for `Xiaomi Book Pro 14 2026`. If your device does not match, you can use [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) for the supported version instead.
 
 ### ✨ Release status
+
+#### **v2.2.0**
+
+- Refined click handling for the left and right touchpad edge-slide regions: press-triggered clicks are suppressed only on the side that actually has an edge-slide mapping, which avoids accidental clicks during edge sliding while keeping tap and double-tap behavior intact
 
 #### **v2.1.0**
 

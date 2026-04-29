@@ -37,12 +37,16 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
     private int _surfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth;
     private int _surfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight;
     private bool _edgeSlideEnabled;
+    private bool _leftEdgeSlideMapped;
+    private bool _rightEdgeSlideMapped;
     private TouchpadRegionBoundsConfiguration _leftTopBounds = TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds;
     private TouchpadRegionBoundsConfiguration _rightTopBounds = TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds;
     private DateTimeOffset _lastFrameAt;
     private readonly NativeMethods.LowLevelMouseProc _mouseHookProc;
     private nint _mouseHookHandle;
     private volatile bool _suppressMouseMovement;
+    private volatile bool _suppressEdgeRegionMouseMovement;
+    private volatile bool _edgeRegionMouseCaptureArmed;
     private bool _disposed;
 
     public TouchpadInputService()
@@ -70,8 +74,10 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
     public void UpdateConfiguration(TouchpadConfiguration? configuration)
     {
         configuration ??= new TouchpadConfiguration();
-        var edgeSlideEnabled = HasAssignedAction(configuration.LeftEdgeSlideAction) ||
-                               HasAssignedAction(configuration.RightEdgeSlideAction) ||
+        var leftEdgeSlideMapped = HasAssignedAction(configuration.LeftEdgeSlideAction);
+        var rightEdgeSlideMapped = HasAssignedAction(configuration.RightEdgeSlideAction);
+        var edgeSlideEnabled = leftEdgeSlideMapped ||
+                               rightEdgeSlideMapped ||
                                configuration.EdgeSlideEnabled;
 
         lock (_sync)
@@ -93,6 +99,8 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
             var edgeSlideStateChanged = _edgeSlideEnabled != edgeSlideEnabled;
             _edgeSlideEnabled = edgeSlideEnabled;
+            _leftEdgeSlideMapped = leftEdgeSlideMapped;
+            _rightEdgeSlideMapped = rightEdgeSlideMapped;
             _leftTopBounds = CloneBounds(configuration.LeftTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateLeftTopDefault().Bounds);
             _rightTopBounds = CloneBounds(configuration.RightTopCorner?.Bounds, TouchpadCornerRegionConfiguration.CreateRightTopDefault().Bounds);
             _latestState.LightPressThreshold = _lightPressThreshold;
@@ -307,14 +315,19 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 _context = CreateTrackingContext(timestamp);
             }
 
-            gestureTriggered = ProcessSingleGestureSession(
-                activeContacts,
-                primaryContact,
-                currentRegionId,
-                parsed.Button1,
-                hasInteraction,
-                pressure,
-                timestamp);
+            UpdateEdgeRegionStartTracking(primaryContact, activeContacts.Count, timestamp);
+
+            if (!_context.EdgeRegionOwnsInteraction)
+            {
+                gestureTriggered = ProcessSingleGestureSession(
+                    activeContacts,
+                    primaryContact,
+                    currentRegionId,
+                    parsed.Button1,
+                    hasInteraction,
+                    pressure,
+                    timestamp);
+            }
 
             _context.LastPressure = pressure;
             _context.LastButtonPressed = parsed.Button1;
@@ -325,7 +338,9 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 _context.PeakPressure = Math.Max(_context.PeakPressure, pressure);
             }
 
-            edgeSlideTriggered = ProcessEdgeSlide(primaryContact, contacts, hasInteraction, pressure);
+            UpdateEdgeRegionMouseSuppression(hasInteraction, parsed.Button1, pressure);
+
+            edgeSlideTriggered = ProcessEdgeSlide(primaryContact, contacts, hasInteraction);
 
             _latestState = new TouchpadLiveStateSnapshot
             {
@@ -388,6 +403,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
                 return;
             }
 
+            FinalizeEdgeRegionMouseSuppression();
             _context = new TouchpadTrackingContext
             {
                 LastActiveAt = now
@@ -885,8 +901,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
     private TouchpadEdgeSlideEventArgs? ProcessEdgeSlide(
         TouchpadDecodedContact? primaryContact,
         IReadOnlyList<TouchpadLiveContactSnapshot> contacts,
-        bool hasInteraction,
-        int pressure)
+        bool hasInteraction)
     {
         if (!_edgeSlideEnabled)
         {
@@ -894,15 +909,20 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
             return null;
         }
 
-        if (primaryContact is null || contacts.Count != 1 || !hasInteraction || pressure < _lightPressThreshold)
+        if (!_context.EdgeRegionStartedOnMappedSide ||
+            _context.EdgeRegionStartSide is not { } side ||
+            primaryContact is null ||
+            contacts.Count != 1 ||
+            !hasInteraction ||
+            !_context.EdgeRegionMouseCaptured)
         {
             ResetEdgeSlide();
             return null;
         }
 
         var contact = primaryContact.Value;
-        var side = ResolveEdgeSlideSide(contact, excludeCornerRegions: true);
-        if (side is null)
+        var currentSide = ResolveEdgeSlideSide(contact, excludeCornerRegions: false);
+        if (currentSide != side)
         {
             ResetEdgeSlide();
             return null;
@@ -965,7 +985,7 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         }
 
         return new TouchpadEdgeSlideEventArgs(
-            side.Value,
+            side,
             direction,
             steps,
             contact.X,
@@ -1009,6 +1029,77 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         _suppressMouseMovement = false;
     }
 
+    private bool IsEdgeSlideMapped(TouchpadEdgeSlideSide side)
+    {
+        return side switch
+        {
+            TouchpadEdgeSlideSide.Left => _leftEdgeSlideMapped,
+            TouchpadEdgeSlideSide.Right => _rightEdgeSlideMapped,
+            _ => false
+        };
+    }
+
+    private TouchpadEdgeSlideSide? GetMappedEdgeStartSide(TouchpadDecodedContact? primaryContact, int activeContactCount)
+    {
+        if (activeContactCount != 1 || primaryContact is null)
+        {
+            return null;
+        }
+
+        var side = ResolveEdgeSlideSide(primaryContact.Value, excludeCornerRegions: true);
+        return side is { } mappedSide && IsEdgeSlideMapped(mappedSide)
+            ? mappedSide
+            : null;
+    }
+
+    private void UpdateEdgeRegionStartTracking(
+        TouchpadDecodedContact? primaryContact,
+        int activeContactCount,
+        DateTimeOffset timestamp)
+    {
+        if (_context.EdgeRegionStartedOnMappedSide ||
+            _context.EdgeRegionStartRejected)
+        {
+            return;
+        }
+
+        var side = GetMappedEdgeStartSide(primaryContact, activeContactCount);
+        if (side is not null)
+        {
+            _context.EdgeRegionStartSide = side;
+            _context.EdgeRegionStartedAt = timestamp;
+            _context.EdgeRegionStartedOnMappedSide = true;
+            return;
+        }
+
+        if ((activeContactCount == 1 && primaryContact is not null) || activeContactCount > 1)
+        {
+            _context.EdgeRegionStartRejected = true;
+        }
+    }
+
+    private void UpdateEdgeRegionMouseSuppression(bool hasInteraction, bool buttonPressed, int pressure)
+    {
+        if (!hasInteraction)
+        {
+            FinalizeEdgeRegionMouseSuppression();
+            return;
+        }
+
+        _edgeRegionMouseCaptureArmed =
+            _context.EdgeRegionStartedOnMappedSide &&
+            !_context.EdgeRegionMouseCaptured &&
+            (buttonPressed || pressure >= Math.Max(20, _lightPressThreshold - 20));
+
+        if (_context.EdgeRegionMouseCaptured)
+        {
+            _suppressEdgeRegionMouseMovement = true;
+            return;
+        }
+
+        _suppressEdgeRegionMouseMovement = false;
+    }
+
     private void InstallMouseHook()
     {
         if (_mouseHookHandle != 0)
@@ -1025,6 +1116,9 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
     private void UninstallMouseHook()
     {
+        _suppressMouseMovement = false;
+        _suppressEdgeRegionMouseMovement = false;
+
         if (_mouseHookHandle == 0)
         {
             return;
@@ -1036,14 +1130,92 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
 
     private nint MouseHookCallback(int code, nint wParam, nint lParam)
     {
-        if (code >= 0 &&
-            _suppressMouseMovement &&
-            wParam == NativeMethods.WmMouseMove)
+        if (code >= 0)
         {
-            return 1;
+            if (_context.EdgeRegionMouseCaptured)
+            {
+                if (IsMouseButtonUpMessage(wParam))
+                {
+                    EndEdgeRegionMouseCapture();
+                    return 1;
+                }
+
+                if (wParam == NativeMethods.WmMouseMove || IsMouseButtonMessage(wParam))
+                {
+                    return 1;
+                }
+            }
+
+            if (_context.EdgeRegionStartedOnMappedSide &&
+                !_context.EdgeRegionStartRejected &&
+                _edgeRegionMouseCaptureArmed &&
+                IsMouseButtonDownMessage(wParam))
+            {
+                BeginEdgeRegionMouseCapture();
+                return 1;
+            }
+
+            if ((_suppressMouseMovement || _suppressEdgeRegionMouseMovement) &&
+                wParam == NativeMethods.WmMouseMove)
+            {
+                return 1;
+            }
         }
 
         return NativeMethods.CallNextHookEx(_mouseHookHandle, code, wParam, lParam);
+    }
+
+    private void BeginEdgeRegionMouseCapture()
+    {
+        _context.EdgeRegionOwnsInteraction = true;
+        _context.EdgeRegionMouseCaptured = true;
+        _edgeRegionMouseCaptureArmed = false;
+        _context.GestureSessionOwner = TouchpadGestureSessionOwner.None;
+        _context.GestureSessionPhase = TouchpadGestureSessionPhase.Idle;
+        ResetPressGestureTracking();
+        ResetFiveFingerPinchTracking();
+        _suppressEdgeRegionMouseMovement = true;
+    }
+
+    private void EndEdgeRegionMouseCapture()
+    {
+        _context.EdgeRegionMouseCaptured = false;
+        _edgeRegionMouseCaptureArmed = false;
+        _suppressEdgeRegionMouseMovement = false;
+        ResetEdgeSlide();
+    }
+
+    private static bool IsMouseButtonMessage(nint message)
+    {
+        return message == NativeMethods.WmLButtonDown ||
+               message == NativeMethods.WmLButtonUp ||
+               message == NativeMethods.WmRButtonDown ||
+               message == NativeMethods.WmRButtonUp;
+    }
+
+    private static bool IsMouseButtonDownMessage(nint message)
+    {
+        return message == NativeMethods.WmLButtonDown ||
+               message == NativeMethods.WmRButtonDown;
+    }
+
+    private static bool IsMouseButtonUpMessage(nint message)
+    {
+        return message == NativeMethods.WmLButtonUp ||
+               message == NativeMethods.WmRButtonUp;
+    }
+
+    private void FinalizeEdgeRegionMouseSuppression()
+    {
+        _suppressEdgeRegionMouseMovement = false;
+
+        _context.EdgeRegionStartedOnMappedSide = false;
+        _context.EdgeRegionStartSide = null;
+        _context.EdgeRegionStartRejected = false;
+        _context.EdgeRegionStartedAt = default;
+        _context.EdgeRegionMouseCaptured = false;
+        _context.EdgeRegionOwnsInteraction = false;
+        _edgeRegionMouseCaptureArmed = false;
     }
 
     private static TouchpadRegionBoundsConfiguration CloneBounds(
@@ -1169,6 +1341,18 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         public double EdgeSlideAnchorY { get; set; }
 
         public bool EdgeSlideTriggered { get; set; }
+
+        public bool EdgeRegionStartedOnMappedSide { get; set; }
+
+        public TouchpadEdgeSlideSide? EdgeRegionStartSide { get; set; }
+
+        public DateTimeOffset EdgeRegionStartedAt { get; set; }
+
+        public bool EdgeRegionStartRejected { get; set; }
+
+        public bool EdgeRegionMouseCaptured { get; set; }
+
+        public bool EdgeRegionOwnsInteraction { get; set; }
     }
 
     private static class NativeMethods
@@ -1182,6 +1366,10 @@ internal sealed class TouchpadInputService : NativeWindow, IDisposable
         public const int RidevInputSink = 0x00000100;
         public const int RidevDevNotify = 0x00002000;
         public static readonly nint WmMouseMove = new(0x0200);
+        public static readonly nint WmLButtonDown = new(0x0201);
+        public static readonly nint WmLButtonUp = new(0x0202);
+        public static readonly nint WmRButtonDown = new(0x0204);
+        public static readonly nint WmRButtonUp = new(0x0205);
         public const int WhMouseLl = 14;
 
         [DllImport("user32.dll", SetLastError = true)]
