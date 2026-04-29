@@ -219,7 +219,7 @@ public sealed class AppConfigService
             AppLanguagePreference.Chinese => AppLanguagePreference.Chinese,
             _ => AppLanguagePreference.System
         };
-        configuration.Preferences.PreferredPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(
+        configuration.Preferences.PreferredPerformanceModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(
             configuration.Preferences.PreferredPerformanceModeKey);
         configuration.Preferences.PreferredChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(
             configuration.Preferences.PreferredChargeLimitPercent);

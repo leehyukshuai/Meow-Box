@@ -790,7 +790,22 @@
     <value>切换性能模式</value>
   </data>
   <data name="Action.CyclePerformanceMode.Description" xml:space="preserve">
-    <value>在静谧、智能和狂暴模式之间循环切换。</value>
+    <value>在智能、极速/狂暴、省电和静谧模式之间循环切换。</value>
+  </data>
+  <data name="Battery.Performance.BatterySaver" xml:space="preserve">
+    <value>省电</value>
+  </data>
+  <data name="Battery.Performance.Silent" xml:space="preserve">
+    <value>静谧</value>
+  </data>
+  <data name="Battery.Performance.Smart" xml:space="preserve">
+    <value>智能</value>
+  </data>
+  <data name="Battery.Performance.Turbo" xml:space="preserve">
+    <value>极速</value>
+  </data>
+  <data name="Battery.Performance.Beast" xml:space="preserve">
+    <value>狂暴</value>
   </data>
   <data name="Mapping.ShowOsd" xml:space="preserve">
     <value>显示 OSD</value>
@@ -974,6 +989,12 @@
   </data>
   <data name="Battery.Status.UpdatingPerformance" xml:space="preserve">
     <value>正在切换性能模式……</value>
+  </data>
+  <data name="Battery.Status.EnablingBatterySaver" xml:space="preserve">
+    <value>正在开启省电模式……</value>
+  </data>
+  <data name="Battery.Status.DisablingBatterySaver" xml:space="preserve">
+    <value>正在关闭省电模式……</value>
   </data>
   <data name="Battery.Status.CouldNotChangePerformance" xml:space="preserve">
     <value>无法切换性能模式。</value>

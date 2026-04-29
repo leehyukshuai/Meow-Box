@@ -18,6 +18,11 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 
 ### ✨ 更新状况
 
+#### **v2.1.0**
+
+- 修复了 OSD 显示的逻辑问题，将 OSD 纳入为自定义动作的子模块
+- 暴露了厂商的五种硬件模式：省电、静谧、智能、极速 / 狂暴（分别对应离电和插电情况）
+
 #### **v2.0.0**
 
 > [!WARNING]
@@ -123,6 +128,11 @@ Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM
 > The current codebase is a standalone adaptation of the author's previous project, [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool), specifically tailored for `Xiaomi Book Pro 14 2026`. If your device does not match, you can use [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) for the supported version instead.
 
 ### ✨ Release status
+
+#### **v2.1.0**
+
+- Fixed the OSD logic issue by making OSD an intrinsic submodule of custom actions
+- Fully exposed the vendor's five hardware modes: **Battery saver**, **Silent**, **Smart**, and **Turbo / Beast** for battery and plugged-in states respectively
 
 #### **v2.0.0**
 

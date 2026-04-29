@@ -76,24 +76,40 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <RadioButton
+                            x:Name="PerformanceBatteryRadioButton"
+                            Checked="OnPerformanceModeChecked"
+                            GroupName="BatteryPerformanceMode"
+                            HorizontalAlignment="Left"
+                            Tag="battery" />
+                        <RadioButton
                             x:Name="PerformanceSilentRadioButton"
+                            Grid.Column="1"
                             Checked="OnPerformanceModeChecked"
                             GroupName="BatteryPerformanceMode"
                             HorizontalAlignment="Left"
                             Tag="silent" />
                         <RadioButton
                             x:Name="PerformanceSmartRadioButton"
-                            Grid.Column="1"
+                            Grid.Column="2"
                             Checked="OnPerformanceModeChecked"
                             GroupName="BatteryPerformanceMode"
                             HorizontalAlignment="Left"
                             Tag="smart" />
                         <RadioButton
+                            x:Name="PerformanceTurboRadioButton"
+                            Grid.Column="3"
+                            Checked="OnPerformanceModeChecked"
+                            GroupName="BatteryPerformanceMode"
+                            HorizontalAlignment="Left"
+                            Tag="turbo" />
+                        <RadioButton
                             x:Name="PerformanceBeastRadioButton"
-                            Grid.Column="2"
+                            Grid.Column="4"
                             Checked="OnPerformanceModeChecked"
                             GroupName="BatteryPerformanceMode"
                             HorizontalAlignment="Left"

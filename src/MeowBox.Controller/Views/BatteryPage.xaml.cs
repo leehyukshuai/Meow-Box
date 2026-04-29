@@ -59,6 +59,7 @@ public sealed partial class BatteryPage : Page
             nameof(MeowBoxController.BatteryControlSupported) or
             nameof(MeowBoxController.BatteryStateKnown) or
             nameof(MeowBoxController.CurrentPerformanceModeKey) or
+            nameof(MeowBoxController.CurrentPerformanceSelectionKey) or
             nameof(MeowBoxController.CurrentChargeLimitPercent) or
             nameof(MeowBoxController.ResetPerformanceModeToSmartOnStartup) or
             nameof(MeowBoxController.ResetChargeLimitToFullOnStartup) or
@@ -75,9 +76,11 @@ public sealed partial class BatteryPage : Page
 
     private void ApplyStaticLabels()
     {
-        PerformanceSilentRadioButton.Content = BatteryControlCatalog.GetPerformanceModeLabel(BatteryControlCatalog.Silent);
-        PerformanceSmartRadioButton.Content = BatteryControlCatalog.GetPerformanceModeLabel(BatteryControlCatalog.Smart);
-        PerformanceBeastRadioButton.Content = BatteryControlCatalog.GetPerformanceModeLabel(BatteryControlCatalog.Beast);
+        PerformanceBatteryRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Battery);
+        PerformanceSilentRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Silent);
+        PerformanceSmartRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Smart);
+        PerformanceTurboRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Turbo);
+        PerformanceBeastRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Beast);
         UpdateChargeLimitTickLabelsLayout();
     }
 
@@ -99,7 +102,7 @@ public sealed partial class BatteryPage : Page
         PerformanceCard.Visibility = canShowBatteryControls ? Visibility.Visible : Visibility.Collapsed;
         ChargeCard.Visibility = canShowBatteryControls ? Visibility.Visible : Visibility.Collapsed;
 
-        SetSelectedPerformanceMode(Controller.CurrentPerformanceModeKey);
+        SetSelectedPerformanceMode(Controller.CurrentPerformanceSelectionKey);
         SetSelectedChargeLimit(_requestedChargeLimitPercent ?? Controller.CurrentChargeLimitPercent);
         PerformanceStartupResetToggleSwitch.IsOn = Controller.ResetPerformanceModeToSmartOnStartup;
         ChargeStartupResetToggleSwitch.IsOn = Controller.ResetChargeLimitToFullOnStartup;
@@ -172,7 +175,7 @@ public sealed partial class BatteryPage : Page
             return;
         }
 
-        if (_isLoading || string.Equals(modeKey, Controller.CurrentPerformanceModeKey, StringComparison.OrdinalIgnoreCase))
+        if (_isLoading || string.Equals(modeKey, Controller.CurrentPerformanceSelectionKey, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
@@ -281,7 +284,7 @@ public sealed partial class BatteryPage : Page
 
     private void SetSelectedPerformanceMode(string modeKey)
     {
-        var normalized = BatteryControlCatalog.NormalizePerformanceModeKey(modeKey);
+        var normalized = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(modeKey);
         foreach (var radioButton in GetPerformanceModeButtons())
         {
             radioButton.IsChecked = string.Equals(radioButton.Tag as string, normalized, StringComparison.OrdinalIgnoreCase);
@@ -290,8 +293,10 @@ public sealed partial class BatteryPage : Page
 
     private IEnumerable<RadioButton> GetPerformanceModeButtons()
     {
+        yield return PerformanceBatteryRadioButton;
         yield return PerformanceSilentRadioButton;
         yield return PerformanceSmartRadioButton;
+        yield return PerformanceTurboRadioButton;
         yield return PerformanceBeastRadioButton;
     }
 

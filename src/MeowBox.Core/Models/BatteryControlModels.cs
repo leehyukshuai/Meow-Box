@@ -10,6 +10,12 @@ public sealed class BatteryControlState
 
     public string PerformanceModeKey { get; set; } = BatteryControlCatalog.DefaultPerformanceModeKey;
 
+    public string SelectedPerformanceModeKey { get; set; } = BatteryControlCatalog.DefaultSelectedPerformanceModeKey;
+
+    public bool IsBatterySaverEnabled { get; set; }
+
+    public bool IsAcPowered { get; set; }
+
     public int ChargeLimitPercent { get; set; } = BatteryControlCatalog.DefaultChargeLimitPercent;
 }
 
@@ -22,6 +28,7 @@ public static class BatteryControlCatalog
     public const string Beast = "beast";
 
     public const string DefaultPerformanceModeKey = Smart;
+    public const string DefaultSelectedPerformanceModeKey = Smart;
     public const int DefaultChargeLimitPercent = 100;
 
     public static IReadOnlyList<string> PerformanceModeOrder { get; } =
@@ -30,13 +37,6 @@ public static class BatteryControlCatalog
         Silent,
         Smart,
         Turbo,
-        Beast
-    ];
-
-    public static IReadOnlyList<string> PerformanceModeCycleOrder { get; } =
-    [
-        Silent,
-        Smart,
         Beast
     ];
 
@@ -64,17 +64,29 @@ public static class BatteryControlCatalog
         };
     }
 
-    public static string GetNextCyclePerformanceModeKey(string? currentModeKey)
+    public static string GetSelectedPerformanceModeLabel(string modeKey)
     {
-        var normalizedModeKey = NormalizePerformanceModeKey(currentModeKey);
-        var index = PerformanceModeCycleOrder
-            .Select((key, position) => new { key, position })
-            .FirstOrDefault(item => string.Equals(item.key, normalizedModeKey, StringComparison.OrdinalIgnoreCase))
-            ?.position ?? -1;
+        return NormalizePerformanceModeKey(modeKey) switch
+        {
+            Battery => ResourceStringService.GetString("Battery.Performance.BatterySaver", "Battery saver"),
+            Silent => ResourceStringService.GetString("Battery.Performance.Silent", "Silent"),
+            Smart => ResourceStringService.GetString("Battery.Performance.Smart", "Smart"),
+            Turbo => ResourceStringService.GetString("Battery.Performance.Turbo", "Turbo"),
+            Beast => ResourceStringService.GetString("Battery.Performance.Beast", "Beast"),
+            _ => ResourceStringService.GetString("Battery.Performance.Smart", "Smart")
+        };
+    }
 
-        return index < 0
-            ? Silent
-            : PerformanceModeCycleOrder[(index + 1) % PerformanceModeCycleOrder.Count];
+    public static string GetNextCyclePerformanceModeKey(string? currentModeKey, bool isAcPowered)
+    {
+        return NormalizePerformanceModeKey(currentModeKey) switch
+        {
+            Smart => isAcPowered ? Beast : Turbo,
+            Turbo or Beast => Battery,
+            Battery => Silent,
+            Silent => Smart,
+            _ => Smart
+        };
     }
 
     public static string? GetPerformanceModeOsdAssetKey(string? modeKey)
@@ -123,6 +135,19 @@ public static class BatteryControlCatalog
         };
     }
 
+    public static string ResolveRawPerformanceModeKey(string? selectedModeKey, bool isAcPowered)
+    {
+        return NormalizePerformanceModeKey(selectedModeKey);
+    }
+
+    public static string ResolveSelectedPerformanceModeKey(string? rawModeKey, string? fallbackSelectedModeKey = null)
+    {
+        var normalizedModeKey = NormalizePerformanceModeKey(rawModeKey);
+        return string.IsNullOrWhiteSpace(rawModeKey)
+            ? NormalizePerformanceModeKey(fallbackSelectedModeKey)
+            : normalizedModeKey;
+    }
+
     public static uint GetChargeLimitRawCode(int percent)
     {
         return percent switch
@@ -169,5 +194,10 @@ public static class BatteryControlCatalog
 
         return PerformanceModeOrder.FirstOrDefault(item => string.Equals(item, modeKey, StringComparison.OrdinalIgnoreCase))
             ?? DefaultPerformanceModeKey;
+    }
+
+    public static string NormalizeSelectedPerformanceModeKey(string? modeKey)
+    {
+        return NormalizePerformanceModeKey(modeKey);
     }
 }

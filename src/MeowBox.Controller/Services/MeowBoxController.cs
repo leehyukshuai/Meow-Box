@@ -21,7 +21,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private readonly SemaphoreSlim _serviceOperationGate = new(1, 1);
 
     private DispatcherQueue? _dispatcherQueue;
-    private DispatcherQueueTimer? _statusTimer;
     private AppConfiguration _configuration = AppConfiguration.CreateDefault();
     private MappingDefinitionViewModel? _selectedMapping;
     private ActionTagOption? _selectedActionTag;
@@ -41,6 +40,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private string _batteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.DefaultMessage", "Start the background service to view or change the current power status.");
     private bool _resetPerformanceModeToSmartOnStartup = true;
     private string _currentPerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey;
+    private string _currentPerformanceSelectionKey = BatteryControlCatalog.DefaultSelectedPerformanceModeKey;
     private bool _resetChargeLimitToFullOnStartup;
     private int _currentChargeLimitPercent = BatteryControlCatalog.DefaultChargeLimitPercent;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
@@ -217,6 +217,12 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     public string CurrentPerformanceModeLabel => BatteryControlCatalog.GetPerformanceModeLabel(CurrentPerformanceModeKey);
 
+    public string CurrentPerformanceSelectionKey
+    {
+        get => _currentPerformanceSelectionKey;
+        private set => SetProperty(ref _currentPerformanceSelectionKey, value);
+    }
+
     public bool ResetPerformanceModeToSmartOnStartup
     {
         get => _resetPerformanceModeToSmartOnStartup;
@@ -331,7 +337,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         _touchpadStreamClient.ConnectionChanged += OnTouchpadStreamConnectionChanged;
 
         App.ThemeService.Initialize(window, _configuration.Theme);
-        StartStatusPolling();
         _ = RequestWorkerAnnouncementAsync();
     }
 
@@ -497,20 +502,40 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     public async Task SetPerformanceModeAsync(string modeKey)
     {
-        var normalizedModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(modeKey);
-        await UpdateBatteryRuntimeAsync(
-            normalizedModeKey,
-            CurrentPerformanceModeKey,
-            value => CurrentPerformanceModeKey = value,
-            ResourceStringService.GetString("Battery.Status.UpdatingPerformance", "Updating performance mode..."),
-            new WorkerRequest
+        var normalizedModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(modeKey);
+        var previousSelectionKey = CurrentPerformanceSelectionKey;
+
+        CurrentPerformanceSelectionKey = normalizedModeKey;
+        BatteryStateKnown = true;
+        BatteryControlSupported = true;
+        BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.UpdatingPerformance", "Updating performance mode...");
+        BatteryControlBusy = true;
+        try
+        {
+            var response = await _workerPipeClient.SendAsync(new WorkerRequest
             {
                 Command = WorkerCommandType.SetPerformanceMode,
                 PerformanceModeKey = normalizedModeKey
-            },
-            ResourceStringService.GetString("Battery.Status.CouldNotChangePerformance", "Could not change the performance mode."),
-            ResourceStringService.GetString("Battery.Status.PerformanceUpdated", "Performance mode updated."),
-            () => _configuration.Preferences.PreferredPerformanceModeKey = normalizedModeKey);
+            }, 2500);
+            if (response?.Success != true)
+            {
+                throw new InvalidOperationException(response?.Error ?? ResourceStringService.GetString("Battery.Status.CouldNotChangePerformance", "Could not change the performance mode."));
+            }
+
+            _configuration.Preferences.PreferredPerformanceModeKey = normalizedModeKey;
+            SaveConfiguration();
+            ApplyWorkerSnapshot(response.Status);
+            BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.PerformanceUpdated", "Performance mode updated.");
+        }
+        catch
+        {
+            CurrentPerformanceSelectionKey = previousSelectionKey;
+            throw;
+        }
+        finally
+        {
+            BatteryControlBusy = false;
+        }
     }
 
     public void SetResetPerformanceModeToSmartOnStartup(bool enabled)
@@ -811,7 +836,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     public void Dispose()
     {
-        _statusTimer?.Stop();
         _controllerPipeServer.Dispose();
         _touchpadStreamClient.SnapshotReceived -= OnTouchpadSnapshotReceived;
         _touchpadStreamClient.ConnectionChanged -= OnTouchpadStreamConnectionChanged;
@@ -902,16 +926,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         };
         OsdBackgroundOpacityPercent = Math.Clamp(osd.BackgroundOpacityPercent, 0, 100);
         OsdScalePercent = Math.Clamp(osd.ScalePercent, 60, 200);
-    }
-
-    private void StartStatusPolling()
-    {
-        _statusTimer?.Stop();
-        _statusTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        _statusTimer.IsRepeating = true;
-        _statusTimer.Interval = TimeSpan.FromSeconds(5);
-        _statusTimer.Tick += async (_, _) => await PollWorkerHeartbeatAsync();
-        _statusTimer.Start();
     }
 
     private async Task<WorkerResponse?> QueryWorkerStatusAsync(int timeoutMs)
@@ -1016,16 +1030,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
         BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.NotSupported", "This device does not expose the required battery controls.");
         return false;
-    }
-
-    private async Task PollWorkerHeartbeatAsync()
-    {
-        if (!ServiceRunning && !await Task.Run(_workerProcessService.IsWorkerProcessRunning))
-        {
-            return;
-        }
-
-        await RefreshWorkerStatusAsync();
     }
 
     private async Task RequestWorkerAnnouncementAsync()
@@ -1205,9 +1209,11 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         BatteryControlSupported = state.Supported;
         if (!string.IsNullOrWhiteSpace(state.PerformanceModeKey))
         {
-            CurrentPerformanceModeKey = state.PerformanceModeKey;
+            CurrentPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey);
         }
 
+        CurrentPerformanceSelectionKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.SelectedPerformanceModeKey);
+        _configuration.Preferences.PreferredPerformanceModeKey = CurrentPerformanceSelectionKey;
         CurrentChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(state.ChargeLimitPercent);
     }
 

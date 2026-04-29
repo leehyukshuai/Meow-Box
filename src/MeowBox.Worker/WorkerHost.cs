@@ -23,6 +23,7 @@ internal sealed class WorkerHost : IDisposable
     private readonly AutostartService _autostartService = new();
     private readonly NativeActionService _nativeActionService = new();
     private readonly BatteryControlService _batteryControlService = new();
+    private readonly WindowsPowerModeService _windowsPowerModeService = new();
     private readonly ControllerPipeClient _controllerPipeClient = new();
     private readonly WorkerPipeServer _pipeServer;
     private readonly TouchpadInputService _touchpadInputService;
@@ -195,7 +196,7 @@ internal sealed class WorkerHost : IDisposable
             WorkerCommandType.GetBatteryControlState => Task.FromResult(new WorkerResponse
             {
                 Success = true,
-                Battery = _batteryControlService.QueryState(),
+                Battery = DecorateBatteryState(_batteryControlService.QueryState()),
                 Status = BuildStatus()
             }),
             WorkerCommandType.SetPerformanceMode => Task.FromResult(SetPerformanceMode(request)),
@@ -246,20 +247,7 @@ internal sealed class WorkerHost : IDisposable
 
         BatteryControlState batteryState;
         ActionExecutionOsd? actionOsd;
-        lock (_performanceModeSync)
-        {
-            batteryState = _batteryControlService.SetPerformanceModeFast(request.PerformanceModeKey);
-            var title = BatteryControlCatalog.GetPerformanceModeLabel(batteryState.PerformanceModeKey);
-            var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(batteryState.PerformanceModeKey);
-            actionOsd = new ActionExecutionOsd(
-                title,
-                new IconConfiguration
-                {
-                    Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
-                    Path = assetKey
-                });
-            _stateMessage = "Performance mode set to " + title + ".";
-        }
+        (batteryState, actionOsd) = ApplyPerformanceMode(request.PerformanceModeKey);
 
         if (actionOsd is not null)
         {
@@ -288,7 +276,7 @@ internal sealed class WorkerHost : IDisposable
             };
         }
 
-        var batteryState = _batteryControlService.SetChargeLimitPercentFast(request.ChargeLimitPercent.Value);
+        var batteryState = DecorateBatteryState(_batteryControlService.SetChargeLimitPercentFast(request.ChargeLimitPercent.Value));
         _ = Task.Run(RefreshBatteryStateAfterMutationAsync);
 
         return new WorkerResponse
@@ -404,7 +392,7 @@ internal sealed class WorkerHost : IDisposable
                 {
                     lock (_performanceModeSync)
                     {
-                        _batteryControlService.SetPerformanceModeFast(preferredPerformanceModeKey);
+                        ApplyPerformanceMode(preferredPerformanceModeKey, persistPreference: false);
                     }
                 }
 
@@ -414,7 +402,7 @@ internal sealed class WorkerHost : IDisposable
                 }
             });
             await Task.Delay(900);
-            await Task.Run(_batteryControlService.QueryState);
+            await Task.Run(() => DecorateBatteryState(_batteryControlService.QueryState()));
             await NotifyControllerAsync(WorkerNotificationType.Started);
         }
         catch
@@ -642,31 +630,16 @@ internal sealed class WorkerHost : IDisposable
 
     private ActionExecutionOsd ExecuteCyclePerformanceModeAction()
     {
-        lock (_performanceModeSync)
+        var state = GetEffectiveBatteryState();
+        if (!state.Supported)
         {
-            var state = _batteryControlService.TryGetCachedState(out var cachedState)
-                ? cachedState
-                : _batteryControlService.QueryState();
-            if (!state.Supported)
-            {
-                throw new InvalidOperationException(ResourceStringService.GetString("Worker.DeviceNotSupported", "The device does not expose the performance mode controls."));
-            }
-
-            var nextModeKey = BatteryControlCatalog.GetNextCyclePerformanceModeKey(state.PerformanceModeKey);
-            var updatedState = _batteryControlService.SetPerformanceModeFast(nextModeKey);
-            _ = Task.Run(RefreshBatteryStateAfterMutationAsync);
-            var title = BatteryControlCatalog.GetPerformanceModeLabel(updatedState.PerformanceModeKey);
-            var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(updatedState.PerformanceModeKey);
-            _stateMessage = "Performance mode set to " + title + ".";
-
-            return new ActionExecutionOsd(
-                title,
-                new IconConfiguration
-                {
-                    Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
-                    Path = assetKey
-                });
+            throw new InvalidOperationException(ResourceStringService.GetString("Worker.DeviceNotSupported", "The device does not expose the performance mode controls."));
         }
+
+        var nextModeKey = BatteryControlCatalog.GetNextCyclePerformanceModeKey(state.PerformanceModeKey, state.IsAcPowered);
+        var (_, actionOsd) = ApplyPerformanceMode(nextModeKey);
+        NotifyControllerAboutBatteryMutation();
+        return actionOsd ?? throw new InvalidOperationException("Performance mode OSD could not be resolved.");
     }
 
     private ActionExecutionOsd ExecuteToggleTouchpadAction()
@@ -699,7 +672,7 @@ internal sealed class WorkerHost : IDisposable
         try
         {
             await Task.Delay(700);
-            _batteryControlService.QueryState();
+            DecorateBatteryState(_batteryControlService.QueryState());
             await NotifyControllerAsync(WorkerNotificationType.Started);
         }
         catch
@@ -856,7 +829,7 @@ internal sealed class WorkerHost : IDisposable
     private WorkerStatus BuildStatus()
     {
         var batteryState = _batteryControlService.TryGetCachedState(out var cachedBatteryState)
-            ? cachedBatteryState
+            ? DecorateBatteryState(cachedBatteryState)
             : null;
 
         return new WorkerStatus
@@ -871,6 +844,73 @@ internal sealed class WorkerHost : IDisposable
             Battery = batteryState,
             Touchpad = _touchpadInputService.GetLatestState()
         };
+    }
+
+    private (BatteryControlState State, ActionExecutionOsd? Osd) ApplyPerformanceMode(string? modeKey, bool persistPreference = true)
+    {
+        lock (_performanceModeSync)
+        {
+            var normalizedModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(modeKey);
+            var state = GetEffectiveBatteryState();
+            if (!state.Supported)
+            {
+                throw new InvalidOperationException(ResourceStringService.GetString("Worker.DeviceNotSupported", "The device does not expose the performance mode controls."));
+            }
+
+            var updatedState = DecorateBatteryState(_batteryControlService.SetPerformanceModeFast(normalizedModeKey));
+            updatedState.SelectedPerformanceModeKey = normalizedModeKey;
+            updatedState.IsBatterySaverEnabled = string.Equals(normalizedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase);
+            if (persistPreference)
+            {
+                PersistPreferredPerformanceSelection(normalizedModeKey);
+            }
+
+            var title = BatteryControlCatalog.GetPerformanceModeLabel(updatedState.PerformanceModeKey);
+            var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(updatedState.PerformanceModeKey);
+            _stateMessage = "Performance mode set to " + title + ".";
+
+            return (
+                updatedState,
+                new ActionExecutionOsd(
+                    title,
+                    new IconConfiguration
+                    {
+                        Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                        Path = assetKey
+                    }));
+        }
+    }
+
+    private BatteryControlState GetEffectiveBatteryState()
+    {
+        var state = _batteryControlService.TryGetCachedState(out var cachedState)
+            ? cachedState
+            : _batteryControlService.QueryState();
+        return DecorateBatteryState(state);
+    }
+
+    private BatteryControlState DecorateBatteryState(BatteryControlState state)
+    {
+        state.IsAcPowered = _windowsPowerModeService.IsAcPowered();
+        state.IsBatterySaverEnabled = string.Equals(
+            BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey),
+            BatteryControlCatalog.Battery,
+            StringComparison.OrdinalIgnoreCase);
+        state.SelectedPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey);
+        return state;
+    }
+
+    private void PersistPreferredPerformanceSelection(string selectedModeKey)
+    {
+        _configuration.Preferences.PreferredPerformanceModeKey =
+            BatteryControlCatalog.NormalizePerformanceModeKey(selectedModeKey);
+        _configService.Save(_configuration);
+    }
+
+    private void NotifyControllerAboutBatteryMutation()
+    {
+        _ = NotifyControllerAsync(WorkerNotificationType.Started);
+        _ = Task.Run(RefreshBatteryStateAfterMutationAsync);
     }
 
     private void EnsureAutostartRegistration()

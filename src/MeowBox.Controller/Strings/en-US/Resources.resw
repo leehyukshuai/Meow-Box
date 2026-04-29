@@ -790,7 +790,22 @@
     <value>Toggle performance mode</value>
   </data>
   <data name="Action.CyclePerformanceMode.Description" xml:space="preserve">
-    <value>Cycles between Silent, Smart, and Beast modes.</value>
+    <value>Cycles between Smart, Turbo/Beast, Battery saver, and Silent modes.</value>
+  </data>
+  <data name="Battery.Performance.BatterySaver" xml:space="preserve">
+    <value>Battery saver</value>
+  </data>
+  <data name="Battery.Performance.Silent" xml:space="preserve">
+    <value>Silent</value>
+  </data>
+  <data name="Battery.Performance.Smart" xml:space="preserve">
+    <value>Smart</value>
+  </data>
+  <data name="Battery.Performance.Turbo" xml:space="preserve">
+    <value>Turbo</value>
+  </data>
+  <data name="Battery.Performance.Beast" xml:space="preserve">
+    <value>Beast</value>
   </data>
   <data name="Mapping.ShowOsd" xml:space="preserve">
     <value>Show OSD</value>
@@ -974,6 +989,12 @@
   </data>
   <data name="Battery.Status.UpdatingPerformance" xml:space="preserve">
     <value>Updating performance mode...</value>
+  </data>
+  <data name="Battery.Status.EnablingBatterySaver" xml:space="preserve">
+    <value>Enabling battery saver...</value>
+  </data>
+  <data name="Battery.Status.DisablingBatterySaver" xml:space="preserve">
+    <value>Disabling battery saver...</value>
   </data>
   <data name="Battery.Status.CouldNotChangePerformance" xml:space="preserve">
     <value>Could not change the performance mode.</value>

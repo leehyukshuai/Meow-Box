@@ -119,7 +119,7 @@ public static class ActionCatalog
     {
         if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
         {
-            return ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles between Silent, Smart, and Beast modes.");
+            return ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles between Smart, Turbo/Beast, Battery saver, and Silent modes.");
         }
 
         return GetOption(key)?.Description ?? NoActionDescription;
