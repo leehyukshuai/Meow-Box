@@ -795,12 +795,6 @@
   <data name="Mapping.ShowOsd" xml:space="preserve">
     <value>显示 OSD</value>
   </data>
-  <data name="Mapping.Summary.WithOsd" xml:space="preserve">
-    <value>{0} 还会显示 OSD。</value>
-  </data>
-  <data name="Mapping.Summary.OsdOnly" xml:space="preserve">
-    <value>显示 OSD。</value>
-  </data>
   <data name="Mapping.Summary.Disabled" xml:space="preserve">
     <value>这个映射已禁用。</value>
   </data>

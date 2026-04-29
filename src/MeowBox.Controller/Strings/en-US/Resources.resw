@@ -795,12 +795,6 @@
   <data name="Mapping.ShowOsd" xml:space="preserve">
     <value>Show OSD</value>
   </data>
-  <data name="Mapping.Summary.WithOsd" xml:space="preserve">
-    <value>{0} Also shows an OSD.</value>
-  </data>
-  <data name="Mapping.Summary.OsdOnly" xml:space="preserve">
-    <value>Shows an OSD.</value>
-  </data>
   <data name="Mapping.Summary.Disabled" xml:space="preserve">
     <value>This mapping is disabled.</value>
   </data>

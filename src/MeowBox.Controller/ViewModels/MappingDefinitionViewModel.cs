@@ -89,14 +89,6 @@ public sealed class MappingDefinitionViewModel : ObservableObject
 
     private string BuildSummary()
     {
-        if (ActionCatalog.SupportsOsd(Action.Type) && Action.HasAssignedAction)
-        {
-            return string.Format(
-                System.Globalization.CultureInfo.CurrentCulture,
-                ResourceStringService.GetString("Mapping.Summary.WithOsd", "{0} Also shows an OSD."),
-                Action.ActionDescription);
-        }
-
         if (!Enabled)
         {
             return ResourceStringService.GetString("Mapping.Summary.Disabled", "This mapping is disabled.");
