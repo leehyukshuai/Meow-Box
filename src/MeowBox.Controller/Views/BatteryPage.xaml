@@ -14,229 +14,319 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border
-                x:Name="RuntimeNoticeCard"
-                Grid.Row="0"
-                Visibility="Collapsed"
-                Style="{StaticResource SubtlePanelCardStyle}">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                <InfoBar
+                    x:Name="RuntimeNoticeInfoBar"
+                    Grid.Row="0"
+                    IsClosable="False"
+                    IsOpen="False"
+                    Severity="Informational">
+                    <InfoBar.ActionButton>
+                        <Button
+                            x:Uid="BatteryRefreshButton"
+                            x:Name="RefreshButton"
+                            Click="OnRefreshButtonClick"
+                            Content="Refresh"
+                            Style="{StaticResource SubtleButtonStyle}" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
 
-                    <ProgressRing
-                        x:Name="StatusProgressRing"
-                        Width="18"
-                        Height="18"
-                        VerticalAlignment="Center"
-                        IsActive="False" />
+                <Border
+                    x:Name="PerformanceCard"
+                    Grid.Row="1"
+                    Visibility="Collapsed"
+                    Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock
+                            x:Uid="BatteryPerformanceTitleText"
+                            Style="{StaticResource SectionTitleTextBlockStyle}"
+                            Text="Performance" />
 
-                    <StackPanel
-                        Grid.Column="1"
-                        Spacing="4">
-                        <TextBlock
-                            x:Name="RuntimeStateTextBlock"
-                            Style="{StaticResource CardTitleTextBlockStyle}"
-                            Text="Admin runtime is inactive." />
-                        <TextBlock
-                            x:Name="BatteryStatusTextBlock"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="Battery controls are not ready yet."
-                            TextWrapping="WrapWholeWords" />
+                        <Border
+                            Padding="12"
+                            Style="{StaticResource SubtlePanelCardStyle}">
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel
+                                    x:Name="PerformanceModeButtonStackPanel"
+                                    Spacing="8">
+                                    <Button
+                                        x:Name="PerformanceSilentButton"
+                                        Click="OnPerformanceModeButtonClick"
+                                        HorizontalContentAlignment="Stretch"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="0"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Tag="silent" />
+                                    <Button
+                                        x:Name="PerformanceSmartButton"
+                                        Click="OnPerformanceModeButtonClick"
+                                        HorizontalContentAlignment="Stretch"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="0"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Tag="smart" />
+                                    <Button
+                                        x:Name="PerformanceExtremeButton"
+                                        Click="OnPerformanceModeButtonClick"
+                                        HorizontalContentAlignment="Stretch"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="0"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Tag="extreme" />
+                                </StackPanel>
+
+                                <Border
+                                    Grid.Column="1"
+                                    MinHeight="{Binding ActualHeight, ElementName=PerformanceModeButtonStackPanel, Mode=OneWay}"
+                                    Padding="12"
+                                    Style="{StaticResource InsetPanelCardStyle}"
+                                    VerticalAlignment="Stretch">
+                                    <TextBlock
+                                        x:Name="PerformanceModeDescriptionTextBlock"
+                                        Style="{StaticResource BodyTextBlockStyle}"
+                                        TextWrapping="WrapWholeWords"
+                                        VerticalAlignment="Top" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <Border
+                            Style="{StaticResource SubtlePanelCardStyle}">
+                            <StackPanel
+                                x:Name="PerformanceCycleSettingsPanel"
+                                Spacing="8">
+                                <TextBlock
+                                    x:Uid="PerformanceCycleTitleTextBlock"
+                                    Style="{StaticResource CardTitleTextBlockStyle}"
+                                    Text="Cycle order"
+                                    TextWrapping="WrapWholeWords" />
+                                <TextBlock
+                                    x:Uid="PerformanceCycleDescriptionTextBlock"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="Checked modes are included when cycling. Top to bottom is the switch order. The first mode becomes the default performance mode."
+                                    TextWrapping="WrapWholeWords" />
+
+                                <ItemsControl
+                                    ItemsSource="{x:Bind Controller.PerformanceCycleModeItems}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                Margin="0,1,0,1"
+                                                Padding="8,4"
+                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8">
+                                                <Grid
+                                                    MinHeight="28"
+                                                    ColumnSpacing="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <CheckBox
+                                                        Click="OnPerformanceCycleModeIncludeClick"
+                                                        IsChecked="{Binding IsIncluded, Mode=OneWay}"
+                                                        IsEnabled="{Binding CanChangeInclusion, Mode=OneWay}"
+                                                        Tag="{Binding Key}"
+                                                        Content="{Binding Label}" />
+
+                                                    <Button
+                                                        Grid.Column="1"
+                                                        Width="24"
+                                                        Height="24"
+                                                        Margin="6,0,0,0"
+                                                        Padding="0"
+                                                        Click="OnPerformanceCycleMoveUpClick"
+                                                        IsEnabled="{Binding CanMoveUp, Mode=OneWay}"
+                                                        Style="{StaticResource SubtleButtonStyle}"
+                                                        Tag="{Binding Key}">
+                                                        <FontIcon FontSize="11" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" />
+                                                    </Button>
+
+                                                    <Button
+                                                        Grid.Column="2"
+                                                        Width="24"
+                                                        Height="24"
+                                                        Margin="4,0,0,0"
+                                                        Padding="0"
+                                                        Click="OnPerformanceCycleMoveDownClick"
+                                                        IsEnabled="{Binding CanMoveDown, Mode=OneWay}"
+                                                        Style="{StaticResource SubtleButtonStyle}"
+                                                        Tag="{Binding Key}">
+                                                        <FontIcon FontSize="11" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" />
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <InfoBar
+                            x:Uid="PerformanceBatteryInfoBar"
+                            IsClosable="False"
+                            IsOpen="True"
+                            Severity="Informational"
+                            Title="" />
+
+                        <Border
+                            Style="{StaticResource SubtlePanelCardStyle}"
+                            Padding="12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    x:Uid="SwitchToBatteryModeOnDcLabelTextBlock"
+                                    x:Name="SwitchToBatteryModeOnDcLabelTextBlock"
+                                    Style="{StaticResource CardTitleTextBlockStyle}"
+                                    Text="Enable Battery saver automatically while on battery"
+                                    TextWrapping="WrapWholeWords"
+                                    VerticalAlignment="Center" />
+                                <ComboBox
+                                    x:Name="SwitchToBatteryModeOnDcComboBox"
+                                    Grid.Column="1"
+                                    MinWidth="112"
+                                    SelectionChanged="OnSwitchToBatteryModeOnDcSelectionChanged"
+                                    VerticalAlignment="Center">
+                                    <ComboBoxItem
+                                        x:Uid="SwitchToBatteryModeOnDcNeverItem"
+                                        Content="Never"
+                                        Tag="0" />
+                                    <ComboBoxItem Content="10%" Tag="10" />
+                                    <ComboBoxItem Content="20%" Tag="20" />
+                                    <ComboBoxItem Content="30%" Tag="30" />
+                                    <ComboBoxItem Content="40%" Tag="40" />
+                                    <ComboBoxItem Content="50%" Tag="50" />
+                                    <ComboBoxItem Content="60%" Tag="60" />
+                                    <ComboBoxItem Content="70%" Tag="70" />
+                                    <ComboBoxItem Content="80%" Tag="80" />
+                                    <ComboBoxItem Content="90%" Tag="90" />
+                                    <ComboBoxItem
+                                        x:Uid="SwitchToBatteryModeOnDcAlwaysItem"
+                                        Content="Always"
+                                        Tag="-1" />
+                                </ComboBox>
+                            </Grid>
+                        </Border>
+
                     </StackPanel>
+                </Border>
 
-                    <Button
-                        x:Uid="BatteryRefreshButton"
-                        x:Name="RefreshButton"
-                        Grid.Column="2"
-                        Click="OnRefreshButtonClick"
-                        Content="Refresh"
-                        Style="{StaticResource SubtleButtonStyle}" />
-                </Grid>
-            </Border>
-
-            <Border
-                x:Name="PerformanceCard"
-                Grid.Row="1"
-                Visibility="Collapsed"
-                Style="{StaticResource PanelCardStyle}">
-                <StackPanel Spacing="14">
-                    <TextBlock
-                        x:Uid="BatteryPerformanceTitleText"
-                        Style="{StaticResource SectionTitleTextBlockStyle}"
-                        Text="Performance" />
-
-                    <Grid
-                        x:Name="PerformanceModePanel"
-                        HorizontalAlignment="Left"
-                        ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <RadioButton
-                            x:Name="PerformanceBatteryRadioButton"
-                            Checked="OnPerformanceModeChecked"
-                            GroupName="BatteryPerformanceMode"
-                            HorizontalAlignment="Left"
-                            Tag="battery" />
-                        <RadioButton
-                            x:Name="PerformanceSilentRadioButton"
-                            Grid.Column="1"
-                            Checked="OnPerformanceModeChecked"
-                            GroupName="BatteryPerformanceMode"
-                            HorizontalAlignment="Left"
-                            Tag="silent" />
-                        <RadioButton
-                            x:Name="PerformanceSmartRadioButton"
-                            Grid.Column="2"
-                            Checked="OnPerformanceModeChecked"
-                            GroupName="BatteryPerformanceMode"
-                            HorizontalAlignment="Left"
-                            Tag="smart" />
-                        <RadioButton
-                            x:Name="PerformanceTurboRadioButton"
-                            Grid.Column="3"
-                            Checked="OnPerformanceModeChecked"
-                            GroupName="BatteryPerformanceMode"
-                            HorizontalAlignment="Left"
-                            Tag="turbo" />
-                        <RadioButton
-                            x:Name="PerformanceBeastRadioButton"
-                            Grid.Column="4"
-                            Checked="OnPerformanceModeChecked"
-                            GroupName="BatteryPerformanceMode"
-                            HorizontalAlignment="Left"
-                            Tag="beast" />
-                    </Grid>
-
-                    <Border Style="{StaticResource SubtlePanelCardStyle}">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock
-                                x:Uid="PerformanceStartupResetLabelTextBlock"
-                                x:Name="PerformanceStartupResetLabelTextBlock"
-                                Style="{StaticResource CardTitleTextBlockStyle}"
-                                Text="Switch to Smart mode on startup"
-                                TextWrapping="WrapWholeWords"
-                                VerticalAlignment="Center" />
-                            <ToggleSwitch
-                                x:Name="PerformanceStartupResetToggleSwitch"
-                                Grid.Column="1"
-                                Toggled="OnPerformanceStartupResetToggled"
-                                VerticalAlignment="Center" />
-                        </Grid>
-                    </Border>
-                </StackPanel>
-            </Border>
-
-            <Border
-                x:Name="ChargeCard"
-                Grid.Row="2"
-                Visibility="Collapsed"
-                Style="{StaticResource PanelCardStyle}">
-                <StackPanel Spacing="14">
-                    <TextBlock
-                        x:Uid="BatteryChargeTitleText"
-                        Style="{StaticResource SectionTitleTextBlockStyle}"
-                        Text="Charge limit" />
-
-                    <Slider
-                        x:Name="ChargeLimitSlider"
-                        Width="320"
-                        HorizontalAlignment="Left"
-                        IsThumbToolTipEnabled="True"
-                        KeyDown="OnChargeLimitSliderKeyDown"
-                        KeyUp="OnChargeLimitSliderKeyUp"
-                        LostFocus="OnChargeLimitSliderLostFocus"
-                        Maximum="100"
-                        Minimum="40"
-                        PointerCaptureLost="OnChargeLimitSliderPointerCaptureLost"
-                        PointerPressed="OnChargeLimitSliderPointerPressed"
-                        PointerReleased="OnChargeLimitSliderPointerReleased"
-                        SmallChange="10"
-                        SnapsTo="Ticks"
-                        StepFrequency="10"
-                        TickFrequency="10"
-                        TickPlacement="BottomRight"
-                        SizeChanged="OnChargeLimitSliderSizeChanged"
-                        ValueChanged="OnChargeLimitSliderValueChanged" />
-
-                    <Canvas
-                        x:Name="ChargeLimitTickLabelsCanvas"
-                        Width="320"
-                        Height="20"
-                        HorizontalAlignment="Left"
-                        IsHitTestVisible="False">
+                <Border
+                    x:Name="ChargeCard"
+                    Grid.Row="2"
+                    Visibility="Collapsed"
+                    Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="14">
                         <TextBlock
-                            x:Name="Charge40Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="40%" />
-                        <TextBlock
-                            x:Name="Charge50Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="50%" />
-                        <TextBlock
-                            x:Name="Charge60Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="60%" />
-                        <TextBlock
-                            x:Name="Charge70Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="70%" />
-                        <TextBlock
-                            x:Name="Charge80Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="80%" />
-                        <TextBlock
-                            x:Name="Charge90Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="90%" />
-                        <TextBlock
-                            x:Name="Charge100Label"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="100%" />
-                    </Canvas>
+                            x:Uid="BatteryChargeTitleText"
+                            Style="{StaticResource SectionTitleTextBlockStyle}"
+                            Text="Smart charging" />
 
-                    <InfoBar
-                        x:Uid="BatteryChargeInfoBar"
-                        IsClosable="False"
-                        IsOpen="True"
-                        Severity="Informational" />
+                        <InfoBar
+                            x:Uid="BatteryChargeInfoBar"
+                            IsClosable="False"
+                            IsOpen="True"
+                            Severity="Informational" />
 
-                    <Border Style="{StaticResource SubtlePanelCardStyle}">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                        <Border
+                            Style="{StaticResource SubtlePanelCardStyle}"
+                            Padding="12">
+                            <StackPanel Spacing="8">
+                                <TextBlock
+                                    x:Uid="ChargeLimitLabelTextBlock"
+                                    x:Name="ChargeLimitLabelTextBlock"
+                                    Style="{StaticResource CardTitleTextBlockStyle}"
+                                    Text="Charge limit"
+                                    VerticalAlignment="Top" />
 
-                            <TextBlock
-                                x:Uid="ChargeStartupResetLabelTextBlock"
-                                x:Name="ChargeStartupResetLabelTextBlock"
-                                Style="{StaticResource CardTitleTextBlockStyle}"
-                                Text="Disable charge limit protection on startup"
-                                TextWrapping="WrapWholeWords"
-                                VerticalAlignment="Center" />
-                            <ToggleSwitch
-                                x:Name="ChargeStartupResetToggleSwitch"
-                                Grid.Column="1"
-                                Toggled="OnChargeStartupResetToggled"
-                                VerticalAlignment="Center" />
-                        </Grid>
-                    </Border>
-                </StackPanel>
-            </Border>
+                                <Slider
+                                    x:Name="ChargeLimitSlider"
+                                    Width="360"
+                                    HorizontalAlignment="Left"
+                                    IsThumbToolTipEnabled="True"
+                                    KeyDown="OnChargeLimitSliderKeyDown"
+                                    KeyUp="OnChargeLimitSliderKeyUp"
+                                    LostFocus="OnChargeLimitSliderLostFocus"
+                                    Maximum="100"
+                                    Minimum="60"
+                                    PointerCaptureLost="OnChargeLimitSliderPointerCaptureLost"
+                                    PointerPressed="OnChargeLimitSliderPointerPressed"
+                                    PointerReleased="OnChargeLimitSliderPointerReleased"
+                                    SmallChange="10"
+                                    SnapsTo="Ticks"
+                                    StepFrequency="10"
+                                    TickFrequency="10"
+                                    TickPlacement="BottomRight"
+                                    SizeChanged="OnChargeLimitSliderSizeChanged"
+                                    ValueChanged="OnChargeLimitSliderValueChanged" />
+
+                                <Canvas
+                                    x:Name="ChargeLimitTickLabelsCanvas"
+                                    Width="360"
+                                    Height="20"
+                                    HorizontalAlignment="Left"
+                                    IsHitTestVisible="False">
+                                    <TextBlock
+                                        x:Name="Charge60Label"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="60%" />
+                                    <TextBlock
+                                        x:Name="Charge70Label"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="70%" />
+                                    <TextBlock
+                                        x:Name="Charge80Label"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="80%" />
+                                    <TextBlock
+                                        x:Name="Charge90Label"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="90%" />
+                                    <TextBlock
+                                        x:Name="Charge100Label"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="100%" />
+                                </Canvas>
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Style="{StaticResource SubtlePanelCardStyle}"
+                            Padding="12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    x:Uid="ChargeStartupResetLabelTextBlock"
+                                    x:Name="ChargeStartupResetLabelTextBlock"
+                                    Style="{StaticResource CardTitleTextBlockStyle}"
+                                    Text="Apply charge limit automatically on startup"
+                                    TextWrapping="WrapWholeWords"
+                                    VerticalAlignment="Center" />
+                                <ToggleSwitch
+                                    x:Name="ChargeStartupApplyToggleSwitch"
+                                    Grid.Column="1"
+                                    Toggled="OnChargeStartupApplyToggled"
+                                    VerticalAlignment="Center">
+                                </ToggleSwitch>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
         </Grid>
     </ScrollViewer>
 </Page>

@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using Microsoft.UI;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -19,6 +21,7 @@ public sealed partial class BatteryPage : Page
     private bool _isChargeLimitKeyboardInteraction;
     private bool _isApplyingChargeLimit;
     private int? _requestedChargeLimitPercent;
+    private double? _cachedChargeLimitThumbHalfWidth;
     private CancellationTokenSource? _pageLifetimeCts;
 
     public MeowBoxController Controller => App.Controller;
@@ -61,8 +64,8 @@ public sealed partial class BatteryPage : Page
             nameof(MeowBoxController.CurrentPerformanceModeKey) or
             nameof(MeowBoxController.CurrentPerformanceSelectionKey) or
             nameof(MeowBoxController.CurrentChargeLimitPercent) or
-            nameof(MeowBoxController.ResetPerformanceModeToSmartOnStartup) or
-            nameof(MeowBoxController.ResetChargeLimitToFullOnStartup) or
+            nameof(MeowBoxController.SwitchToBatteryModeOnDcThresholdPercent) or
+            nameof(MeowBoxController.ApplyChargeLimitOnStartup) or
             nameof(MeowBoxController.ServiceState) or
             nameof(MeowBoxController.WorkerElevated) or
             nameof(MeowBoxController.ServiceRunning))
@@ -76,11 +79,15 @@ public sealed partial class BatteryPage : Page
 
     private void ApplyStaticLabels()
     {
-        PerformanceBatteryRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Battery);
-        PerformanceSilentRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Silent);
-        PerformanceSmartRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Smart);
-        PerformanceTurboRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Turbo);
-        PerformanceBeastRadioButton.Content = BatteryControlCatalog.GetSelectedPerformanceModeLabel(BatteryControlCatalog.Beast);
+        PerformanceSilentButton.Content = CreatePerformanceModeButtonContent(
+            ResourceStringService.GetString("PerformanceSilentInfoBar.Title", "Silent mode"),
+            "\uE708");
+        PerformanceSmartButton.Content = CreatePerformanceModeButtonContent(
+            ResourceStringService.GetString("PerformanceSmartInfoBar.Title", "Smart mode"),
+            "\uF1BA");
+        PerformanceExtremeButton.Content = CreatePerformanceModeButtonContent(
+            ResourceStringService.GetString("PerformanceExtremeInfoBar.Title", "Extreme mode"),
+            "\uE945");
         UpdateChargeLimitTickLabelsLayout();
     }
 
@@ -92,30 +99,36 @@ public sealed partial class BatteryPage : Page
         var canShowBatteryControls = canShowRuntimeState && Controller.BatteryControlSupported;
         var showNotice = !canShowBatteryControls;
 
-        BatteryStatusTextBlock.Text = Controller.BatteryControlStatusMessage;
-        RuntimeStateTextBlock.Text = BuildRuntimeStateText();
-        StatusProgressRing.IsActive = Controller.BatteryControlBusy;
+        RuntimeNoticeInfoBar.Title = BuildRuntimeStateText();
+        RuntimeNoticeInfoBar.Message = Controller.BatteryControlStatusMessage;
+        RuntimeNoticeInfoBar.Severity = ResolveRuntimeNoticeSeverity();
         RefreshButton.IsEnabled = Controller.ServiceRunning && Controller.WorkerElevated && !Controller.BatteryControlBusy;
         RefreshButton.Visibility = Controller.ServiceRunning && Controller.WorkerElevated ? Visibility.Visible : Visibility.Collapsed;
 
-        RuntimeNoticeCard.Visibility = showNotice ? Visibility.Visible : Visibility.Collapsed;
+        RuntimeNoticeInfoBar.IsOpen = showNotice;
         PerformanceCard.Visibility = canShowBatteryControls ? Visibility.Visible : Visibility.Collapsed;
         ChargeCard.Visibility = canShowBatteryControls ? Visibility.Visible : Visibility.Collapsed;
 
-        SetSelectedPerformanceMode(Controller.CurrentPerformanceSelectionKey);
-        SetSelectedChargeLimit(_requestedChargeLimitPercent ?? Controller.CurrentChargeLimitPercent);
-        PerformanceStartupResetToggleSwitch.IsOn = Controller.ResetPerformanceModeToSmartOnStartup;
-        ChargeStartupResetToggleSwitch.IsOn = Controller.ResetChargeLimitToFullOnStartup;
-
         var controlsEnabled = Controller.BatteryControlsEnabled;
-        foreach (var radioButton in GetPerformanceModeButtons())
-        {
-            radioButton.IsEnabled = controlsEnabled;
-        }
+        var batterySaverTriggered = string.Equals(
+            BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(Controller.CurrentPerformanceSelectionKey),
+            BatteryControlCatalog.Battery,
+            StringComparison.OrdinalIgnoreCase);
+        var performanceModeButtonsEnabled = controlsEnabled && !batterySaverTriggered;
+        PerformanceSilentButton.IsEnabled = performanceModeButtonsEnabled;
+        PerformanceSmartButton.IsEnabled = performanceModeButtonsEnabled;
+        PerformanceExtremeButton.IsEnabled = performanceModeButtonsEnabled;
+
+        SyncPerformanceModeSelectionUi(Controller.CurrentPerformanceSelectionKey, batterySaverTriggered);
+        SetSelectedChargeLimit(_requestedChargeLimitPercent ?? Controller.CurrentChargeLimitPercent);
+        SetSelectedComboBoxTag(SwitchToBatteryModeOnDcComboBox, Controller.SwitchToBatteryModeOnDcThresholdPercent);
+        ChargeStartupApplyToggleSwitch.IsOn = Controller.ApplyChargeLimitOnStartup;
 
         ChargeLimitSlider.IsEnabled = controlsEnabled;
-        PerformanceStartupResetToggleSwitch.IsEnabled = !Controller.BatteryControlBusy;
-        ChargeStartupResetToggleSwitch.IsEnabled = !Controller.BatteryControlBusy;
+        PerformanceCycleSettingsPanel.IsHitTestVisible = !Controller.BatteryControlBusy;
+        PerformanceCycleSettingsPanel.Opacity = Controller.BatteryControlBusy ? 0.6 : 1;
+        SwitchToBatteryModeOnDcComboBox.IsEnabled = !Controller.BatteryControlBusy;
+        ChargeStartupApplyToggleSwitch.IsEnabled = !Controller.BatteryControlBusy;
 
         _isLoading = false;
     }
@@ -168,9 +181,9 @@ public sealed partial class BatteryPage : Page
         await InitializeBatteryControlsAsync(_pageLifetimeCts?.Token ?? CancellationToken.None, forceRefresh: true);
     }
 
-    private async void OnPerformanceModeChecked(object sender, RoutedEventArgs e)
+    private async void OnPerformanceModeButtonClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not RadioButton radioButton || radioButton.Tag is not string modeKey)
+        if (sender is not Button button || button.Tag is not string modeKey)
         {
             return;
         }
@@ -179,6 +192,8 @@ public sealed partial class BatteryPage : Page
         {
             return;
         }
+
+        SyncPerformanceModeSelectionUi(modeKey);
 
         try
         {
@@ -262,54 +277,105 @@ public sealed partial class BatteryPage : Page
         _ = ApplyPendingChargeLimitAsync();
     }
 
-    private void OnPerformanceStartupResetToggled(object sender, RoutedEventArgs e)
+    private void OnChargeStartupApplyToggled(object sender, RoutedEventArgs e)
     {
         if (_isLoading)
         {
             return;
         }
 
-        Controller.SetResetPerformanceModeToSmartOnStartup(PerformanceStartupResetToggleSwitch.IsOn);
+        Controller.SetApplyChargeLimitOnStartup(ChargeStartupApplyToggleSwitch.IsOn);
     }
 
-    private void OnChargeStartupResetToggled(object sender, RoutedEventArgs e)
+    private void OnSwitchToBatteryModeOnDcSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_isLoading)
+        if (_isLoading || SwitchToBatteryModeOnDcComboBox.SelectedItem is not ComboBoxItem item)
         {
             return;
         }
 
-        Controller.SetResetChargeLimitToFullOnStartup(ChargeStartupResetToggleSwitch.IsOn);
+        Controller.SetSwitchToBatteryModeOnDcThresholdPercent(ParseComboBoxItemTag(item.Tag));
     }
 
-    private void SetSelectedPerformanceMode(string modeKey)
+    private void OnPerformanceCycleModeIncludeClick(object sender, RoutedEventArgs e)
+    {
+        if (_isLoading || sender is not CheckBox checkBox || checkBox.Tag is not string modeKey)
+        {
+            return;
+        }
+
+        Controller.SetPerformanceCycleModeIncluded(modeKey, checkBox.IsChecked == true);
+    }
+
+    private void OnPerformanceCycleMoveUpClick(object sender, RoutedEventArgs e)
+    {
+        if (_isLoading || sender is not FrameworkElement element || element.Tag is not string modeKey)
+        {
+            return;
+        }
+
+        Controller.MovePerformanceCycleModeUp(modeKey);
+    }
+
+    private void OnPerformanceCycleMoveDownClick(object sender, RoutedEventArgs e)
+    {
+        if (_isLoading || sender is not FrameworkElement element || element.Tag is not string modeKey)
+        {
+            return;
+        }
+
+        Controller.MovePerformanceCycleModeDown(modeKey);
+    }
+
+    private void SyncPerformanceModeSelectionUi(string modeKey, bool batterySaverTriggered = false)
     {
         var normalized = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(modeKey);
-        foreach (var radioButton in GetPerformanceModeButtons())
+        if (batterySaverTriggered ||
+            string.Equals(normalized, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
         {
-            radioButton.IsChecked = string.Equals(radioButton.Tag as string, normalized, StringComparison.OrdinalIgnoreCase);
+            ApplyPerformanceModeButtonSelectionState(PerformanceSilentButton, selected: false);
+            ApplyPerformanceModeButtonSelectionState(PerformanceSmartButton, selected: false);
+            ApplyPerformanceModeButtonSelectionState(PerformanceExtremeButton, selected: false);
+            PerformanceModeDescriptionTextBlock.Text = ResourceStringService.GetString("PerformanceModeDisabledByBatterySaver.Message", string.Empty);
+            return;
         }
-    }
 
-    private IEnumerable<RadioButton> GetPerformanceModeButtons()
-    {
-        yield return PerformanceBatteryRadioButton;
-        yield return PerformanceSilentRadioButton;
-        yield return PerformanceSmartRadioButton;
-        yield return PerformanceTurboRadioButton;
-        yield return PerformanceBeastRadioButton;
+        var selectedButton = normalized switch
+        {
+            var key when string.Equals(key, BatteryControlCatalog.Silent, StringComparison.OrdinalIgnoreCase) => PerformanceSilentButton,
+            var key when string.Equals(key, BatteryControlCatalog.Extreme, StringComparison.OrdinalIgnoreCase) => PerformanceExtremeButton,
+            _ => PerformanceSmartButton
+        };
+
+        ApplyPerformanceModeButtonSelectionState(PerformanceSilentButton, ReferenceEquals(selectedButton, PerformanceSilentButton));
+        ApplyPerformanceModeButtonSelectionState(PerformanceSmartButton, ReferenceEquals(selectedButton, PerformanceSmartButton));
+        ApplyPerformanceModeButtonSelectionState(PerformanceExtremeButton, ReferenceEquals(selectedButton, PerformanceExtremeButton));
+
+        var messageKey = normalized switch
+        {
+            var key when string.Equals(key, BatteryControlCatalog.Silent, StringComparison.OrdinalIgnoreCase) => "PerformanceSilentInfoBar.Message",
+            var key when string.Equals(key, BatteryControlCatalog.Extreme, StringComparison.OrdinalIgnoreCase) => "PerformanceExtremeInfoBar.Message",
+            _ => "PerformanceSmartInfoBar.Message"
+        };
+
+        PerformanceModeDescriptionTextBlock.Text = ResourceStringService.GetString(messageKey, string.Empty);
     }
 
     private void SetSelectedChargeLimit(int percent)
     {
-        var normalized = BatteryControlCatalog.NormalizeChargeLimitPercent(percent);
+        var normalized = Math.Max(60, BatteryControlCatalog.NormalizeChargeLimitPercent(percent));
+        if (Math.Abs(ChargeLimitSlider.Value - normalized) < 0.1)
+        {
+            return;
+        }
+
         ChargeLimitSlider.Value = normalized;
     }
 
     private int NormalizeChargeLimit(double value)
     {
         var rounded = (int)Math.Round(value / 10d, MidpointRounding.AwayFromZero) * 10;
-        return BatteryControlCatalog.NormalizeChargeLimitPercent(rounded);
+        return Math.Max(60, BatteryControlCatalog.NormalizeChargeLimitPercent(rounded));
     }
 
     private void CancelPendingChargeLimitUpdate()
@@ -329,6 +395,29 @@ public sealed partial class BatteryPage : Page
             VirtualKey.PageDown;
     }
 
+    private static int ParseComboBoxItemTag(object? tag)
+    {
+        return tag is string value && int.TryParse(value, out var parsed)
+            ? parsed
+            : BatteryControlCatalog.AutoSwitchNeverThreshold;
+    }
+
+    private static void SetSelectedComboBoxTag(ComboBox comboBox, int selectedTag)
+    {
+        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (ParseComboBoxItemTag(item.Tag) != selectedTag)
+            {
+                continue;
+            }
+
+            comboBox.SelectedItem = item;
+            return;
+        }
+
+        comboBox.SelectedIndex = 0;
+    }
+
     private async Task ApplyPendingChargeLimitAsync()
     {
         if (_isApplyingChargeLimit || _requestedChargeLimitPercent is not int percent)
@@ -345,24 +434,131 @@ public sealed partial class BatteryPage : Page
         _isApplyingChargeLimit = true;
         try
         {
-            await Controller.SetChargeLimitPercentAsync(percent);
-            if (_requestedChargeLimitPercent == percent)
+            var applied = await Controller.SetChargeLimitPercentAsync(percent);
+            if (_requestedChargeLimitPercent == percent || !applied)
             {
                 _requestedChargeLimitPercent = null;
             }
         }
-        catch (Exception exception)
-        {
-            _requestedChargeLimitPercent = null;
-            SyncState();
-            await ShowMessageAsync(
-                ResourceStringService.GetString("Battery.Error.CouldNotChangeCharge", "Could not change charge limit"),
-                exception.Message);
-        }
         finally
         {
             _isApplyingChargeLimit = false;
+            if (!_isChargeLimitPointerInteraction &&
+                !_isChargeLimitKeyboardInteraction &&
+                _requestedChargeLimitPercent is int pendingPercent &&
+                pendingPercent != Controller.CurrentChargeLimitPercent)
+            {
+                _ = ApplyPendingChargeLimitAsync();
+            }
         }
+    }
+
+    private static object CreatePerformanceModeButtonContent(string label, string glyph)
+    {
+        var content = new Grid
+        {
+            ColumnSpacing = 0
+        };
+        content.ColumnDefinitions.Add(new ColumnDefinition
+        {
+            Width = new GridLength(3)
+        });
+        content.ColumnDefinitions.Add(new ColumnDefinition
+        {
+            Width = new GridLength(1, GridUnitType.Star)
+        });
+
+        var indicator = new Border
+        {
+            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            CornerRadius = new CornerRadius(8, 0, 0, 8),
+            Margin = new Thickness(0)
+        };
+        content.Children.Add(indicator);
+
+        var body = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Margin = new Thickness(6, 8, 10, 8)
+        };
+        Grid.SetColumn(body, 1);
+        body.Children.Add(new FontIcon
+        {
+            FontFamily = new FontFamily("Segoe Fluent Icons"),
+            Glyph = glyph,
+            FontSize = 14,
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        body.Children.Add(new TextBlock
+        {
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        content.Children.Add(body);
+
+        return content;
+    }
+
+    private static void ApplyPerformanceModeButtonSelectionState(Button button, bool selected)
+    {
+        button.Style = (Style)Application.Current.Resources["SubtleButtonStyle"];
+        button.BorderThickness = new Thickness(1);
+        var enabled = button.IsEnabled;
+        var accentColor = GetPerformanceModeAccentColor(button.Tag as string);
+        button.BorderBrush = selected && enabled
+            ? new SolidColorBrush(ColorHelper.FromArgb(160, accentColor.R, accentColor.G, accentColor.B))
+            : (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+        button.Background = selected && enabled
+            ? new SolidColorBrush(ColorHelper.FromArgb(22, accentColor.R, accentColor.G, accentColor.B))
+            : (Brush)Application.Current.Resources["LayerFillColorAltBrush"];
+        button.Opacity = enabled ? 1 : 0.9;
+
+        if (button.Content is not Grid content || content.Children.Count < 2)
+        {
+            return;
+        }
+
+        if (content.Children[0] is Border indicator)
+        {
+            indicator.Background = selected && enabled
+                ? new SolidColorBrush(accentColor)
+                : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        }
+
+        if (content.Children[1] is StackPanel body)
+        {
+            var normalBrush = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
+            var disabledBrush = (Brush)Application.Current.Resources["TextFillColorDisabledBrush"];
+            foreach (var child in body.Children)
+            {
+                switch (child)
+                {
+                    case TextBlock textBlock:
+                        textBlock.FontWeight = selected ? FontWeights.SemiBold : FontWeights.Normal;
+                        textBlock.Foreground = enabled ? normalBrush : disabledBrush;
+                        break;
+                    case FontIcon icon:
+                        icon.Foreground = !enabled
+                            ? disabledBrush
+                            : selected
+                            ? new SolidColorBrush(accentColor)
+                            : normalBrush;
+                        break;
+                }
+            }
+        }
+    }
+
+    private static Windows.UI.Color GetPerformanceModeAccentColor(string? modeKey)
+    {
+        var normalized = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(modeKey);
+        return normalized switch
+        {
+            var key when string.Equals(key, BatteryControlCatalog.Silent, StringComparison.OrdinalIgnoreCase) => ColorHelper.FromArgb(255, 92, 146, 220),
+            var key when string.Equals(key, BatteryControlCatalog.Extreme, StringComparison.OrdinalIgnoreCase) => ColorHelper.FromArgb(255, 217, 146, 78),
+            _ => ColorHelper.FromArgb(255, 88, 166, 103)
+        };
     }
 
     private void UpdateChargeLimitTickLabelsLayout()
@@ -399,16 +595,20 @@ public sealed partial class BatteryPage : Page
 
     private double GetChargeLimitThumbHalfWidth()
     {
+        if (_cachedChargeLimitThumbHalfWidth.HasValue)
+        {
+            return _cachedChargeLimitThumbHalfWidth.Value;
+        }
+
         var thumb = FindDescendant<Thumb>(ChargeLimitSlider);
-        return thumb is not null && thumb.ActualWidth > 0
+        _cachedChargeLimitThumbHalfWidth = thumb is not null && thumb.ActualWidth > 0
             ? thumb.ActualWidth / 2
             : 10;
+        return _cachedChargeLimitThumbHalfWidth.Value;
     }
 
     private IEnumerable<TextBlock> GetChargeLimitTickLabels()
     {
-        yield return Charge40Label;
-        yield return Charge50Label;
         yield return Charge60Label;
         yield return Charge70Label;
         yield return Charge80Label;
@@ -475,6 +675,11 @@ public sealed partial class BatteryPage : Page
         }
 
         return ResourceStringService.GetString("Battery.Runtime.AdminInactive", "Admin runtime is inactive.");
+    }
+
+    private InfoBarSeverity ResolveRuntimeNoticeSeverity()
+    {
+        return InfoBarSeverity.Informational;
     }
 
     private async Task ShowMessageAsync(string title, string message)

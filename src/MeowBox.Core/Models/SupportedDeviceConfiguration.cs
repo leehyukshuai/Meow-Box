@@ -13,26 +13,58 @@ public static class SupportedDeviceConfiguration
             {
                 IsListening = true,
                 PreferPriorityStartup = true,
+                SwitchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.AutoSwitchAlwaysThreshold,
+                SwitchToExtremeModeOnAcThresholdPercent = 100,
+                PreferredPerformanceModeKey = BatteryControlCatalog.Smart,
+                PerformanceModeCycleKeys =
+                [
+                    BatteryControlCatalog.Smart,
+                    BatteryControlCatalog.Silent,
+                    BatteryControlCatalog.Extreme
+                ],
+                ResetChargeLimitToFullOnStartup = false,
+                PreferredChargeLimitPercent = 90,
                 Language = AppLanguagePreference.System,
                 ShowTrayIcon = true,
                 Osd = new OsdPreferences
                 {
                     DisplayMode = OsdDisplayMode.IconOnly,
-                    DurationMs = RuntimeDefaults.DefaultOsdDurationMs,
-                    BackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent,
-                    ScalePercent = RuntimeDefaults.DefaultOsdScalePercent
+                    DurationMs = 800,
+                    BackgroundOpacityPercent = 20,
+                    ScalePercent = 65
                 }
             },
             Touchpad = new TouchpadConfiguration
             {
                 Enabled = true,
-                LightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold,
-                DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold,
-                SurfaceWidth = RuntimeDefaults.DefaultTouchpadSurfaceWidth,
-                SurfaceHeight = RuntimeDefaults.DefaultTouchpadSurfaceHeight,
+                LightPressThreshold = 125,
+                PressSensitivityLevel = 2,
+                DeepPressThreshold = 500,
+                LongPressDurationMs = 750,
+                FeedbackLevel = 2,
+                DeepPressHapticsEnabled = true,
+                EdgeSlideEnabled = true,
+                SurfaceWidth = 3282,
+                SurfaceHeight = 2124,
                 DeepPressAction = new ActionDefinitionConfiguration
                 {
                     Type = HotkeyActionType.None
+                },
+                FiveFingerPinchInAction = new ActionDefinitionConfiguration
+                {
+                    Type = HotkeyActionType.None
+                },
+                FiveFingerPinchOutAction = new ActionDefinitionConfiguration
+                {
+                    Type = HotkeyActionType.None
+                },
+                LeftEdgeSlideAction = new ActionDefinitionConfiguration
+                {
+                    Type = HotkeyActionType.BrightnessUp
+                },
+                RightEdgeSlideAction = new ActionDefinitionConfiguration
+                {
+                    Type = HotkeyActionType.VolumeUp
                 },
                 LeftTopCorner = TouchpadCornerRegionConfiguration.CreateLeftTopDefault(),
                 RightTopCorner = TouchpadCornerRegionConfiguration.CreateRightTopDefault()
@@ -58,7 +90,7 @@ public static class SupportedDeviceConfiguration
     {
         return
         [
-            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.MediaPlayPause),
+            CreateMapping("mapping-manager-press", DefaultKeyIds.ManagerPress, "PC Manager Press", HotkeyActionType.None, enabled: false),
             CreateMapping("mapping-xiaoai-press", DefaultKeyIds.XiaoAiPress, "XiaoAi Press", HotkeyActionType.None),
             CreateMapping("mapping-settings", DefaultKeyIds.SettingsPress, "Settings Press", HotkeyActionType.OpenSettings),
             CreateMapping("mapping-projection", DefaultKeyIds.Projection, "Projection UI", HotkeyActionType.OpenProjection),

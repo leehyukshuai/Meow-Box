@@ -86,7 +86,7 @@ public static class ActionCatalog
             new ActionOption(HotkeyActionType.Screenshot, ResourceStringService.GetString("Action.Screenshot.Label", "Take screenshot"), ResourceStringService.GetString("Action.Screenshot.Description", "Opens the native snipping overlay."), "", ActionTag.System, ActionTag.Display),
             new ActionOption(HotkeyActionType.OpenCalculator, ResourceStringService.GetString("Action.OpenCalculator.Label", "Open Calculator"), ResourceStringService.GetString("Action.OpenCalculator.Description", "Launches Calculator."), "", ActionTag.System, ActionTag.Application),
             new ActionOption(HotkeyActionType.OpenApplication, ResourceStringService.GetString("Action.OpenApplication.Label", "Open application"), ResourceStringService.GetString("Action.OpenApplication.Description", "Launches an installed app, shortcut, or executable."), "", ActionTag.Application),
-            new ActionOption(HotkeyActionType.CyclePerformanceMode, ResourceStringService.GetString("Action.CyclePerformanceMode.Label", "Toggle performance mode"), ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles between Silent, Smart, and Beast modes."), "", ActionTag.System)
+            new ActionOption(HotkeyActionType.CyclePerformanceMode, ResourceStringService.GetString("Action.CyclePerformanceMode.Label", "Toggle performance mode"), ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles through the performance modes in the order configured on the Battery page."), "", ActionTag.System)
         ]);
 
     public static bool IsKnownActionType(string? key)
@@ -119,7 +119,7 @@ public static class ActionCatalog
     {
         if (string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase))
         {
-            return ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles between Smart, Turbo/Beast, Battery saver, and Silent modes.");
+            return ResourceStringService.GetString("Action.CyclePerformanceMode.Description", "Cycles through the performance modes in the order configured on the Battery page.");
         }
 
         return GetOption(key)?.Description ?? NoActionDescription;

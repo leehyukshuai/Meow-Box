@@ -38,10 +38,11 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private bool _batteryStateKnown;
     private bool _batteryControlSupported;
     private string _batteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.DefaultMessage", "Start the background service to view or change the current power status.");
-    private bool _resetPerformanceModeToSmartOnStartup = true;
+    private int _switchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.AutoSwitchNeverThreshold;
+    private int _switchToExtremeModeOnAcThresholdPercent = BatteryControlCatalog.AutoSwitchNeverThreshold;
     private string _currentPerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey;
     private string _currentPerformanceSelectionKey = BatteryControlCatalog.DefaultSelectedPerformanceModeKey;
-    private bool _resetChargeLimitToFullOnStartup;
+    private bool _applyChargeLimitOnStartup = true;
     private int _currentChargeLimitPercent = BatteryControlCatalog.DefaultChargeLimitPercent;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
@@ -66,6 +67,8 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public ObservableCollection<ActionOptionItemViewModel> FilteredActionOptions { get; } = [];
 
     public TouchpadLiveStateViewModel TouchpadLive { get; } = new();
+
+    public ObservableCollection<PerformanceCycleModeItemViewModel> PerformanceCycleModeItems { get; } = [];
 
     public IReadOnlyList<ActionTagOption> ActionTags => ActionCatalog.TagOptions;
 
@@ -215,7 +218,8 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
     }
 
-    public string CurrentPerformanceModeLabel => BatteryControlCatalog.GetPerformanceModeLabel(CurrentPerformanceModeKey);
+    public string CurrentPerformanceModeLabel => BatteryControlCatalog.GetSelectedPerformanceModeLabel(
+        BatteryControlCatalog.ResolveSelectedPerformanceModeKey(CurrentPerformanceModeKey, CurrentPerformanceSelectionKey));
 
     public string CurrentPerformanceSelectionKey
     {
@@ -223,10 +227,16 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         private set => SetProperty(ref _currentPerformanceSelectionKey, value);
     }
 
-    public bool ResetPerformanceModeToSmartOnStartup
+    public int SwitchToBatteryModeOnDcThresholdPercent
     {
-        get => _resetPerformanceModeToSmartOnStartup;
-        private set => SetProperty(ref _resetPerformanceModeToSmartOnStartup, value);
+        get => _switchToBatteryModeOnDcThresholdPercent;
+        private set => SetProperty(ref _switchToBatteryModeOnDcThresholdPercent, value);
+    }
+
+    public int SwitchToExtremeModeOnAcThresholdPercent
+    {
+        get => _switchToExtremeModeOnAcThresholdPercent;
+        private set => SetProperty(ref _switchToExtremeModeOnAcThresholdPercent, value);
     }
 
     public int CurrentChargeLimitPercent
@@ -243,10 +253,10 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     public string CurrentChargeLimitLabel => BatteryControlCatalog.GetChargeLimitLabel(CurrentChargeLimitPercent);
 
-    public bool ResetChargeLimitToFullOnStartup
+    public bool ApplyChargeLimitOnStartup
     {
-        get => _resetChargeLimitToFullOnStartup;
-        private set => SetProperty(ref _resetChargeLimitToFullOnStartup, value);
+        get => _applyChargeLimitOnStartup;
+        private set => SetProperty(ref _applyChargeLimitOnStartup, value);
     }
 
     public bool BatteryControlsEnabled => ServiceRunning && WorkerElevated && BatteryStateKnown && BatteryControlSupported && !BatteryControlBusy;
@@ -538,35 +548,83 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
     }
 
-    public void SetResetPerformanceModeToSmartOnStartup(bool enabled)
+    public void SetSwitchToBatteryModeOnDcThresholdPercent(int percent)
     {
-        _configuration.Preferences.ResetPerformanceModeToSmartOnStartup = enabled;
-        ResetPerformanceModeToSmartOnStartup = enabled;
+        var normalizedPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(percent);
+        _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent = normalizedPercent;
+        SwitchToBatteryModeOnDcThresholdPercent = normalizedPercent;
         SaveConfiguration();
     }
 
-    public async Task SetChargeLimitPercentAsync(int percent)
+    public void SetSwitchToExtremeModeOnAcThresholdPercent(int percent)
+    {
+        var normalizedPercent = BatteryControlCatalog.NormalizeExtremeModeOnAcThresholdPercent(percent);
+        _configuration.Preferences.SwitchToExtremeModeOnAcThresholdPercent = normalizedPercent;
+        SwitchToExtremeModeOnAcThresholdPercent = normalizedPercent;
+        SaveConfiguration();
+    }
+
+    public void SetPerformanceCycleModeIncluded(string modeKey, bool included)
+    {
+        var item = FindPerformanceCycleModeItem(modeKey);
+        if (item is null)
+        {
+            return;
+        }
+
+        if (!included && PerformanceCycleModeItems.Count(entry => entry.IsIncluded) <= 1 && item.IsIncluded)
+        {
+            ReloadPerformanceCycleModeItems();
+            return;
+        }
+
+        item.IsIncluded = included;
+        PersistPerformanceCycleModePreferences();
+    }
+
+    public async Task<bool> SetChargeLimitPercentAsync(int percent)
     {
         var normalizedPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(percent);
-        await UpdateBatteryRuntimeAsync(
-            normalizedPercent,
-            CurrentChargeLimitPercent,
-            value => CurrentChargeLimitPercent = value,
-            ResourceStringService.GetString("Battery.Status.UpdatingCharge", "Updating charge limit..."),
-            new WorkerRequest
+        var previousPercent = CurrentChargeLimitPercent;
+        if (normalizedPercent == previousPercent)
+        {
+            return true;
+        }
+
+        CurrentChargeLimitPercent = normalizedPercent;
+        BatteryStateKnown = true;
+        BatteryControlSupported = true;
+        _configuration.Preferences.PreferredChargeLimitPercent = normalizedPercent;
+        SaveConfiguration();
+
+        try
+        {
+            var response = await _workerPipeClient.SendAsync(new WorkerRequest
             {
                 Command = WorkerCommandType.SetChargeLimit,
                 ChargeLimitPercent = normalizedPercent
-            },
-            ResourceStringService.GetString("Battery.Status.CouldNotChangeCharge", "Could not change the charge limit."),
-            ResourceStringService.GetString("Battery.Status.ChargeUpdated", "Charge limit updated."),
-            () => _configuration.Preferences.PreferredChargeLimitPercent = normalizedPercent);
+            }, 2500);
+            if (response?.Success != true)
+            {
+                throw new InvalidOperationException(response?.Error ?? ResourceStringService.GetString("Battery.Status.CouldNotChangeCharge", "Could not change the charge limit."));
+            }
+
+            ApplyWorkerSnapshot(response.Status);
+            return true;
+        }
+        catch
+        {
+            CurrentChargeLimitPercent = previousPercent;
+            _configuration.Preferences.PreferredChargeLimitPercent = previousPercent;
+            SaveConfiguration();
+            return false;
+        }
     }
 
-    public void SetResetChargeLimitToFullOnStartup(bool enabled)
+    public void SetApplyChargeLimitOnStartup(bool enabled)
     {
-        _configuration.Preferences.ResetChargeLimitToFullOnStartup = enabled;
-        ResetChargeLimitToFullOnStartup = enabled;
+        _configuration.Preferences.ResetChargeLimitToFullOnStartup = !enabled;
+        ApplyChargeLimitOnStartup = enabled;
         SaveConfiguration();
     }
 
@@ -592,7 +650,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
                     ApplyWorkerSnapshot(response.Status);
                     if (response.Status.IsElevated)
                     {
-                        await RequestWorkerAnnouncementAsync();
+                        await WarmBatteryControlStateAsync();
                         return true;
                     }
                 }
@@ -613,7 +671,13 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
                 TouchpadLive.Update(null, serviceAvailable: true, Touchpad.DeepPressThreshold);
             }
 
-            _ = ObserveWorkerStartupAsync();
+            if (!await WaitForWorkerReadyAsync(requireElevated: true))
+            {
+                BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.NotElevated", "The worker did not enter elevated mode.");
+                return false;
+            }
+
+            await WarmBatteryControlStateAsync();
             return true;
         }
         catch
@@ -894,8 +958,12 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             SelectedActionTag = ActionTags.FirstOrDefault();
             LanguagePreference = _configuration.Preferences.Language;
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
-            ResetPerformanceModeToSmartOnStartup = _configuration.Preferences.ResetPerformanceModeToSmartOnStartup;
-            ResetChargeLimitToFullOnStartup = _configuration.Preferences.ResetChargeLimitToFullOnStartup;
+            SwitchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(
+                _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent);
+            SwitchToExtremeModeOnAcThresholdPercent = BatteryControlCatalog.NormalizeExtremeModeOnAcThresholdPercent(
+                _configuration.Preferences.SwitchToExtremeModeOnAcThresholdPercent);
+            ApplyChargeLimitOnStartup = !_configuration.Preferences.ResetChargeLimitToFullOnStartup;
+            ReloadPerformanceCycleModeItems();
             Touchpad = new TouchpadConfigurationViewModel(_configuration.Touchpad);
             TouchpadLightPressThreshold = Touchpad.LightPressThreshold;
             TouchpadLongPressDurationMs = Touchpad.LongPressDurationMs;
@@ -1030,6 +1098,17 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
         BatteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.NotSupported", "This device does not expose the required battery controls.");
         return false;
+    }
+
+    private async Task WarmBatteryControlStateAsync()
+    {
+        try
+        {
+            await RefreshBatteryControlStateCoreAsync();
+        }
+        catch
+        {
+        }
     }
 
     private async Task RequestWorkerAnnouncementAsync()
@@ -1212,9 +1291,99 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             CurrentPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey);
         }
 
-        CurrentPerformanceSelectionKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.SelectedPerformanceModeKey);
+        CurrentPerformanceSelectionKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(state.SelectedPerformanceModeKey);
         _configuration.Preferences.PreferredPerformanceModeKey = CurrentPerformanceSelectionKey;
         CurrentChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(state.ChargeLimitPercent);
+    }
+
+    private void ReloadPerformanceCycleModeItems()
+    {
+        var includedKeys = BatteryControlCatalog.NormalizePerformanceModeCycleKeys(_configuration.Preferences.PerformanceModeCycleKeys);
+        var includedKeySet = includedKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var orderedKeys = includedKeys
+            .Concat(BatteryControlCatalog.PerformanceModeCycleOptionOrder.Where(key => !includedKeySet.Contains(key)))
+            .ToList();
+
+        PerformanceCycleModeItems.Clear();
+        foreach (var modeKey in orderedKeys)
+        {
+            PerformanceCycleModeItems.Add(new PerformanceCycleModeItemViewModel(modeKey)
+            {
+                IsIncluded = includedKeySet.Contains(modeKey)
+            });
+        }
+
+        SyncPerformanceCycleModeItemState();
+    }
+
+    private void PersistPerformanceCycleModePreferences()
+    {
+        _configuration.Preferences.PerformanceModeCycleKeys = PerformanceCycleModeItems
+            .Where(item => item.IsIncluded)
+            .Select(item => item.Key)
+            .ToList();
+        SyncPerformanceCycleModeItemState();
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
+    public void SavePerformanceCycleModeOrder()
+    {
+        PersistPerformanceCycleModePreferences();
+    }
+
+    public void MovePerformanceCycleModeUp(string modeKey)
+    {
+        var item = FindPerformanceCycleModeItem(modeKey);
+        if (item is null)
+        {
+            return;
+        }
+
+        var index = PerformanceCycleModeItems.IndexOf(item);
+        if (index <= 0)
+        {
+            return;
+        }
+
+        PerformanceCycleModeItems.Move(index, index - 1);
+        PersistPerformanceCycleModePreferences();
+    }
+
+    public void MovePerformanceCycleModeDown(string modeKey)
+    {
+        var item = FindPerformanceCycleModeItem(modeKey);
+        if (item is null)
+        {
+            return;
+        }
+
+        var index = PerformanceCycleModeItems.IndexOf(item);
+        if (index < 0 || index >= PerformanceCycleModeItems.Count - 1)
+        {
+            return;
+        }
+
+        PerformanceCycleModeItems.Move(index, index + 1);
+        PersistPerformanceCycleModePreferences();
+    }
+
+    private void SyncPerformanceCycleModeItemState()
+    {
+        var includedCount = PerformanceCycleModeItems.Count(item => item.IsIncluded);
+        for (var index = 0; index < PerformanceCycleModeItems.Count; index++)
+        {
+            var item = PerformanceCycleModeItems[index];
+            item.CanChangeInclusion = !item.IsIncluded || includedCount > 1;
+            item.CanMoveUp = index > 0;
+            item.CanMoveDown = index < PerformanceCycleModeItems.Count - 1;
+        }
+    }
+
+    private PerformanceCycleModeItemViewModel? FindPerformanceCycleModeItem(string? modeKey)
+    {
+        var normalizedModeKey = BatteryControlCatalog.NormalizePerformanceModeCycleKey(modeKey);
+        return PerformanceCycleModeItems.FirstOrDefault(item => string.Equals(item.Key, normalizedModeKey, StringComparison.OrdinalIgnoreCase));
     }
 
     private void MarkBatteryStateUnknown(string statusMessage)

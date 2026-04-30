@@ -149,10 +149,10 @@
                 <NavigationViewItem
                     x:Uid="BatteryItem"
                     x:Name="BatteryItem"
-                    Content="Battery"
+                    Content="Power"
                     Tag="battery">
                     <NavigationViewItem.Icon>
-                        <FontIcon FontFamily="Segoe Fluent Icons" FontSize="15" Glyph="&#xE7F8;" />
+                        <FontIcon FontFamily="Segoe Fluent Icons" FontSize="15" Glyph="&#xE7E8;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem

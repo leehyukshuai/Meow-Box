@@ -180,6 +180,9 @@
   <data name="Osd.Title.PerformanceBeast" xml:space="preserve">
     <value>狂暴模式</value>
   </data>
+  <data name="Osd.Title.PerformanceExtreme" xml:space="preserve">
+    <value>极限模式</value>
+  </data>
   <data name="Osd.Title.PerformanceUnknown" xml:space="preserve">
     <value>未知模式</value>
   </data>
@@ -391,10 +394,13 @@
     <value>性能模式</value>
   </data>
   <data name="BatteryChargeTitleText.Text" xml:space="preserve">
-    <value>充电上限</value>
+    <value>智能充电</value>
   </data>
   <data name="BatteryChargeInfoBar.Message" xml:space="preserve">
     <value>将充电保持在较低上限，有助于延长电池寿命；在高温环境下，长时间满电会更容易导致电池老化。</value>
+  </data>
+  <data name="ChargeLimitLabelTextBlock.Text" xml:space="preserve">
+    <value>充电上限</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
     <value>触控灵敏度</value>
@@ -790,7 +796,7 @@
     <value>切换性能模式</value>
   </data>
   <data name="Action.CyclePerformanceMode.Description" xml:space="preserve">
-    <value>在智能、极速/狂暴、省电和静谧模式之间循环切换。</value>
+    <value>按照电池页面中配置的循环顺序切换性能模式。</value>
   </data>
   <data name="Battery.Performance.BatterySaver" xml:space="preserve">
     <value>省电</value>
@@ -806,6 +812,9 @@
   </data>
   <data name="Battery.Performance.Beast" xml:space="preserve">
     <value>狂暴</value>
+  </data>
+  <data name="Battery.Performance.Extreme" xml:space="preserve">
+    <value>极限</value>
   </data>
   <data name="Mapping.ShowOsd" xml:space="preserve">
     <value>显示 OSD</value>
@@ -1101,11 +1110,8 @@
   <data name="SettingsItem.Content" xml:space="preserve">
     <value>设置</value>
   </data>
-  <data name="PerformanceStartupResetLabelTextBlock.Text" xml:space="preserve">
-    <value>启动时切换到智能模式</value>
-  </data>
   <data name="ChargeStartupResetLabelTextBlock.Text" xml:space="preserve">
-    <value>启动时关闭充电限制保护</value>
+    <value>开机时自动设置充电上限</value>
   </data>
   <data name="MappingEnabledToggleSwitch.Header" xml:space="preserve">
     <value>启用</value>
@@ -1127,5 +1133,56 @@
   </data>
   <data name="TouchpadLongPress1000Item.Content" xml:space="preserve">
     <value>1000 毫秒</value>
+  </data>
+  <data name="PerformanceCycleTitleTextBlock.Text" xml:space="preserve">
+    <value>循环顺序</value>
+  </data>
+  <data name="PerformanceCycleDescriptionTextBlock.Text" xml:space="preserve">
+    <value>切换性能模式时，会按从上到下的顺序切换被勾选的模式。首条模式会被设为默认的性能模式。</value>
+  </data>
+  <data name="PerformanceExtremeInfoBar.Title" xml:space="preserve">
+    <value>极限模式</value>
+  </data>
+  <data name="PerformanceExtremeInfoBar.Message" xml:space="preserve">
+    <value>极限模式会根据当前是否插电，将硬件切换为极速或狂暴模式，同时把 Windows 电源管理切换为高性能方案。</value>
+  </data>
+  <data name="PerformanceSilentInfoBar.Title" xml:space="preserve">
+    <value>静谧模式</value>
+  </data>
+  <data name="PerformanceSilentInfoBar.Message" xml:space="preserve">
+    <value>静谧模式会在设置硬件静谧模式的同时，把 Windows 电源管理切换为节能方案。</value>
+  </data>
+  <data name="PerformanceSmartInfoBar.Title" xml:space="preserve">
+    <value>智能模式</value>
+  </data>
+  <data name="PerformanceSmartInfoBar.Message" xml:space="preserve">
+    <value>智能模式会在设置硬件智能模式的同时，把 Windows 电源管理切换为平衡方案。</value>
+  </data>
+  <data name="PerformanceBatteryInfoBar.Title" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PerformanceBatteryInfoBar.Message" xml:space="preserve">
+    <value>省电模式会在设置硬件省电模式的同时，开启 Windows 的节能模式。插电后会自动退出省电模式，并使用默认的性能模式。</value>
+  </data>
+  <data name="PerformanceModeDisabledByBatterySaver.Message" xml:space="preserve">
+    <value>在使用省电模式时，无法调整其他性能模式，退出省电模式后才可以进行调节。</value>
+  </data>
+  <data name="Battery.Performance.CycleTurboBeastAutoLabel" xml:space="preserve">
+    <value>极速/狂暴</value>
+  </data>
+  <data name="Battery.Performance.CycleTurboBeastAutoTooltip" xml:space="preserve">
+    <value>在离电状态切换为极速模式，在插电状态切换为狂暴模式</value>
+  </data>
+  <data name="Battery.Performance.ExtremeTooltip" xml:space="preserve">
+    <value>在离电状态切换为极速模式，在插电状态切换为狂暴模式</value>
+  </data>
+  <data name="SwitchToBatteryModeOnDcLabelTextBlock.Text" xml:space="preserve">
+    <value>离电时自动开启省电模式</value>
+  </data>
+  <data name="SwitchToBatteryModeOnDcNeverItem.Content" xml:space="preserve">
+    <value>从不</value>
+  </data>
+  <data name="SwitchToBatteryModeOnDcAlwaysItem.Content" xml:space="preserve">
+    <value>始终</value>
   </data>
 </root>

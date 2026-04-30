@@ -51,6 +51,7 @@ public sealed class BatteryControlService
                 PerformanceModeKey = BatteryControlCatalog.GetPerformanceModeKey(performanceResponse.Data0.Value),
                 SelectedPerformanceModeKey = BatteryControlCatalog.GetPerformanceModeKey(performanceResponse.Data0.Value),
                 IsAcPowered = _windowsPowerModeService.IsAcPowered(),
+                BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent(),
                 IsBatterySaverEnabled = string.Equals(
                     BatteryControlCatalog.GetPerformanceModeKey(performanceResponse.Data0.Value),
                     BatteryControlCatalog.Battery,
@@ -117,6 +118,7 @@ public sealed class BatteryControlService
                         PerformanceModeKey = normalizedModeKey,
                         SelectedPerformanceModeKey = normalizedModeKey,
                         IsAcPowered = _windowsPowerModeService.IsAcPowered(),
+                        BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent(),
                         IsBatterySaverEnabled = string.Equals(normalizedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase),
                         ChargeLimitPercent = BatteryControlCatalog.DefaultChargeLimitPercent
                     }
@@ -127,6 +129,7 @@ public sealed class BatteryControlService
                 nextState.PerformanceModeKey = normalizedModeKey;
                 nextState.SelectedPerformanceModeKey = normalizedModeKey;
                 nextState.IsAcPowered = _windowsPowerModeService.IsAcPowered();
+                nextState.BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent();
                 nextState.IsBatterySaverEnabled = string.Equals(normalizedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase);
                 _cachedState = CloneState(nextState);
             }
@@ -155,6 +158,7 @@ public sealed class BatteryControlService
                         PerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey,
                         SelectedPerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey,
                         IsAcPowered = _windowsPowerModeService.IsAcPowered(),
+                        BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent(),
                         ChargeLimitPercent = normalizedPercent
                     }
                     : CloneState(_cachedState);
@@ -162,6 +166,7 @@ public sealed class BatteryControlService
                 nextState.Supported = true;
                 nextState.InstanceName = string.IsNullOrWhiteSpace(nextState.InstanceName) ? target.InstanceName : nextState.InstanceName;
                 nextState.IsAcPowered = _windowsPowerModeService.IsAcPowered();
+                nextState.BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent();
                 nextState.ChargeLimitPercent = normalizedPercent;
                 _cachedState = CloneState(nextState);
             }
@@ -278,6 +283,7 @@ public sealed class BatteryControlService
             SelectedPerformanceModeKey = state.SelectedPerformanceModeKey,
             IsBatterySaverEnabled = state.IsBatterySaverEnabled,
             IsAcPowered = state.IsAcPowered,
+            BatteryLevelPercent = state.BatteryLevelPercent,
             ChargeLimitPercent = state.ChargeLimitPercent
         };
     }

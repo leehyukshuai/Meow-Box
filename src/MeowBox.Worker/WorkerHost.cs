@@ -15,7 +15,7 @@ internal sealed class WorkerHost : IDisposable
     private const int StartupShellReadyTimeoutMs = 15000;
     private const int StartupShellReadyPollMs = 250;
     private const int StartupShellReadySettleMs = 1200;
-
+    private const int BatteryAutomationPollIntervalMs = 2000;
     private readonly Action _exitCallback;
     private readonly SynchronizationContext _syncContext;
     private readonly int _uiThreadId;
@@ -33,6 +33,7 @@ internal sealed class WorkerHost : IDisposable
     private readonly object _performanceModeSync = new();
     private readonly object _runtimeMappingSync = new();
 
+    private System.Threading.Timer? _batteryAutomationTimer;
     private FileSystemWatcher? _configWatcher;
     private WmiEventMonitor? _wmiMonitor;
     private TrayIconService? _trayIconService;
@@ -44,6 +45,8 @@ internal sealed class WorkerHost : IDisposable
     private string? _resolvedControllerPath;
     private string _stateMessage = "Starting worker";
     private volatile bool _interactiveShellReady;
+    private int _batteryAutomationTickInProgress;
+    private int _lastSyncedBatteryModeOnDcThresholdPercent = int.MinValue;
     private int _shutdownSignaled;
 
     public WorkerHost(Action exitCallback)
@@ -70,6 +73,7 @@ internal sealed class WorkerHost : IDisposable
         _touchpadStreamServer = new TouchpadStreamServer(_touchpadInputService.GetLatestState);
         LoadConfiguration();
         StartConfigWatcher();
+        StartBatteryAutomationMonitor();
         _ = NotifyControllerAsync(WorkerNotificationType.Started);
         _ = Task.Run(CompleteDeferredStartupAsync);
     }
@@ -179,6 +183,7 @@ internal sealed class WorkerHost : IDisposable
         _touchpadInputService.StateChanged -= OnTouchpadStateChanged;
         _touchpadStreamServer.Dispose();
         _touchpadInputService.Dispose();
+        _batteryAutomationTimer?.Dispose();
         _trayIconService?.Dispose();
         _osdService?.Dispose();
         _shellReadyCancellation.Dispose();
@@ -333,6 +338,7 @@ internal sealed class WorkerHost : IDisposable
 
         _configuration = _configService.Load();
         AppLanguageService.Apply(_configuration.Preferences.Language);
+        SyncWindowsBatterySaverThresholdPreference();
         RebuildRuntimeMappings();
         _nativeActionService.ReleaseBrightnessAdjustment();
         _touchpadInputService.UpdateConfiguration(_configuration.Touchpad);
@@ -342,6 +348,26 @@ internal sealed class WorkerHost : IDisposable
         _touchpadEdgeSlideService.PrewarmIfNeeded(
             ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Left) != TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.None ||
             ResolveEdgeSlideTarget(TouchpadEdgeSlideSide.Right) != TouchpadEdgeSlideService.TouchpadEdgeSlideTarget.None);
+    }
+
+    private void SyncWindowsBatterySaverThresholdPreference()
+    {
+        var batteryModeOnDcThresholdPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(
+            _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent);
+        if (batteryModeOnDcThresholdPercent == _lastSyncedBatteryModeOnDcThresholdPercent)
+        {
+            return;
+        }
+
+        try
+        {
+            _windowsPowerModeService.SetEnergySaverBatteryThresholdPercent(batteryModeOnDcThresholdPercent);
+            _lastSyncedBatteryModeOnDcThresholdPercent = batteryModeOnDcThresholdPercent;
+        }
+        catch (Exception exception)
+        {
+            _stateMessage = "Could not sync the Windows Energy Saver threshold: " + exception.Message;
+        }
     }
 
     private void RebuildRuntimeMappings()
@@ -370,12 +396,11 @@ internal sealed class WorkerHost : IDisposable
 
     private async Task RestorePreferredBatteryStateOnStartupAsync()
     {
-        var preferredPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(
-            _configuration.Preferences.PreferredPerformanceModeKey);
+        var startupCycleModeKey = BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(
+            _configuration.Preferences.PerformanceModeCycleKeys);
         var preferredChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(
             _configuration.Preferences.PreferredChargeLimitPercent);
-        var shouldRestorePerformanceMode = !_configuration.Preferences.ResetPerformanceModeToSmartOnStartup &&
-                                           !string.Equals(preferredPerformanceModeKey, BatteryControlCatalog.DefaultPerformanceModeKey, StringComparison.OrdinalIgnoreCase);
+        var shouldRestorePerformanceMode = true;
         var shouldRestoreChargeLimit = !_configuration.Preferences.ResetChargeLimitToFullOnStartup &&
                                        preferredChargeLimitPercent < BatteryControlCatalog.DefaultChargeLimitPercent;
         if (!shouldRestorePerformanceMode && !shouldRestoreChargeLimit)
@@ -386,13 +411,30 @@ internal sealed class WorkerHost : IDisposable
         try
         {
             await Task.Delay(2000);
+            var skippedBecauseBatterySaverWasAlreadyActive = false;
             await Task.Run(() =>
             {
+                var currentState = DecorateBatteryState(_batteryControlService.QueryState());
+                var batterySaverAlreadyActive =
+                    string.Equals(
+                        BatteryControlCatalog.NormalizePerformanceModeKey(currentState.PerformanceModeKey),
+                        BatteryControlCatalog.Battery,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(
+                        BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(currentState.SelectedPerformanceModeKey),
+                        BatteryControlCatalog.Battery,
+                        StringComparison.OrdinalIgnoreCase);
+                if (batterySaverAlreadyActive)
+                {
+                    skippedBecauseBatterySaverWasAlreadyActive = true;
+                    return;
+                }
+
                 if (shouldRestorePerformanceMode)
                 {
                     lock (_performanceModeSync)
                     {
-                        ApplyPerformanceMode(preferredPerformanceModeKey, persistPreference: false);
+                        ApplyPerformanceMode(startupCycleModeKey, persistPreference: false);
                     }
                 }
 
@@ -401,6 +443,11 @@ internal sealed class WorkerHost : IDisposable
                     _batteryControlService.SetChargeLimitPercentFast(preferredChargeLimitPercent);
                 }
             });
+            if (skippedBecauseBatterySaverWasAlreadyActive)
+            {
+                return;
+            }
+
             await Task.Delay(900);
             await Task.Run(() => DecorateBatteryState(_batteryControlService.QueryState()));
             await NotifyControllerAsync(WorkerNotificationType.Started);
@@ -444,6 +491,31 @@ internal sealed class WorkerHost : IDisposable
         _stateMessage = started.Count > 0
             ? "Watching " + string.Join(", ", started)
             : "No OEM WMI class could be subscribed.";
+    }
+
+    private void StartBatteryAutomationMonitor()
+    {
+        _batteryAutomationTimer ??= new System.Threading.Timer(OnBatteryAutomationTimerTick, null, BatteryAutomationPollIntervalMs, BatteryAutomationPollIntervalMs);
+    }
+
+    private void OnBatteryAutomationTimerTick(object? _)
+    {
+        if (Interlocked.Exchange(ref _batteryAutomationTickInProgress, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            EvaluateBatteryAutomation();
+        }
+        catch
+        {
+        }
+        finally
+        {
+            Volatile.Write(ref _batteryAutomationTickInProgress, 0);
+        }
     }
 
     private void OnInputEvent(InputEvent inputEvent)
@@ -628,7 +700,7 @@ internal sealed class WorkerHost : IDisposable
         }
     }
 
-    private ActionExecutionOsd ExecuteCyclePerformanceModeAction()
+    private ActionExecutionOsd? ExecuteCyclePerformanceModeAction()
     {
         var state = GetEffectiveBatteryState();
         if (!state.Supported)
@@ -636,10 +708,128 @@ internal sealed class WorkerHost : IDisposable
             throw new InvalidOperationException(ResourceStringService.GetString("Worker.DeviceNotSupported", "The device does not expose the performance mode controls."));
         }
 
-        var nextModeKey = BatteryControlCatalog.GetNextCyclePerformanceModeKey(state.PerformanceModeKey, state.IsAcPowered);
-        var (_, actionOsd) = ApplyPerformanceMode(nextModeKey);
+        if (string.Equals(
+            BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(state.SelectedPerformanceModeKey),
+            BatteryControlCatalog.Battery,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var nextCycleModeKey = BatteryControlCatalog.GetNextCyclePerformanceModeKey(
+            state.PerformanceModeKey,
+            state.SelectedPerformanceModeKey,
+            state.IsAcPowered,
+            _configuration.Preferences.PerformanceModeCycleKeys);
+        var (_, actionOsd) = ApplyPerformanceMode(nextCycleModeKey);
         NotifyControllerAboutBatteryMutation();
         return actionOsd ?? throw new InvalidOperationException("Performance mode OSD could not be resolved.");
+    }
+
+    private void EvaluateBatteryAutomation()
+    {
+        var state = GetEffectiveBatteryState();
+        if (!state.Supported)
+        {
+            return;
+        }
+
+        var targetModeKey = ResolveAutomaticPerformanceModeSelection(state);
+        if (string.IsNullOrWhiteSpace(targetModeKey))
+        {
+            return;
+        }
+
+        var shouldShowOsd = ShouldShowAutomaticPerformanceModeOsd(state, targetModeKey);
+        var (_, actionOsd) = ApplyPerformanceMode(targetModeKey, persistPreference: false);
+        if (shouldShowOsd && actionOsd is not null)
+        {
+            ShowActionOsd(actionOsd);
+        }
+
+        NotifyControllerAboutBatteryMutation();
+    }
+
+    private string? ResolveAutomaticPerformanceModeSelection(BatteryControlState state)
+    {
+        var normalizedRawModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey);
+        var normalizedSelectedModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(state.SelectedPerformanceModeKey);
+        var batteryModeOnDcThresholdPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(
+            _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent);
+        var exitBatteryModeOnAcThresholdPercent = BatteryControlCatalog.AutoSwitchAlwaysThreshold;
+        var startupCycleModeKey = BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(
+            _configuration.Preferences.PerformanceModeCycleKeys);
+
+        if (!state.IsAcPowered &&
+            ShouldAutoSwitchOnBattery(state.BatteryLevelPercent, batteryModeOnDcThresholdPercent) &&
+            !string.Equals(normalizedSelectedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
+        {
+            return BatteryControlCatalog.Battery;
+        }
+
+        if (state.IsAcPowered &&
+            ShouldAutoSwitchOnAc(state.BatteryLevelPercent, exitBatteryModeOnAcThresholdPercent) &&
+            string.Equals(normalizedSelectedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
+        {
+            return startupCycleModeKey;
+        }
+
+        if (!state.IsAcPowered &&
+            string.Equals(normalizedRawModeKey, BatteryControlCatalog.Beast, StringComparison.OrdinalIgnoreCase))
+        {
+            return BatteryControlCatalog.Extreme;
+        }
+
+        if (state.IsAcPowered &&
+            string.Equals(normalizedRawModeKey, BatteryControlCatalog.Turbo, StringComparison.OrdinalIgnoreCase))
+        {
+            return BatteryControlCatalog.Extreme;
+        }
+
+        return null;
+    }
+
+    private static bool ShouldAutoSwitchOnBattery(int batteryLevelPercent, int thresholdPercent)
+    {
+        if (thresholdPercent == BatteryControlCatalog.AutoSwitchNeverThreshold)
+        {
+            return false;
+        }
+
+        if (thresholdPercent == BatteryControlCatalog.AutoSwitchAlwaysThreshold)
+        {
+            return true;
+        }
+
+        return batteryLevelPercent >= 0 && batteryLevelPercent <= thresholdPercent;
+    }
+
+    private static bool ShouldAutoSwitchOnAc(int batteryLevelPercent, int thresholdPercent)
+    {
+        if (thresholdPercent == BatteryControlCatalog.AutoSwitchNeverThreshold)
+        {
+            return false;
+        }
+
+        if (thresholdPercent == BatteryControlCatalog.AutoSwitchAlwaysThreshold)
+        {
+            return true;
+        }
+
+        return batteryLevelPercent >= 0 && batteryLevelPercent >= thresholdPercent;
+    }
+
+    private static bool ShouldShowAutomaticPerformanceModeOsd(BatteryControlState state, string targetModeKey)
+    {
+        var normalizedCurrentSelectedModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(state.SelectedPerformanceModeKey);
+        var normalizedTargetModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(targetModeKey);
+        var isEnteringBatterySaver =
+            !string.Equals(normalizedCurrentSelectedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(normalizedTargetModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase);
+        var isLeavingBatterySaver =
+            string.Equals(normalizedCurrentSelectedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(normalizedTargetModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase);
+        return isEnteringBatterySaver || isLeavingBatterySaver;
     }
 
     private ActionExecutionOsd ExecuteToggleTouchpadAction()
@@ -850,22 +1040,24 @@ internal sealed class WorkerHost : IDisposable
     {
         lock (_performanceModeSync)
         {
-            var normalizedModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(modeKey);
             var state = GetEffectiveBatteryState();
+            var normalizedSelectedModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(modeKey);
+            var normalizedModeKey = BatteryControlCatalog.ResolveRawPerformanceModeKey(normalizedSelectedModeKey, state.IsAcPowered);
             if (!state.Supported)
             {
                 throw new InvalidOperationException(ResourceStringService.GetString("Worker.DeviceNotSupported", "The device does not expose the performance mode controls."));
             }
 
             var updatedState = DecorateBatteryState(_batteryControlService.SetPerformanceModeFast(normalizedModeKey));
-            updatedState.SelectedPerformanceModeKey = normalizedModeKey;
+            updatedState.SelectedPerformanceModeKey = normalizedSelectedModeKey;
             updatedState.IsBatterySaverEnabled = string.Equals(normalizedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase);
+            _windowsPowerModeService.SetActiveScheme(ResolveWindowsPowerSchemeAlias(normalizedModeKey));
             if (persistPreference)
             {
-                PersistPreferredPerformanceSelection(normalizedModeKey);
+                PersistPreferredPerformanceSelection(normalizedSelectedModeKey);
             }
 
-            var title = BatteryControlCatalog.GetPerformanceModeLabel(updatedState.PerformanceModeKey);
+            var title = BatteryControlCatalog.GetSelectedPerformanceModeLabel(updatedState.SelectedPerformanceModeKey);
             var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(updatedState.PerformanceModeKey);
             _stateMessage = "Performance mode set to " + title + ".";
 
@@ -889,21 +1081,35 @@ internal sealed class WorkerHost : IDisposable
         return DecorateBatteryState(state);
     }
 
+    private static string ResolveWindowsPowerSchemeAlias(string modeKey)
+    {
+        return BatteryControlCatalog.NormalizePerformanceModeKey(modeKey) switch
+        {
+            BatteryControlCatalog.Battery or BatteryControlCatalog.Silent => WindowsPowerModeService.PowerSaverSchemeAlias,
+            BatteryControlCatalog.Smart => WindowsPowerModeService.BalancedSchemeAlias,
+            BatteryControlCatalog.Turbo or BatteryControlCatalog.Beast => WindowsPowerModeService.HighPerformanceSchemeAlias,
+            _ => WindowsPowerModeService.BalancedSchemeAlias
+        };
+    }
+
     private BatteryControlState DecorateBatteryState(BatteryControlState state)
     {
         state.IsAcPowered = _windowsPowerModeService.IsAcPowered();
+        state.BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent();
         state.IsBatterySaverEnabled = string.Equals(
             BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey),
             BatteryControlCatalog.Battery,
             StringComparison.OrdinalIgnoreCase);
-        state.SelectedPerformanceModeKey = BatteryControlCatalog.NormalizePerformanceModeKey(state.PerformanceModeKey);
+        state.SelectedPerformanceModeKey = BatteryControlCatalog.ResolveSelectedPerformanceModeKey(
+            state.PerformanceModeKey,
+            _configuration.Preferences.PreferredPerformanceModeKey);
         return state;
     }
 
     private void PersistPreferredPerformanceSelection(string selectedModeKey)
     {
         _configuration.Preferences.PreferredPerformanceModeKey =
-            BatteryControlCatalog.NormalizePerformanceModeKey(selectedModeKey);
+            BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(selectedModeKey);
         _configService.Save(_configuration);
     }
 

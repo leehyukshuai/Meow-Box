@@ -221,6 +221,8 @@ public sealed class AppConfigService
         };
         configuration.Preferences.PreferredPerformanceModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(
             configuration.Preferences.PreferredPerformanceModeKey);
+        configuration.Preferences.PerformanceModeCycleKeys = BatteryControlCatalog.NormalizePerformanceModeCycleKeys(
+            configuration.Preferences.PerformanceModeCycleKeys);
         configuration.Preferences.PreferredChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(
             configuration.Preferences.PreferredChargeLimitPercent);
         configuration.Preferences.Osd ??= new OsdPreferences();

@@ -180,6 +180,9 @@
   <data name="Osd.Title.PerformanceBeast" xml:space="preserve">
     <value>Beast Mode</value>
   </data>
+  <data name="Osd.Title.PerformanceExtreme" xml:space="preserve">
+    <value>Extreme Mode</value>
+  </data>
   <data name="Osd.Title.PerformanceUnknown" xml:space="preserve">
     <value>Unknown Mode</value>
   </data>
@@ -391,10 +394,13 @@
     <value>Performance</value>
   </data>
   <data name="BatteryChargeTitleText.Text" xml:space="preserve">
-    <value>Charge limit</value>
+    <value>Smart charging</value>
   </data>
   <data name="BatteryChargeInfoBar.Message" xml:space="preserve">
     <value>Keeping a lower charge limit can help extend battery lifespan; in hotter conditions, staying fully charged for long periods can accelerate battery aging.</value>
+  </data>
+  <data name="ChargeLimitLabelTextBlock.Text" xml:space="preserve">
+    <value>Charge limit</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
     <value>Press sensitivity</value>
@@ -790,7 +796,7 @@
     <value>Toggle performance mode</value>
   </data>
   <data name="Action.CyclePerformanceMode.Description" xml:space="preserve">
-    <value>Cycles between Smart, Turbo/Beast, Battery saver, and Silent modes.</value>
+    <value>Cycles through the performance modes in the order configured on the Battery page.</value>
   </data>
   <data name="Battery.Performance.BatterySaver" xml:space="preserve">
     <value>Battery saver</value>
@@ -806,6 +812,9 @@
   </data>
   <data name="Battery.Performance.Beast" xml:space="preserve">
     <value>Beast</value>
+  </data>
+  <data name="Battery.Performance.Extreme" xml:space="preserve">
+    <value>Extreme</value>
   </data>
   <data name="Mapping.ShowOsd" xml:space="preserve">
     <value>Show OSD</value>
@@ -1096,16 +1105,13 @@
     <value>Touch</value>
   </data>
   <data name="BatteryItem.Content" xml:space="preserve">
-    <value>Battery</value>
+    <value>Power</value>
   </data>
   <data name="SettingsItem.Content" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="PerformanceStartupResetLabelTextBlock.Text" xml:space="preserve">
-    <value>Switch to Smart mode on startup</value>
-  </data>
   <data name="ChargeStartupResetLabelTextBlock.Text" xml:space="preserve">
-    <value>Disable charge limit protection on startup</value>
+    <value>Apply charge limit automatically on startup</value>
   </data>
   <data name="MappingEnabledToggleSwitch.Header" xml:space="preserve">
     <value>Enabled</value>
@@ -1127,5 +1133,56 @@
   </data>
   <data name="TouchpadLongPress1000Item.Content" xml:space="preserve">
     <value>1000 ms</value>
+  </data>
+  <data name="PerformanceCycleTitleTextBlock.Text" xml:space="preserve">
+    <value>Cycle order</value>
+  </data>
+  <data name="PerformanceCycleDescriptionTextBlock.Text" xml:space="preserve">
+    <value>Checked modes are included when cycling. Top to bottom is the switch order. The first mode becomes the default performance mode.</value>
+  </data>
+  <data name="PerformanceExtremeInfoBar.Title" xml:space="preserve">
+    <value>Extreme mode</value>
+  </data>
+  <data name="PerformanceExtremeInfoBar.Message" xml:space="preserve">
+    <value>Extreme sets the hardware to Turbo or Beast based on AC power and also switches Windows power management to High performance.</value>
+  </data>
+  <data name="PerformanceSilentInfoBar.Title" xml:space="preserve">
+    <value>Silent mode</value>
+  </data>
+  <data name="PerformanceSilentInfoBar.Message" xml:space="preserve">
+    <value>Silent sets the hardware to Silent mode and also switches Windows power management to Power saver.</value>
+  </data>
+  <data name="PerformanceSmartInfoBar.Title" xml:space="preserve">
+    <value>Smart mode</value>
+  </data>
+  <data name="PerformanceSmartInfoBar.Message" xml:space="preserve">
+    <value>Smart sets the hardware to Smart mode and also switches Windows power management to Balanced.</value>
+  </data>
+  <data name="PerformanceBatteryInfoBar.Title" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="PerformanceBatteryInfoBar.Message" xml:space="preserve">
+    <value>Battery saver sets the hardware to Battery saver mode and enables Windows Energy Saver. When AC power is connected, Battery saver exits automatically and switches to the default performance mode.</value>
+  </data>
+  <data name="PerformanceModeDisabledByBatterySaver.Message" xml:space="preserve">
+    <value>While Battery saver is active, other performance modes cannot be adjusted. You can change them again after exiting Battery saver.</value>
+  </data>
+  <data name="Battery.Performance.CycleTurboBeastAutoLabel" xml:space="preserve">
+    <value>Turbo/Beast</value>
+  </data>
+  <data name="Battery.Performance.CycleTurboBeastAutoTooltip" xml:space="preserve">
+    <value>Switches to Turbo on battery and Beast while plugged in.</value>
+  </data>
+  <data name="Battery.Performance.ExtremeTooltip" xml:space="preserve">
+    <value>Switches to Turbo on battery and Beast while plugged in.</value>
+  </data>
+  <data name="SwitchToBatteryModeOnDcLabelTextBlock.Text" xml:space="preserve">
+    <value>Enable Battery saver automatically while on battery</value>
+  </data>
+  <data name="SwitchToBatteryModeOnDcNeverItem.Content" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="SwitchToBatteryModeOnDcAlwaysItem.Content" xml:space="preserve">
+    <value>Always</value>
   </data>
 </root>
