@@ -85,11 +85,52 @@
                                     Padding="12"
                                     Style="{StaticResource InsetPanelCardStyle}"
                                     VerticalAlignment="Stretch">
-                                    <TextBlock
-                                        x:Name="PerformanceModeDescriptionTextBlock"
-                                        Style="{StaticResource BodyTextBlockStyle}"
-                                        TextWrapping="WrapWholeWords"
-                                        VerticalAlignment="Top" />
+                                    <Grid>
+                                        <TextBlock
+                                            x:Name="PerformanceModeDescriptionTextBlock"
+                                            Style="{StaticResource BodyTextBlockStyle}"
+                                            TextWrapping="WrapWholeWords"
+                                            VerticalAlignment="Top" />
+
+                                        <Canvas
+                                            x:Name="PerformanceSilentCatCanvas"
+                                            Width="118"
+                                            Height="76"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            IsHitTestVisible="False"
+                                            Margin="0,0,0,-12"
+                                            Opacity="0.22"
+                                            Visibility="Collapsed">
+                                            <Image x:Name="PerformanceSilentCatImage" Width="118" Height="76" />
+                                        </Canvas>
+
+                                        <Canvas
+                                            x:Name="PerformanceSmartCatCanvas"
+                                            Width="118"
+                                            Height="76"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            IsHitTestVisible="False"
+                                            Margin="0,0,0,-12"
+                                            Opacity="0.22"
+                                            Visibility="Collapsed">
+                                            <Image x:Name="PerformanceSmartCatImage" Width="118" Height="76" />
+                                        </Canvas>
+
+                                        <Canvas
+                                            x:Name="PerformanceExtremeCatCanvas"
+                                            Width="118"
+                                            Height="76"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            IsHitTestVisible="False"
+                                            Margin="0,0,0,-12"
+                                            Opacity="0.22"
+                                            Visibility="Collapsed">
+                                            <Image x:Name="PerformanceExtremeCatImage" Width="118" Height="76" />
+                                        </Canvas>
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </Border>

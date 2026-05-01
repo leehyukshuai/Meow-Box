@@ -59,6 +59,19 @@
                         </ListView.ItemTemplate>
                     </ListView>
 
+                    <Canvas
+                        x:Name="MappingsPeekCatCanvas"
+                        Grid.Row="1"
+                        Width="172"
+                        Height="72"
+                        Margin="0,0,0,-4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        IsHitTestVisible="False"
+                        Opacity="0.18">
+                        <Image x:Name="MappingsPeekCatImage" Width="172" Height="72" />
+                    </Canvas>
+
                     <StackPanel x:Name="MappingsEmptyStatePanel" Grid.Row="1" Style="{StaticResource EmptyStatePanelStyle}" Visibility="Collapsed">
                         <FontIcon FontFamily="Segoe Fluent Icons" Style="{StaticResource EmptyStateIconStyle}" Glyph="&#xE8D2;" />
                         <TextBlock x:Uid="MappingsPageEmptyTitleText" Style="{StaticResource EmptyStateTitleTextBlockStyle}" Text="No mappings yet" />

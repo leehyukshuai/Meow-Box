@@ -12,6 +12,9 @@ namespace MeowBox.Controller.Services;
 
 public sealed class MeowBoxController : ObservableObject, IDisposable
 {
+    // Bro，你赢得了这杯奶茶钱。。。
+    private const string EasterEggActivationCode = "MEOW-BOX-HELLO-GIVE-YOU-CATPAW-2026";
+
     private readonly AppConfigService _configService = new();
     private readonly InstalledAppService _installedAppService = new();
     private readonly ControllerPipeServer _controllerPipeServer;
@@ -33,6 +36,8 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private bool _isReloadingConfiguration;
     private string _languagePreference = AppLanguagePreference.System;
     private bool _trayIconEnabled;
+    private bool _easterEggsActivated;
+    private bool _showEasterEggs;
     private bool _workerElevated;
     private bool _batteryControlBusy;
     private bool _batteryStateKnown;
@@ -149,6 +154,18 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     {
         get => _trayIconEnabled;
         private set => SetProperty(ref _trayIconEnabled, value);
+    }
+
+    public bool EasterEggsActivated
+    {
+        get => _easterEggsActivated;
+        private set => SetProperty(ref _easterEggsActivated, value);
+    }
+
+    public bool ShowEasterEggs
+    {
+        get => _showEasterEggs;
+        private set => SetProperty(ref _showEasterEggs, value);
     }
 
     public bool WorkerElevated
@@ -712,6 +729,40 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
+    public void SetEasterEggsVisible(bool visible)
+    {
+        if (!EasterEggsActivated)
+        {
+            ShowEasterEggs = false;
+            return;
+        }
+
+        _configuration.Preferences.ShowEasterEggs = visible;
+        ShowEasterEggs = visible;
+        SaveConfiguration();
+    }
+
+    public bool TryActivateEasterEggs(string? activationCode)
+    {
+        var normalizedActivationCode = activationCode?.Trim() ?? string.Empty;
+        if (!IsEasterEggActivationCodeValid(normalizedActivationCode))
+        {
+            return false;
+        }
+
+        _configuration.Preferences.EasterEggActivationCode = normalizedActivationCode;
+        _configuration.Preferences.ShowEasterEggs = true;
+        EasterEggsActivated = true;
+        ShowEasterEggs = true;
+        SaveConfiguration();
+        return true;
+    }
+
+    private static bool IsEasterEggActivationCodeValid(string? activationCode)
+    {
+        return string.Equals(activationCode?.Trim(), EasterEggActivationCode, StringComparison.Ordinal);
+    }
+
     public void SetLanguagePreference(string languagePreference)
     {
         var normalizedPreference = AppLanguageService.ResolveStoredPreference(languagePreference);
@@ -944,6 +995,8 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             SelectedActionTag = ActionTags.FirstOrDefault();
             LanguagePreference = _configuration.Preferences.Language;
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
+            EasterEggsActivated = IsEasterEggActivationCodeValid(_configuration.Preferences.EasterEggActivationCode);
+            ShowEasterEggs = EasterEggsActivated && _configuration.Preferences.ShowEasterEggs;
             SwitchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(
                 _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent);
             ApplyChargeLimitOnStartup = !_configuration.Preferences.ResetChargeLimitToFullOnStartup;

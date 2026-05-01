@@ -238,8 +238,22 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top">
                             <Canvas
-                                x:Name="TouchpadCanvas"
+                                x:Name="TouchpadSurfaceCanvas"
+                                IsHitTestVisible="False" />
+
+                            <Canvas
+                                x:Name="TouchpadGuideCanvas"
                                 SizeChanged="OnTouchpadCanvasSizeChanged" />
+
+                            <Canvas
+                                x:Name="TouchpadPawCanvas"
+                                IsHitTestVisible="False">
+                                <Image
+                                    x:Name="TouchpadPawImage"
+                                    Visibility="Collapsed" />
+                            </Canvas>
+
+                            <Canvas x:Name="TouchpadCanvas" />
 
                             <StackPanel
                                 x:Name="TouchpadCanvasEmptyStatePanel"

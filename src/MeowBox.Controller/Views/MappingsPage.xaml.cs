@@ -11,6 +11,11 @@ namespace MeowBox.Controller.Views;
 
 public sealed partial class MappingsPage : Page
 {
+    private const string PeekCatLightFill = "#4F463E";
+    private const string PeekCatDarkFill = "#CBD4E0";
+    private const double PeekCatLightOpacity = 0.24;
+    private const double PeekCatDarkOpacity = 0.30;
+
     private ActionDefinitionViewModel? _subscribedAction;
 
     public MeowBoxController Controller => App.Controller;
@@ -27,7 +32,9 @@ public sealed partial class MappingsPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Controller.MappingItems.CollectionChanged += OnMappingItemsCollectionChanged;
+        App.ThemeService.ResolvedThemeChanged += OnResolvedThemeChanged;
         SubscribeToSelectedMappingAction();
+        UpdatePeekCatArtSource();
         UpdateEmptyStates();
     }
 
@@ -35,7 +42,13 @@ public sealed partial class MappingsPage : Page
     {
         Controller.PropertyChanged -= OnControllerPropertyChanged;
         Controller.MappingItems.CollectionChanged -= OnMappingItemsCollectionChanged;
+        App.ThemeService.ResolvedThemeChanged -= OnResolvedThemeChanged;
         UnsubscribeFromSelectedMappingAction();
+    }
+
+    private void OnResolvedThemeChanged(object? sender, ElementTheme e)
+    {
+        UpdatePeekCatArtSource();
     }
 
     private void SubscribeToSelectedMappingAction()
@@ -177,6 +190,10 @@ public sealed partial class MappingsPage : Page
                 UpdateEmptyStates();
             });
         }
+        else if (e.PropertyName == nameof(MeowBoxController.ShowEasterEggs))
+        {
+            DispatcherQueue.TryEnqueue(UpdatePeekCatVisibility);
+        }
     }
 
     private void OnMappingItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -193,5 +210,32 @@ public sealed partial class MappingsPage : Page
         MappingsEmptyStatePanel.Visibility = hasMappings ? Visibility.Collapsed : Visibility.Visible;
         MappingDetailsContentPanel.Visibility = hasSelection ? Visibility.Visible : Visibility.Collapsed;
         MappingDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
+        UpdatePeekCatVisibility();
+    }
+
+    private async void UpdatePeekCatArtSource()
+    {
+        UpdatePeekCatVisibility();
+        var theme = App.ThemeService.GetResolvedTheme();
+        var fill = theme == ElementTheme.Light
+            ? PeekCatLightFill
+            : PeekCatDarkFill;
+
+        MappingsPeekCatCanvas.Opacity = theme == ElementTheme.Light
+            ? PeekCatLightOpacity
+            : PeekCatDarkOpacity;
+
+        var source = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-sleep.svg", fill);
+        if (App.ThemeService.GetResolvedTheme() == theme)
+        {
+            MappingsPeekCatImage.Source = source;
+        }
+    }
+
+    private void UpdatePeekCatVisibility()
+    {
+        MappingsPeekCatCanvas.Visibility = Controller.ShowEasterEggs && Controller.MappingItems.Count > 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 }

@@ -22,6 +22,8 @@ public sealed partial class TouchpadPage : Page
     private const double DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private const double RedPressureThreshold = 800d;
     private const double PreviewStrokeThickness = 1.15d;
+    private const string TouchpadPawLightFill = "#C8B8A4";
+    private const string TouchpadPawDarkFill = "#3A4250";
     private double _displayPressure;
     private DateTimeOffset _lastDisplayPressureAt;
     private double _pressureDescriptionValue;
@@ -53,6 +55,7 @@ public sealed partial class TouchpadPage : Page
         SubscribeTouchpadState();
         SubscribeTouchpadActionEditors();
         SyncTouchpadPreferenceControls();
+        UpdateTouchpadPawSource();
         ScheduleTouchpadStateRefresh();
     }
 
@@ -68,6 +71,7 @@ public sealed partial class TouchpadPage : Page
 
     private void OnResolvedThemeChanged(object? sender, ElementTheme e)
     {
+        UpdateTouchpadPawSource();
         RequestRender();
     }
 
@@ -266,7 +270,8 @@ public sealed partial class TouchpadPage : Page
                                    nameof(MeowBoxController.TouchpadLongPressDurationMs) or
                                    nameof(MeowBoxController.TouchpadPressSensitivityLevel) or
                                    nameof(MeowBoxController.TouchpadFeedbackLevel) or
-                                   nameof(MeowBoxController.TouchpadDeepPressHapticsEnabled)))
+                                   nameof(MeowBoxController.TouchpadDeepPressHapticsEnabled) or
+                                   nameof(MeowBoxController.ShowEasterEggs)))
         {
             return;
         }
@@ -279,8 +284,12 @@ public sealed partial class TouchpadPage : Page
                 SubscribeTouchpadActionEditors();
             }
 
-            SyncTouchpadPreferenceControls();
-            ScheduleTouchpadStateRefresh();
+            if (e.PropertyName != nameof(MeowBoxController.ShowEasterEggs))
+            {
+                SyncTouchpadPreferenceControls();
+                ScheduleTouchpadStateRefresh();
+            }
+
             RequestRender();
         });
     }
@@ -548,7 +557,10 @@ public sealed partial class TouchpadPage : Page
         }
 
         var state = Controller.TouchpadLive;
+        TouchpadSurfaceCanvas.Children.Clear();
+        TouchpadGuideCanvas.Children.Clear();
         TouchpadCanvas.Children.Clear();
+        TouchpadPawImage.Visibility = Visibility.Collapsed;
         TouchpadCanvasEmptyStatePanel.Visibility = state.IsVisualizerEmpty ? Visibility.Visible : Visibility.Collapsed;
         if (state.IsVisualizerEmpty)
         {
@@ -570,8 +582,14 @@ public sealed partial class TouchpadPage : Page
             return;
         }
 
-        TouchpadCanvas.Width = preview.PadWidth;
-        TouchpadCanvas.Height = preview.PadHeight;
+        TouchpadSurfaceCanvas.Width = layoutWidth;
+        TouchpadSurfaceCanvas.Height = layoutHeight;
+        TouchpadGuideCanvas.Width = layoutWidth;
+        TouchpadGuideCanvas.Height = layoutHeight;
+        TouchpadPawCanvas.Width = layoutWidth;
+        TouchpadPawCanvas.Height = layoutHeight;
+        TouchpadCanvas.Width = layoutWidth;
+        TouchpadCanvas.Height = layoutHeight;
 
         var palette = GetTouchpadPalette();
         var displayPressure = GetDisplayedPressure(state);
@@ -582,7 +600,7 @@ public sealed partial class TouchpadPage : Page
             Data = preview.CreatePadClipGeometry(),
             Fill = CreateBrush(palette.PadFill)
         };
-        TouchpadCanvas.Children.Add(padShape);
+        TouchpadSurfaceCanvas.Children.Add(padShape);
 
         AddEdgeSlideOverlays(preview, palette);
         AddCornerOverlays(preview, palette);
@@ -593,10 +611,42 @@ public sealed partial class TouchpadPage : Page
             Stroke = CreateBrush(palette.OverlayStroke),
             StrokeThickness = PreviewStrokeThickness
         };
-        TouchpadCanvas.Children.Add(padOutline);
+        TouchpadGuideCanvas.Children.Add(padOutline);
 
         AddGridLines(preview, palette);
+        if (Controller.ShowEasterEggs)
+        {
+            AddPawTexture(preview);
+        }
+
         AddContacts(displayPressure, preview, palette);
+    }
+
+    private void AddPawTexture(TouchpadPreviewCoordinateSpace preview)
+    {
+        var width = Math.Min(preview.PadWidth * 0.52d, preview.PadHeight * 0.72d);
+        var height = width * (150d / 180d);
+        TouchpadPawImage.Width = width;
+        TouchpadPawImage.Height = height;
+        TouchpadPawImage.Opacity = App.ThemeService.GetResolvedTheme() == ElementTheme.Light ? 0.44d : 0.30d;
+        TouchpadPawImage.Visibility = Visibility.Visible;
+
+        Canvas.SetLeft(TouchpadPawImage, preview.PadLeft + ((preview.PadWidth - width) / 2d));
+        Canvas.SetTop(TouchpadPawImage, preview.PadTop + ((preview.PadHeight - height) * 0.56d));
+    }
+
+    private async void UpdateTouchpadPawSource()
+    {
+        var theme = App.ThemeService.GetResolvedTheme();
+        var fill = theme == ElementTheme.Light
+            ? TouchpadPawLightFill
+            : TouchpadPawDarkFill;
+
+        var source = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-paw.svg", fill);
+        if (App.ThemeService.GetResolvedTheme() == theme)
+        {
+            TouchpadPawImage.Source = source;
+        }
     }
 
     private void AddCornerOverlays(TouchpadPreviewCoordinateSpace preview, TouchpadVisualizerPalette palette)
@@ -615,7 +665,7 @@ public sealed partial class TouchpadPage : Page
                 Data = overlayInfo.Geometry,
                 Fill = CreateBrush(palette.OverlayFill)
             };
-            TouchpadCanvas.Children.Add(overlay);
+            TouchpadGuideCanvas.Children.Add(overlay);
 
             var stroke = new ShapePath
             {
@@ -623,7 +673,7 @@ public sealed partial class TouchpadPage : Page
                 Stroke = CreateBrush(palette.OverlayStroke),
                 StrokeThickness = PreviewStrokeThickness
             };
-            TouchpadCanvas.Children.Add(stroke);
+            TouchpadGuideCanvas.Children.Add(stroke);
 
             var label = new TextBlock
             {
@@ -632,7 +682,7 @@ public sealed partial class TouchpadPage : Page
                 FontSize = 11,
                 FontWeight = FontWeights.SemiBold
             };
-            TouchpadCanvas.Children.Add(label);
+            TouchpadGuideCanvas.Children.Add(label);
             label.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
 
             Canvas.SetLeft(label, overlayInfo.LabelCenter.X - (label.DesiredSize.Width / 2));
@@ -667,7 +717,7 @@ public sealed partial class TouchpadPage : Page
             Data = overlay.Geometry,
             Fill = CreateBrush(palette.OverlayFill)
         };
-        TouchpadCanvas.Children.Add(shape);
+        TouchpadGuideCanvas.Children.Add(shape);
 
         var stroke = new ShapePath
         {
@@ -675,7 +725,7 @@ public sealed partial class TouchpadPage : Page
             Stroke = CreateBrush(palette.OverlayStroke),
             StrokeThickness = PreviewStrokeThickness
         };
-        TouchpadCanvas.Children.Add(stroke);
+        TouchpadGuideCanvas.Children.Add(stroke);
 
         var label = new TextBlock
         {
@@ -684,7 +734,7 @@ public sealed partial class TouchpadPage : Page
             FontSize = 12,
             FontWeight = FontWeights.SemiBold
         };
-        TouchpadCanvas.Children.Add(label);
+        TouchpadGuideCanvas.Children.Add(label);
         label.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
         Canvas.SetLeft(label, overlay.LabelCenter.X - (label.DesiredSize.Width / 2));
         Canvas.SetTop(label, overlay.LabelCenter.Y - (label.DesiredSize.Height / 2));
@@ -704,7 +754,7 @@ public sealed partial class TouchpadPage : Page
                 Stroke = CreateBrush(palette.Grid),
                 StrokeThickness = 1
             };
-            TouchpadCanvas.Children.Add(vertical);
+            TouchpadGuideCanvas.Children.Add(vertical);
 
             var horizontal = new Line
             {
@@ -715,7 +765,7 @@ public sealed partial class TouchpadPage : Page
                 Stroke = CreateBrush(palette.Grid),
                 StrokeThickness = 1
             };
-            TouchpadCanvas.Children.Add(horizontal);
+            TouchpadGuideCanvas.Children.Add(horizontal);
         }
     }
 
