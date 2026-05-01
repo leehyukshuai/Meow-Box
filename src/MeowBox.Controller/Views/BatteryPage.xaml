@@ -130,6 +130,19 @@
                                             Visibility="Collapsed">
                                             <Image x:Name="PerformanceExtremeCatImage" Width="118" Height="76" />
                                         </Canvas>
+
+                                        <Canvas
+                                            x:Name="PerformanceBatteryCatCanvas"
+                                            Width="118"
+                                            Height="76"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            IsHitTestVisible="False"
+                                            Margin="0,0,0,-12"
+                                            Opacity="0.22"
+                                            Visibility="Collapsed">
+                                            <Image x:Name="PerformanceBatteryCatImage" Width="118" Height="76" />
+                                        </Canvas>
                                     </Grid>
                                 </Border>
                             </Grid>

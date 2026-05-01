@@ -351,7 +351,7 @@ public sealed partial class BatteryPage : Page
             ApplyPerformanceModeButtonSelectionState(PerformanceSmartButton, selected: false);
             ApplyPerformanceModeButtonSelectionState(PerformanceExtremeButton, selected: false);
             PerformanceModeDescriptionTextBlock.Text = ResourceStringService.GetString("PerformanceModeDisabledByBatterySaver.Message", string.Empty);
-            SetPerformanceCatArt(null);
+            SetPerformanceCatArt(BatteryControlCatalog.Battery);
             return;
         }
 
@@ -382,6 +382,7 @@ public sealed partial class BatteryPage : Page
         PerformanceSilentCatCanvas.Visibility = Visibility.Collapsed;
         PerformanceSmartCatCanvas.Visibility = Visibility.Collapsed;
         PerformanceExtremeCatCanvas.Visibility = Visibility.Collapsed;
+        PerformanceBatteryCatCanvas.Visibility = Visibility.Collapsed;
 
         if (!Controller.ShowEasterEggs)
         {
@@ -397,6 +398,12 @@ public sealed partial class BatteryPage : Page
         if (string.Equals(normalizedModeKey, BatteryControlCatalog.Extreme, StringComparison.OrdinalIgnoreCase))
         {
             PerformanceExtremeCatCanvas.Visibility = Visibility.Visible;
+            return;
+        }
+
+        if (string.Equals(normalizedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
+        {
+            PerformanceBatteryCatCanvas.Visibility = Visibility.Visible;
             return;
         }
 
@@ -419,10 +426,12 @@ public sealed partial class BatteryPage : Page
         PerformanceSilentCatCanvas.Opacity = opacity;
         PerformanceSmartCatCanvas.Opacity = opacity;
         PerformanceExtremeCatCanvas.Opacity = opacity;
+        PerformanceBatteryCatCanvas.Opacity = opacity;
 
         var silentSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-stand.svg", fillColor);
         var smartSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-walk.svg", fillColor);
         var extremeSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-run.svg", fillColor);
+        var batterySource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-sleep.svg", fillColor);
 
         if (!_isActive || ActualTheme != theme)
         {
@@ -432,6 +441,7 @@ public sealed partial class BatteryPage : Page
         PerformanceSilentCatImage.Source = silentSource;
         PerformanceSmartCatImage.Source = smartSource;
         PerformanceExtremeCatImage.Source = extremeSource;
+        PerformanceBatteryCatImage.Source = batterySource;
     }
 
     private void SetSelectedChargeLimit(int percent)

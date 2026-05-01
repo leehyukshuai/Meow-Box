@@ -225,7 +225,7 @@ public sealed partial class MappingsPage : Page
             ? PeekCatLightOpacity
             : PeekCatDarkOpacity;
 
-        var source = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-sleep.svg", fill);
+        var source = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-peek.svg", fill);
         if (App.ThemeService.GetResolvedTheme() == theme)
         {
             MappingsPeekCatImage.Source = source;
