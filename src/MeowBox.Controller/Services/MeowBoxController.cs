@@ -888,7 +888,10 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     public void RestoreDefaults()
     {
+        var easterEggActivationCode = _configuration.Preferences.EasterEggActivationCode;
         _configuration = _configService.RestoreDefaultFile();
+        _configuration.Preferences.EasterEggActivationCode = easterEggActivationCode;
+        _configService.Save(_configuration);
         App.ThemeService.ApplyPreference(_configuration.Theme);
         ReloadCollectionsFromConfiguration();
         OnPropertyChanged(nameof(ThemePreference));
