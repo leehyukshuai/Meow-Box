@@ -291,6 +291,48 @@
   <data name="LanguageRestartHintText.Text" xml:space="preserve">
     <value>语言更改需要在重启应用后生效。</value>
   </data>
+  <data name="ShowEasterEggsTitleText.Text" xml:space="preserve">
+    <value>显示彩蛋</value>
+  </data>
+  <data name="ShowEasterEggsDescriptionText.Text" xml:space="preserve">
+    <value>在界面中显示猫猫装饰。</value>
+  </data>
+  <data name="OpenSourceSupportCardTitleText.Text" xml:space="preserve">
+    <value>开源与支持</value>
+  </data>
+  <data name="DonationTitleText.Text" xml:space="preserve">
+    <value>支持作者</value>
+  </data>
+  <data name="ActivationTitleText.Text" xml:space="preserve">
+    <value>激活彩蛋</value>
+  </data>
+  <data name="ActivationCodeTextBox.PlaceholderText" xml:space="preserve">
+    <value>输入激活码</value>
+  </data>
+  <data name="ActivateEasterEggsButton.Content" xml:space="preserve">
+    <value>激活</value>
+  </data>
+  <data name="ActivationStatusText.NotActivated" xml:space="preserve">
+    <value>当前尚未激活，在爱发电平台进行赞赏可以获取激活码。</value>
+  </data>
+  <data name="ActivationStatusText.Activated" xml:space="preserve">
+    <value>当前已经激活，你可以设置是否显示猫猫装饰。</value>
+  </data>
+  <data name="Settings.Messages.ActivationFailed.Title" xml:space="preserve">
+    <value>激活失败</value>
+  </data>
+  <data name="Settings.Messages.ActivationFailed.Body" xml:space="preserve">
+    <value>激活码不正确。请从爱发电复制激活码后再试一次。</value>
+  </data>
+  <data name="Settings.Messages.ActivationSuccess.Title" xml:space="preserve">
+    <value>恭喜激活</value>
+  </data>
+  <data name="Settings.Messages.ActivationSuccess.Headline" xml:space="preserve">
+    <value>彩蛋已激活！</value>
+  </data>
+  <data name="Settings.Messages.ActivationSuccess.Body" xml:space="preserve">
+    <value>谢谢您支持 Meow Box。以后可以在开源与支持中选择是否显示猫猫装饰。</value>
+  </data>
   <data name="ConfigsCardTitleText.Text" xml:space="preserve">
     <value>细节</value>
   </data>
@@ -320,12 +362,6 @@
   </data>
   <data name="DeviceCardTitleText.Text" xml:space="preserve">
     <value>配置</value>
-  </data>
-  <data name="SupportedDeviceTitleText.Text" xml:space="preserve">
-    <value>支持机型</value>
-  </data>
-  <data name="SupportedDeviceDescriptionText.Text" xml:space="preserve">
-    <value>此版本已精简为只支持 Xiaomi Book Pro 14 2026。</value>
   </data>
   <data name="ConfigPathTextBox.Header" xml:space="preserve">
     <value>配置文件</value>
@@ -1184,5 +1220,14 @@
   </data>
   <data name="SwitchToBatteryModeOnDcAlwaysItem.Content" xml:space="preserve">
     <value>始终</value>
+  </data>
+  <data name="ProjectIntroTitleText.Text" xml:space="preserve">
+    <value>项目介绍</value>
+  </data>
+  <data name="ProjectIntroBodyRun.Text" xml:space="preserve">
+    <value>Meow Box 是一个面向 Xiaomi Book Pro 14 2026 的开源工具，作为小米电脑管家的开源替代，不与小米电脑管家兼容。项目链接：</value>
+  </data>
+  <data name="DonationDescriptionRun.Text" xml:space="preserve">
+    <value>如果这个软件对您有帮助，欢迎请作者喝杯奶茶，支持一下后续开发。爱发电链接：</value>
   </data>
 </root>

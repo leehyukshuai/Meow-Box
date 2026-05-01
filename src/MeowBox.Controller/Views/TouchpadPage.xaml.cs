@@ -270,7 +270,8 @@ public sealed partial class TouchpadPage : Page
                                    nameof(MeowBoxController.TouchpadLongPressDurationMs) or
                                    nameof(MeowBoxController.TouchpadPressSensitivityLevel) or
                                    nameof(MeowBoxController.TouchpadFeedbackLevel) or
-                                   nameof(MeowBoxController.TouchpadDeepPressHapticsEnabled)))
+                                   nameof(MeowBoxController.TouchpadDeepPressHapticsEnabled) or
+                                   nameof(MeowBoxController.ShowEasterEggs)))
         {
             return;
         }
@@ -283,8 +284,12 @@ public sealed partial class TouchpadPage : Page
                 SubscribeTouchpadActionEditors();
             }
 
-            SyncTouchpadPreferenceControls();
-            ScheduleTouchpadStateRefresh();
+            if (e.PropertyName != nameof(MeowBoxController.ShowEasterEggs))
+            {
+                SyncTouchpadPreferenceControls();
+                ScheduleTouchpadStateRefresh();
+            }
+
             RequestRender();
         });
     }
@@ -609,7 +614,11 @@ public sealed partial class TouchpadPage : Page
         TouchpadGuideCanvas.Children.Add(padOutline);
 
         AddGridLines(preview, palette);
-        AddPawTexture(preview);
+        if (Controller.ShowEasterEggs)
+        {
+            AddPawTexture(preview);
+        }
+
         AddContacts(displayPressure, preview, palette);
     }
 

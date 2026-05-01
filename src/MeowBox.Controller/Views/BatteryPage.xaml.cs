@@ -74,6 +74,7 @@ public sealed partial class BatteryPage : Page
             nameof(MeowBoxController.CurrentChargeLimitPercent) or
             nameof(MeowBoxController.SwitchToBatteryModeOnDcThresholdPercent) or
             nameof(MeowBoxController.ApplyChargeLimitOnStartup) or
+            nameof(MeowBoxController.ShowEasterEggs) or
             nameof(MeowBoxController.ServiceState) or
             nameof(MeowBoxController.WorkerElevated) or
             nameof(MeowBoxController.ServiceRunning))
@@ -382,6 +383,11 @@ public sealed partial class BatteryPage : Page
         PerformanceSmartCatCanvas.Visibility = Visibility.Collapsed;
         PerformanceExtremeCatCanvas.Visibility = Visibility.Collapsed;
 
+        if (!Controller.ShowEasterEggs)
+        {
+            return;
+        }
+
         if (string.Equals(normalizedModeKey, BatteryControlCatalog.Silent, StringComparison.OrdinalIgnoreCase))
         {
             PerformanceSilentCatCanvas.Visibility = Visibility.Visible;
@@ -414,7 +420,7 @@ public sealed partial class BatteryPage : Page
         PerformanceSmartCatCanvas.Opacity = opacity;
         PerformanceExtremeCatCanvas.Opacity = opacity;
 
-        var silentSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-sleep.svg", fillColor);
+        var silentSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-stand.svg", fillColor);
         var smartSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-walk.svg", fillColor);
         var extremeSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-run.svg", fillColor);
 

@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="MeowBox.Controller.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,11 +8,7 @@
 
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <Grid Padding="{StaticResource AppPagePadding}" RowSpacing="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <Grid x:Name="SettingsSectionsGrid" Grid.Row="0" RowSpacing="16">
+            <Grid x:Name="SettingsSectionsGrid" RowSpacing="16">
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroup>
                         <VisualState x:Name="WideLayout">
@@ -42,6 +38,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -104,17 +101,16 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock x:Uid="ConfigsCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Details" />
 
                         <Border Grid.Row="1" Style="{StaticResource InsetPanelCardStyle}">
-                                <Grid RowSpacing="12">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
+                            <Grid RowSpacing="12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
                                 <TextBlock x:Uid="OsdSettingsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
 
@@ -147,20 +143,64 @@
                     <StackPanel Spacing="14">
                         <TextBlock x:Uid="DeviceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configuration" />
 
-                        <Border Style="{StaticResource SubtlePanelCardStyle}">
-                            <StackPanel Spacing="6">
-                                <TextBlock x:Uid="SupportedDeviceTitleText" Style="{StaticResource SectionEyebrowTextBlockStyle}" Text="Supported device" />
-                                <TextBlock x:Name="SupportedDeviceNameTextBlock" Style="{StaticResource CardTitleTextBlockStyle}" Text="Xiaomi Book Pro 14 2026" />
-                                <TextBlock x:Uid="SupportedDeviceDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="This build is simplified for Xiaomi Book Pro 14 2026 only." TextWrapping="WrapWholeWords" />
-                            </StackPanel>
-                        </Border>
-
                         <TextBox x:Uid="ConfigPathTextBox" x:Name="ConfigPathTextBox" Header="Config file" IsReadOnly="True" />
 
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Button x:Uid="OpenConfigFolderButton" Click="OnOpenConfigFolderClick" Content="Open config folder" Style="{StaticResource AccentButtonStyle}" />
                             <Button x:Uid="RestoreDefaultsButton" Click="OnRestoreDefaultsClick" Content="Restore defaults" Style="{StaticResource DangerButtonStyle}" />
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="SupportCard" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource PanelCardStyle}">
+                    <StackPanel Spacing="14">
+                        <TextBlock x:Uid="OpenSourceSupportCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Open source and support" />
+
+                        <Border Style="{StaticResource SubtlePanelCardStyle}">
+                            <StackPanel Spacing="10">
+                                <TextBlock x:Uid="ProjectIntroTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Project intro" />
+                                <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" TextWrapping="Wrap">
+                                    <Run x:Uid="ProjectIntroBodyRun" Text="Meow Box is an open-source tool for Xiaomi Book Pro 14 2026, an open-source alternative to Xiaomi PC Manager, and is not compatible with Xiaomi PC Manager. Project link: " />
+                                    <Hyperlink Click="OnOpenGitHubClick">https://github.com/leehyukshuai/Meow-Box</Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SubtlePanelCardStyle}">
+                            <StackPanel Spacing="10">
+                                <TextBlock x:Uid="DonationTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Support the author" />
+                                <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" TextWrapping="Wrap">
+                                    <Run x:Uid="DonationDescriptionRun" Text="If this software helps you, you are welcome to buy the author a milk tea and support future development. Afdian link: " />
+                                    <Hyperlink Click="OnOpenAfdianClick">https://ifdian.net/a/Willowbank-September</Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SubtlePanelCardStyle}">
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Uid="ActivationTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Activate easter eggs" />
+                                <TextBlock x:Name="ActivationStatusTextBlock" Style="{StaticResource CardBodyTextBlockStyle}" Text="Not activated yet. Donate on Afdian to get an activation code." TextWrapping="Wrap" />
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Uid="ActivationCodeTextBox" x:Name="ActivationCodeTextBox" PlaceholderText="Enter activation code" />
+                                    <Button x:Uid="ActivateEasterEggsButton" x:Name="ActivateEasterEggsButton" Grid.Column="1" VerticalAlignment="Stretch" Click="OnActivateEasterEggsClick" Content="Activate" Style="{StaticResource AccentButtonStyle}" />
+                                </Grid>
+                                <Grid x:Name="EasterEggVisibilityRow" ColumnSpacing="16" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="3">
+                                        <TextBlock x:Uid="ShowEasterEggsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Show easter eggs" />
+                                        <TextBlock x:Uid="ShowEasterEggsDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Display playful cat decorations in the interface." TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                    <ToggleSwitch x:Name="ShowEasterEggsToggleSwitch" Grid.Column="1" Toggled="OnShowEasterEggsChanged" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
             </Grid>
