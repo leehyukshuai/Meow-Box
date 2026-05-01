@@ -451,7 +451,7 @@ internal sealed class OsdForm : Form
     {
         return darkTheme
             ? Color.FromArgb(245, 248, 250)
-            : Color.FromArgb(72, 76, 84);
+            : Color.FromArgb(48, 52, 60);
     }
 
     private void ApplyWindowMaterial()

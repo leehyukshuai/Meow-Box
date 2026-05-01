@@ -4,30 +4,136 @@
 
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="AppButtonBackgroundPointerOverColor">#FFF1F3F5</Color>
-            <Color x:Key="AppButtonBorderPointerOverColor">#FFD0D7DE</Color>
+            <Color x:Key="AppBackgroundColor">#FFF7F2E8</Color>
+            <Color x:Key="AppPaneBackgroundColor">#FFFAF6EE</Color>
+            <Color x:Key="AppCardBackgroundColor">#FFFFFCF7</Color>
+            <Color x:Key="AppSubtleBackgroundColor">#FFF1ECE2</Color>
+            <Color x:Key="AppSubtleBackgroundPointerOverColor">#FFEDE5D8</Color>
+            <Color x:Key="AppSubtleBackgroundPressedColor">#FFE4DACB</Color>
+            <Color x:Key="AppStrokeColor">#FFE1D8CA</Color>
+            <Color x:Key="AppStrokePointerOverColor">#FFD1C5B5</Color>
+            <Color x:Key="AppStrokePressedColor">#FFC3B4A2</Color>
+            <Color x:Key="AppDividerColor">#FFE8DFD3</Color>
+            <Color x:Key="AppTextPrimaryColor">#FF22262D</Color>
+            <Color x:Key="AppTextSecondaryColor">#FF606873</Color>
+            <Color x:Key="AppTextDisabledColor">#8A606873</Color>
+            <Color x:Key="AppButtonBackgroundColor">#FFFFFBF4</Color>
+            <Color x:Key="AppButtonBackgroundPointerOverColor">#FFF0E8DB</Color>
+            <Color x:Key="AppButtonBackgroundPressedColor">#FFE6DDCF</Color>
+            <Color x:Key="AppButtonBorderColor">#FFE1D8CA</Color>
+            <Color x:Key="AppButtonBorderPointerOverColor">#FFD1C5B5</Color>
+            <Color x:Key="AppButtonBorderPressedColor">#FFC3B4A2</Color>
+            <Color x:Key="AppButtonForegroundColor">#FF22262D</Color>
             <Color x:Key="DangerButtonBackgroundColor">#FFF8F2F2</Color>
             <Color x:Key="DangerButtonBorderColor">#FFE6C9C9</Color>
             <Color x:Key="DangerButtonForegroundColor">#FF8B3A3A</Color>
             <Color x:Key="ListIconForegroundColor">#FFFFFFFF</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <Color x:Key="AppBackgroundColor">#FF111318</Color>
+            <Color x:Key="AppPaneBackgroundColor">#FF171A20</Color>
+            <Color x:Key="AppCardBackgroundColor">#FF1B1F26</Color>
+            <Color x:Key="AppSubtleBackgroundColor">#FF20252D</Color>
+            <Color x:Key="AppSubtleBackgroundPointerOverColor">#FF2A303A</Color>
+            <Color x:Key="AppSubtleBackgroundPressedColor">#FF242A33</Color>
+            <Color x:Key="AppStrokeColor">#FF323A46</Color>
+            <Color x:Key="AppStrokePointerOverColor">#FF465160</Color>
+            <Color x:Key="AppStrokePressedColor">#FF3C4653</Color>
+            <Color x:Key="AppDividerColor">#FF2B313B</Color>
+            <Color x:Key="AppTextPrimaryColor">#FFF3F6FA</Color>
+            <Color x:Key="AppTextSecondaryColor">#FFC3CAD5</Color>
+            <Color x:Key="AppTextDisabledColor">#66C3CAD5</Color>
+            <Color x:Key="AppButtonBackgroundColor">#FF20252D</Color>
             <Color x:Key="AppButtonBackgroundPointerOverColor">#1AFFFFFF</Color>
+            <Color x:Key="AppButtonBackgroundPressedColor">#12FFFFFF</Color>
+            <Color x:Key="AppButtonBorderColor">#FF323A46</Color>
             <Color x:Key="AppButtonBorderPointerOverColor">#33FFFFFF</Color>
+            <Color x:Key="AppButtonBorderPressedColor">#29FFFFFF</Color>
+            <Color x:Key="AppButtonForegroundColor">#FFF3F6FA</Color>
             <Color x:Key="DangerButtonBackgroundColor">#14FFB3B3</Color>
             <Color x:Key="DangerButtonBorderColor">#33FFB3B3</Color>
             <Color x:Key="DangerButtonForegroundColor">#FFFFC1C1</Color>
             <Color x:Key="ListIconForegroundColor">#FFFFFFFF</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Default">
+            <Color x:Key="AppBackgroundColor">#FF111318</Color>
+            <Color x:Key="AppPaneBackgroundColor">#FF171A20</Color>
+            <Color x:Key="AppCardBackgroundColor">#FF1B1F26</Color>
+            <Color x:Key="AppSubtleBackgroundColor">#FF20252D</Color>
+            <Color x:Key="AppSubtleBackgroundPointerOverColor">#FF2A303A</Color>
+            <Color x:Key="AppSubtleBackgroundPressedColor">#FF242A33</Color>
+            <Color x:Key="AppStrokeColor">#FF323A46</Color>
+            <Color x:Key="AppStrokePointerOverColor">#FF465160</Color>
+            <Color x:Key="AppStrokePressedColor">#FF3C4653</Color>
+            <Color x:Key="AppDividerColor">#FF2B313B</Color>
+            <Color x:Key="AppTextPrimaryColor">#FFF3F6FA</Color>
+            <Color x:Key="AppTextSecondaryColor">#FFC3CAD5</Color>
+            <Color x:Key="AppTextDisabledColor">#66C3CAD5</Color>
+            <Color x:Key="AppButtonBackgroundColor">#FF20252D</Color>
             <Color x:Key="AppButtonBackgroundPointerOverColor">#1AFFFFFF</Color>
+            <Color x:Key="AppButtonBackgroundPressedColor">#12FFFFFF</Color>
+            <Color x:Key="AppButtonBorderColor">#FF323A46</Color>
             <Color x:Key="AppButtonBorderPointerOverColor">#33FFFFFF</Color>
+            <Color x:Key="AppButtonBorderPressedColor">#29FFFFFF</Color>
+            <Color x:Key="AppButtonForegroundColor">#FFF3F6FA</Color>
             <Color x:Key="DangerButtonBackgroundColor">#14FFB3B3</Color>
             <Color x:Key="DangerButtonBorderColor">#33FFB3B3</Color>
             <Color x:Key="DangerButtonForegroundColor">#FFFFC1C1</Color>
             <Color x:Key="ListIconForegroundColor">#FFFFFFFF</Color>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
+
+    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="{ThemeResource AppBackgroundColor}" />
+    <SolidColorBrush x:Key="LayerFillColorDefaultBrush" Color="{ThemeResource AppBackgroundColor}" />
+    <SolidColorBrush x:Key="LayerFillColorAltBrush" Color="{ThemeResource AppSubtleBackgroundColor}" />
+    <SolidColorBrush x:Key="CardBackgroundFillColorDefaultBrush" Color="{ThemeResource AppCardBackgroundColor}" />
+    <SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Color="{ThemeResource AppStrokeColor}" />
+    <SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Color="{ThemeResource AppDividerColor}" />
+    <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="{ThemeResource AppTextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="{ThemeResource AppTextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextFillColorDisabledBrush" Color="{ThemeResource AppTextDisabledColor}" />
+    <SolidColorBrush x:Key="SubtleFillColorSecondaryBrush" Color="{ThemeResource AppSubtleBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="SubtleFillColorTertiaryBrush" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="{ThemeResource AppButtonBackgroundColor}" />
+    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="{ThemeResource AppButtonBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Color="{ThemeResource AppButtonBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="ControlFillColorInputActiveBrush" Color="{ThemeResource AppCardBackgroundColor}" />
+    <SolidColorBrush x:Key="ControlFillColorDisabledBrush" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="{ThemeResource AppStrokeColor}" />
+    <SolidColorBrush x:Key="ControlElevationBorderBrush" Color="{ThemeResource AppStrokeColor}" />
+    <SolidColorBrush x:Key="TextControlBackground" Color="{ThemeResource AppButtonBackgroundColor}" />
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{ThemeResource AppButtonBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{ThemeResource AppCardBackgroundColor}" />
+    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="ComboBoxBackground" Color="{ThemeResource AppButtonBackgroundColor}" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{ThemeResource AppButtonBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{ThemeResource AppButtonBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="{ThemeResource AppButtonBackgroundColor}" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="{ThemeResource AppButtonBackgroundColor}" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="{ThemeResource AppStrokeColor}" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="{ThemeResource AppStrokePointerOverColor}" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="{ThemeResource AppStrokePressedColor}" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="{ThemeResource AppStrokeColor}" />
+    <SolidColorBrush x:Key="ComboBoxForeground" Color="{ThemeResource AppTextPrimaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="{ThemeResource AppTextPrimaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="{ThemeResource AppTextPrimaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="{ThemeResource AppTextPrimaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxForegroundFocusedPressed" Color="{ThemeResource AppTextPrimaryColor}" />
+    <StaticResource x:Key="ComboBoxForegroundDisabled" ResourceKey="TextFillColorDisabledBrush" />
+    <SolidColorBrush x:Key="ContentDialogBackground" Color="{ThemeResource AppCardBackgroundColor}" />
+    <SolidColorBrush x:Key="ContentDialogBackgroundThemeBrush" Color="{ThemeResource AppCardBackgroundColor}" />
+    <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="{ThemeResource AppSubtleBackgroundColor}" />
+    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource AppBackgroundColor}" />
+    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{ThemeResource AppPaneBackgroundColor}" />
+    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="{ThemeResource AppPaneBackgroundColor}" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="{ThemeResource AppSubtleBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="{ThemeResource AppSubtleBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="NavigationViewButtonBackgroundPointerOver" Color="{ThemeResource AppSubtleBackgroundPointerOverColor}" />
+    <SolidColorBrush x:Key="NavigationViewButtonBackgroundPressed" Color="{ThemeResource AppSubtleBackgroundPressedColor}" />
+    <SolidColorBrush x:Key="NavigationViewButtonForegroundPointerOver" Color="{ThemeResource AppTextPrimaryColor}" />
 
     <SolidColorBrush x:Key="ShellAccentSoftBrush" Color="#1F4CC473" />
     <SolidColorBrush x:Key="ShellInfoSoftBrush" Color="#1F4A90E2" />
@@ -42,17 +148,17 @@
     <SolidColorBrush x:Key="ActionPickerSelectedBorderPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.42" />
     <SolidColorBrush x:Key="ActionPickerPressedOverlayBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.12" />
 
-    <StaticResource x:Key="ButtonBackground" ResourceKey="LayerFillColorAltBrush" />
+    <SolidColorBrush x:Key="ButtonBackground" Color="{ThemeResource AppButtonBackgroundColor}" />
     <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource AppButtonBackgroundPointerOverColor}" />
-    <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="AccentFillColorDefaultBrush" />
+    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource AppButtonBackgroundPressedColor}" />
     <StaticResource x:Key="ButtonBackgroundDisabled" ResourceKey="ControlFillColorDisabledBrush" />
-    <StaticResource x:Key="ButtonBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="{ThemeResource AppButtonBorderColor}" />
     <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="{ThemeResource AppButtonBorderPointerOverColor}" />
-    <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="AccentFillColorDefaultBrush" />
+    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="{ThemeResource AppButtonBorderPressedColor}" />
     <StaticResource x:Key="ButtonBorderBrushDisabled" ResourceKey="ControlStrokeColorDefaultBrush" />
-    <StaticResource x:Key="ButtonForeground" ResourceKey="TextFillColorPrimaryBrush" />
-    <StaticResource x:Key="ButtonForegroundPointerOver" ResourceKey="TextFillColorPrimaryBrush" />
-    <StaticResource x:Key="ButtonForegroundPressed" ResourceKey="TextOnAccentFillColorPrimaryBrush" />
+    <SolidColorBrush x:Key="ButtonForeground" Color="{ThemeResource AppButtonForegroundColor}" />
+    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource AppButtonForegroundColor}" />
+    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="{ThemeResource AppButtonForegroundColor}" />
     <StaticResource x:Key="ButtonForegroundDisabled" ResourceKey="TextFillColorDisabledBrush" />
 
     <StaticResource x:Key="GridViewItemBackgroundPointerOver" ResourceKey="SubtleFillColorSecondaryBrush" />
@@ -191,16 +297,16 @@
     </Style>
 
     <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentTextButtonStyle}">
-        <Setter Property="Background" Value="{ThemeResource LayerFillColorAltBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ButtonBackground}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ButtonBorderBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource ButtonForeground}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="SubtleButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentTextButtonStyle}">
-        <Setter Property="Background" Value="{ThemeResource LayerFillColorAltBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource ButtonBackground}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ButtonBorderBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource ButtonForeground}" />
     </Style>
 
     <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentTextButtonStyle}">

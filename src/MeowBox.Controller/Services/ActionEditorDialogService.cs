@@ -14,6 +14,7 @@ public static class ActionEditorDialogService
     {
         var dialog = new ActionPickerDialog(currentActionType)
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = xamlRoot
         };
 
@@ -26,6 +27,7 @@ public static class ActionEditorDialogService
     {
         var dialog = new AppPickerDialog(apps)
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = xamlRoot
         };
 
@@ -64,6 +66,7 @@ public static class ActionEditorDialogService
     {
         var dialog = new ContentDialog
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = xamlRoot,
             Title = title,
             Content = message,

@@ -166,6 +166,7 @@ public sealed partial class SettingsPage : Page
     {
         var dialog = new ContentDialog
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = Content.XamlRoot,
             Title = ResourceStringService.GetString("Settings.Messages.RestoreDefaults.Title", "Restore defaults?"),
             Content = ResourceStringService.GetString("Settings.Messages.RestoreDefaults.Body", "This will replace the current configuration with the default settings."),
@@ -210,6 +211,7 @@ public sealed partial class SettingsPage : Page
     {
         var dialog = new ContentDialog
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
@@ -223,6 +225,7 @@ public sealed partial class SettingsPage : Page
     {
         var dialog = new ContentDialog
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = Content.XamlRoot,
             Title = ResourceStringService.GetString("Settings.Messages.LanguageRestart.Title", "Restart required"),
             Content = ResourceStringService.GetString("Settings.Messages.LanguageRestart.Body", "Language changes will apply after restarting Meow Box."),

@@ -22,10 +22,6 @@ public sealed partial class TouchpadPage : Page
     private const double DeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
     private const double RedPressureThreshold = 800d;
     private const double PreviewStrokeThickness = 1.15d;
-    private static readonly SolidColorBrush TouchpadOverlayFillBrush = new(ColorHelper.FromArgb(255, 46, 54, 66));
-    private static readonly SolidColorBrush TouchpadOverlayStrokeBrush = new(ColorHelper.FromArgb(255, 88, 98, 116));
-    private static readonly SolidColorBrush TouchpadPadFillBrush = new(ColorHelper.FromArgb(255, 34, 39, 48));
-    private static readonly SolidColorBrush TouchpadGridBrush = new(ColorHelper.FromArgb(255, 54, 61, 74));
     private double _displayPressure;
     private DateTimeOffset _lastDisplayPressureAt;
     private double _pressureDescriptionValue;
@@ -53,6 +49,7 @@ public sealed partial class TouchpadPage : Page
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
+        App.ThemeService.ResolvedThemeChanged += OnResolvedThemeChanged;
         SubscribeTouchpadState();
         SubscribeTouchpadActionEditors();
         SyncTouchpadPreferenceControls();
@@ -62,10 +59,16 @@ public sealed partial class TouchpadPage : Page
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         Controller.PropertyChanged -= OnControllerPropertyChanged;
+        App.ThemeService.ResolvedThemeChanged -= OnResolvedThemeChanged;
         UnsubscribeTouchpadState();
         UnsubscribeTouchpadActionEditors();
         _pressSensitivityApplyCts?.Cancel();
         _feedbackApplyCts?.Cancel();
+    }
+
+    private void OnResolvedThemeChanged(object? sender, ElementTheme e)
+    {
+        RequestRender();
     }
 
     private void SubscribeTouchpadState()
@@ -570,32 +573,33 @@ public sealed partial class TouchpadPage : Page
         TouchpadCanvas.Width = preview.PadWidth;
         TouchpadCanvas.Height = preview.PadHeight;
 
+        var palette = GetTouchpadPalette();
         var displayPressure = GetDisplayedPressure(state);
         UpdatePressureDescriptionText(GetPressureDescriptionValue(state));
 
         var padShape = new ShapePath
         {
             Data = preview.CreatePadClipGeometry(),
-            Fill = TouchpadPadFillBrush
+            Fill = CreateBrush(palette.PadFill)
         };
         TouchpadCanvas.Children.Add(padShape);
 
-        AddEdgeSlideOverlays(preview);
-        AddCornerOverlays(preview);
+        AddEdgeSlideOverlays(preview, palette);
+        AddCornerOverlays(preview, palette);
 
         var padOutline = new ShapePath
         {
             Data = preview.CreatePadClipGeometry(),
-            Stroke = TouchpadOverlayStrokeBrush,
+            Stroke = CreateBrush(palette.OverlayStroke),
             StrokeThickness = PreviewStrokeThickness
         };
         TouchpadCanvas.Children.Add(padOutline);
 
-        AddGridLines(preview);
-        AddContacts(displayPressure, preview);
+        AddGridLines(preview, palette);
+        AddContacts(displayPressure, preview, palette);
     }
 
-    private void AddCornerOverlays(TouchpadPreviewCoordinateSpace preview)
+    private void AddCornerOverlays(TouchpadPreviewCoordinateSpace preview, TouchpadVisualizerPalette palette)
     {
         var regions = new[]
         {
@@ -609,14 +613,14 @@ public sealed partial class TouchpadPage : Page
             var overlay = new ShapePath
             {
                 Data = overlayInfo.Geometry,
-                Fill = TouchpadOverlayFillBrush
+                Fill = CreateBrush(palette.OverlayFill)
             };
             TouchpadCanvas.Children.Add(overlay);
 
             var stroke = new ShapePath
             {
                 Data = overlayInfo.StrokeGeometry,
-                Stroke = TouchpadOverlayStrokeBrush,
+                Stroke = CreateBrush(palette.OverlayStroke),
                 StrokeThickness = PreviewStrokeThickness
             };
             TouchpadCanvas.Children.Add(stroke);
@@ -624,7 +628,7 @@ public sealed partial class TouchpadPage : Page
             var label = new TextBlock
             {
                 Text = region.Label,
-                Foreground = new SolidColorBrush(ColorHelper.FromArgb(168, 255, 255, 255)),
+                Foreground = CreateBrush(palette.OverlayLabel),
                 FontSize = 11,
                 FontWeight = FontWeights.SemiBold
             };
@@ -636,22 +640,22 @@ public sealed partial class TouchpadPage : Page
         }
     }
 
-    private void AddEdgeSlideOverlays(TouchpadPreviewCoordinateSpace preview)
+    private void AddEdgeSlideOverlays(TouchpadPreviewCoordinateSpace preview, TouchpadVisualizerPalette palette)
     {
         var leftOverlay = preview.DescribeEdge(
             leftSide: true,
             Controller.Touchpad.LeftTopCorner.RegionId,
             Controller.Touchpad.LeftTopCorner.Bounds);
-        AddEdgeOverlay(leftOverlay, "L");
+        AddEdgeOverlay(leftOverlay, "L", palette);
 
         var rightOverlay = preview.DescribeEdge(
             leftSide: false,
             Controller.Touchpad.RightTopCorner.RegionId,
             Controller.Touchpad.RightTopCorner.Bounds);
-        AddEdgeOverlay(rightOverlay, "R");
+        AddEdgeOverlay(rightOverlay, "R", palette);
     }
 
-    private void AddEdgeOverlay(TouchpadPreviewEdgeOverlay overlay, string labelText)
+    private void AddEdgeOverlay(TouchpadPreviewEdgeOverlay overlay, string labelText, TouchpadVisualizerPalette palette)
     {
         if (overlay.Height <= 1d || overlay.Width <= 1d)
         {
@@ -661,14 +665,14 @@ public sealed partial class TouchpadPage : Page
         var shape = new ShapePath
         {
             Data = overlay.Geometry,
-            Fill = TouchpadOverlayFillBrush
+            Fill = CreateBrush(palette.OverlayFill)
         };
         TouchpadCanvas.Children.Add(shape);
 
         var stroke = new ShapePath
         {
             Data = overlay.StrokeGeometry,
-            Stroke = TouchpadOverlayStrokeBrush,
+            Stroke = CreateBrush(palette.OverlayStroke),
             StrokeThickness = PreviewStrokeThickness
         };
         TouchpadCanvas.Children.Add(stroke);
@@ -676,7 +680,7 @@ public sealed partial class TouchpadPage : Page
         var label = new TextBlock
         {
             Text = labelText,
-            Foreground = new SolidColorBrush(ColorHelper.FromArgb(168, 255, 255, 255)),
+            Foreground = CreateBrush(palette.OverlayLabel),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold
         };
@@ -686,7 +690,7 @@ public sealed partial class TouchpadPage : Page
         Canvas.SetTop(label, overlay.LabelCenter.Y - (label.DesiredSize.Height / 2));
     }
 
-    private void AddGridLines(TouchpadPreviewCoordinateSpace preview)
+    private void AddGridLines(TouchpadPreviewCoordinateSpace preview, TouchpadVisualizerPalette palette)
     {
         var horizontalInset = Math.Max(14d, preview.EdgeOverlayWidth + 10d);
         for (var index = 1; index < 4; index++)
@@ -697,7 +701,7 @@ public sealed partial class TouchpadPage : Page
                 Y1 = preview.PadTop + 14,
                 X2 = preview.PadLeft + (preview.PadWidth * index / 4d),
                 Y2 = preview.PadTop + preview.PadHeight - 14,
-                Stroke = TouchpadGridBrush,
+                Stroke = CreateBrush(palette.Grid),
                 StrokeThickness = 1
             };
             TouchpadCanvas.Children.Add(vertical);
@@ -708,17 +712,17 @@ public sealed partial class TouchpadPage : Page
                 Y1 = preview.PadTop + (preview.PadHeight * index / 4d),
                 X2 = preview.PadLeft + preview.PadWidth - horizontalInset,
                 Y2 = preview.PadTop + (preview.PadHeight * index / 4d),
-                Stroke = TouchpadGridBrush,
+                Stroke = CreateBrush(palette.Grid),
                 StrokeThickness = 1
             };
             TouchpadCanvas.Children.Add(horizontal);
         }
     }
 
-    private void AddContacts(double displayPressure, TouchpadPreviewCoordinateSpace preview)
+    private void AddContacts(double displayPressure, TouchpadPreviewCoordinateSpace preview, TouchpadVisualizerPalette palette)
     {
         var showHalo = displayPressure >= Controller.Touchpad.LightPressThreshold;
-        var color = GetPressureColor(displayPressure);
+        var color = GetPressureColor(displayPressure, palette);
         foreach (var contact in VisibleContacts)
         {
             var point = preview.MapContact(contact.X, contact.Y);
@@ -731,7 +735,7 @@ public sealed partial class TouchpadPage : Page
                 {
                     Width = radius * 2 + 14,
                     Height = radius * 2 + 14,
-                    Fill = new SolidColorBrush(ColorHelper.FromArgb(52, color.R, color.G, color.B))
+                    Fill = CreateBrush(ColorHelper.FromArgb(palette.ContactHaloAlpha, color.R, color.G, color.B))
                 };
                 TouchpadCanvas.Children.Add(halo);
                 Canvas.SetLeft(halo, point.X - (halo.Width / 2));
@@ -742,8 +746,8 @@ public sealed partial class TouchpadPage : Page
             {
                 Width = radius * 2,
                 Height = radius * 2,
-                Fill = new SolidColorBrush(contact.Tip ? color : ColorHelper.FromArgb(255, 132, 140, 156)),
-                Stroke = new SolidColorBrush(Colors.White),
+                Fill = CreateBrush(contact.Tip ? color : palette.ContactInactive),
+                Stroke = CreateBrush(palette.ContactStroke),
                 StrokeThickness = 1.5
             };
             TouchpadCanvas.Children.Add(circle);
@@ -753,7 +757,7 @@ public sealed partial class TouchpadPage : Page
             var label = new TextBlock
             {
                 Text = contact.Label,
-                Foreground = new SolidColorBrush(Colors.White),
+                Foreground = CreateBrush(palette.ContactLabel),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 11
             };
@@ -828,42 +832,71 @@ public sealed partial class TouchpadPage : Page
         return _pressureDescriptionValue;
     }
 
-    private Windows.UI.Color GetPressureColor(double pressure)
+    private Windows.UI.Color GetPressureColor(double pressure, TouchpadVisualizerPalette palette)
     {
         pressure = Math.Clamp(pressure, 0d, PressureScaleMax);
         var lightPressThreshold = Math.Clamp(Controller.Touchpad.LightPressThreshold, 20, RuntimeDefaults.DefaultTouchpadDeepPressThreshold - 1);
-        var gray = ColorHelper.FromArgb(255, 132, 140, 156);
-        var blue = ColorHelper.FromArgb(255, 79, 170, 255);
-        var orange = ColorHelper.FromArgb(255, 255, 156, 84);
-        var red = ColorHelper.FromArgb(255, 255, 96, 96);
 
         if (pressure <= 0d)
         {
-            return gray;
+            return palette.ContactInactive;
         }
 
         if (pressure <= lightPressThreshold)
         {
-            return LerpColor(gray, blue, pressure / lightPressThreshold);
+            return LerpColor(palette.ContactInactive, palette.PressureLight, pressure / lightPressThreshold);
         }
 
         if (pressure <= DeepPressThreshold)
         {
             return LerpColor(
-                blue,
-                orange,
+                palette.PressureLight,
+                palette.PressureMedium,
                 (pressure - lightPressThreshold) / (DeepPressThreshold - lightPressThreshold));
         }
 
         if (pressure <= RedPressureThreshold)
         {
             return LerpColor(
-                orange,
-                red,
+                palette.PressureMedium,
+                palette.PressureHigh,
                 (pressure - DeepPressThreshold) / (RedPressureThreshold - DeepPressThreshold));
         }
 
-        return red;
+        return palette.PressureHigh;
+    }
+
+    private static SolidColorBrush CreateBrush(Windows.UI.Color color) => new(color);
+
+    private static TouchpadVisualizerPalette GetTouchpadPalette()
+    {
+        return App.ThemeService.GetResolvedTheme() == ElementTheme.Light
+            ? new TouchpadVisualizerPalette(
+                PadFill: ColorHelper.FromArgb(255, 232, 224, 211),
+                OverlayFill: ColorHelper.FromArgb(255, 215, 202, 185),
+                OverlayStroke: ColorHelper.FromArgb(255, 178, 162, 143),
+                Grid: ColorHelper.FromArgb(255, 199, 185, 168),
+                OverlayLabel: ColorHelper.FromArgb(220, 74, 67, 58),
+                ContactInactive: ColorHelper.FromArgb(255, 118, 128, 142),
+                ContactStroke: ColorHelper.FromArgb(255, 255, 252, 247),
+                ContactLabel: Colors.White,
+                PressureLight: ColorHelper.FromArgb(255, 38, 125, 196),
+                PressureMedium: ColorHelper.FromArgb(255, 195, 103, 34),
+                PressureHigh: ColorHelper.FromArgb(255, 210, 64, 64),
+                ContactHaloAlpha: 42)
+            : new TouchpadVisualizerPalette(
+                PadFill: ColorHelper.FromArgb(255, 34, 39, 48),
+                OverlayFill: ColorHelper.FromArgb(255, 46, 54, 66),
+                OverlayStroke: ColorHelper.FromArgb(255, 88, 98, 116),
+                Grid: ColorHelper.FromArgb(255, 54, 61, 74),
+                OverlayLabel: ColorHelper.FromArgb(168, 255, 255, 255),
+                ContactInactive: ColorHelper.FromArgb(255, 132, 140, 156),
+                ContactStroke: Colors.White,
+                ContactLabel: Colors.White,
+                PressureLight: ColorHelper.FromArgb(255, 79, 170, 255),
+                PressureMedium: ColorHelper.FromArgb(255, 255, 156, 84),
+                PressureHigh: ColorHelper.FromArgb(255, 255, 96, 96),
+                ContactHaloAlpha: 52);
     }
 
     private void UpdatePressureDescriptionText(double pressure)
@@ -943,4 +976,18 @@ public sealed partial class TouchpadPage : Page
         public double Pressure { get; set; } = pressure;
         public DateTimeOffset UpdatedAt { get; set; } = updatedAt;
     }
+
+    private readonly record struct TouchpadVisualizerPalette(
+        Windows.UI.Color PadFill,
+        Windows.UI.Color OverlayFill,
+        Windows.UI.Color OverlayStroke,
+        Windows.UI.Color Grid,
+        Windows.UI.Color OverlayLabel,
+        Windows.UI.Color ContactInactive,
+        Windows.UI.Color ContactStroke,
+        Windows.UI.Color ContactLabel,
+        Windows.UI.Color PressureLight,
+        Windows.UI.Color PressureMedium,
+        Windows.UI.Color PressureHigh,
+        byte ContactHaloAlpha);
 }

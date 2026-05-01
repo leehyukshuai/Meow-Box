@@ -691,6 +691,7 @@ public sealed partial class BatteryPage : Page
 
         var dialog = new ContentDialog
         {
+            RequestedTheme = App.ThemeService.GetResolvedTheme(),
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
