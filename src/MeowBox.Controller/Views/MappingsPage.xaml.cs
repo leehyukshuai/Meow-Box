@@ -11,6 +11,11 @@ namespace MeowBox.Controller.Views;
 
 public sealed partial class MappingsPage : Page
 {
+    private const string PeekCatLightFill = "#807267";
+    private const string PeekCatDarkFill = "#CBD4E0";
+    private const double PeekCatLightOpacity = 0.18;
+    private const double PeekCatDarkOpacity = 0.30;
+
     private ActionDefinitionViewModel? _subscribedAction;
 
     public MeowBoxController Controller => App.Controller;
@@ -27,7 +32,9 @@ public sealed partial class MappingsPage : Page
     {
         Controller.PropertyChanged += OnControllerPropertyChanged;
         Controller.MappingItems.CollectionChanged += OnMappingItemsCollectionChanged;
+        App.ThemeService.ResolvedThemeChanged += OnResolvedThemeChanged;
         SubscribeToSelectedMappingAction();
+        UpdatePeekCatArtSource();
         UpdateEmptyStates();
     }
 
@@ -35,7 +42,13 @@ public sealed partial class MappingsPage : Page
     {
         Controller.PropertyChanged -= OnControllerPropertyChanged;
         Controller.MappingItems.CollectionChanged -= OnMappingItemsCollectionChanged;
+        App.ThemeService.ResolvedThemeChanged -= OnResolvedThemeChanged;
         UnsubscribeFromSelectedMappingAction();
+    }
+
+    private void OnResolvedThemeChanged(object? sender, ElementTheme e)
+    {
+        UpdatePeekCatArtSource();
     }
 
     private void SubscribeToSelectedMappingAction()
@@ -193,5 +206,23 @@ public sealed partial class MappingsPage : Page
         MappingsEmptyStatePanel.Visibility = hasMappings ? Visibility.Collapsed : Visibility.Visible;
         MappingDetailsContentPanel.Visibility = hasSelection ? Visibility.Visible : Visibility.Collapsed;
         MappingDetailsEmptyStatePanel.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private async void UpdatePeekCatArtSource()
+    {
+        var theme = App.ThemeService.GetResolvedTheme();
+        var fill = theme == ElementTheme.Light
+            ? PeekCatLightFill
+            : PeekCatDarkFill;
+
+        MappingsPeekCatCanvas.Opacity = theme == ElementTheme.Light
+            ? PeekCatLightOpacity
+            : PeekCatDarkOpacity;
+
+        var source = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-peek.svg", fill);
+        if (App.ThemeService.GetResolvedTheme() == theme)
+        {
+            MappingsPeekCatImage.Source = source;
+        }
     }
 }

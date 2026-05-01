@@ -15,6 +15,11 @@ namespace MeowBox.Controller.Views;
 
 public sealed partial class BatteryPage : Page
 {
+    private const string PerformanceCatLightFill = "#4F463E";
+    private const string PerformanceCatDarkFill = "#D8E0EA";
+    private const double PerformanceCatLightOpacity = 0.24;
+    private const double PerformanceCatDarkOpacity = 0.42;
+
     private bool _isLoading;
     private bool _isActive;
     private bool _isChargeLimitPointerInteraction;
@@ -40,7 +45,9 @@ public sealed partial class BatteryPage : Page
         _pageLifetimeCts?.Dispose();
         _pageLifetimeCts = new CancellationTokenSource();
         Controller.PropertyChanged += OnControllerPropertyChanged;
+        ActualThemeChanged += OnActualThemeChanged;
         ApplyStaticLabels();
+        UpdatePerformanceCatArtSources();
         SyncState();
         _ = InitializeBatteryControlsAsync(_pageLifetimeCts.Token);
         DispatcherQueue.TryEnqueue(UpdateChargeLimitTickLabelsLayout);
@@ -50,6 +57,7 @@ public sealed partial class BatteryPage : Page
     {
         _isActive = false;
         Controller.PropertyChanged -= OnControllerPropertyChanged;
+        ActualThemeChanged -= OnActualThemeChanged;
         _pageLifetimeCts?.Cancel();
         _pageLifetimeCts?.Dispose();
         _pageLifetimeCts = null;
@@ -75,6 +83,11 @@ public sealed partial class BatteryPage : Page
                 DispatcherQueue.TryEnqueue(SyncState);
             }
         }
+    }
+
+    private void OnActualThemeChanged(FrameworkElement sender, object args)
+    {
+        UpdatePerformanceCatArtSources();
     }
 
     private void ApplyStaticLabels()
@@ -337,6 +350,7 @@ public sealed partial class BatteryPage : Page
             ApplyPerformanceModeButtonSelectionState(PerformanceSmartButton, selected: false);
             ApplyPerformanceModeButtonSelectionState(PerformanceExtremeButton, selected: false);
             PerformanceModeDescriptionTextBlock.Text = ResourceStringService.GetString("PerformanceModeDisabledByBatterySaver.Message", string.Empty);
+            SetPerformanceCatArt(null);
             return;
         }
 
@@ -359,6 +373,59 @@ public sealed partial class BatteryPage : Page
         };
 
         PerformanceModeDescriptionTextBlock.Text = ResourceStringService.GetString(messageKey, string.Empty);
+        SetPerformanceCatArt(normalized);
+    }
+
+    private void SetPerformanceCatArt(string? normalizedModeKey)
+    {
+        PerformanceSilentCatCanvas.Visibility = Visibility.Collapsed;
+        PerformanceSmartCatCanvas.Visibility = Visibility.Collapsed;
+        PerformanceExtremeCatCanvas.Visibility = Visibility.Collapsed;
+
+        if (string.Equals(normalizedModeKey, BatteryControlCatalog.Silent, StringComparison.OrdinalIgnoreCase))
+        {
+            PerformanceSilentCatCanvas.Visibility = Visibility.Visible;
+            return;
+        }
+
+        if (string.Equals(normalizedModeKey, BatteryControlCatalog.Extreme, StringComparison.OrdinalIgnoreCase))
+        {
+            PerformanceExtremeCatCanvas.Visibility = Visibility.Visible;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(normalizedModeKey))
+        {
+            PerformanceSmartCatCanvas.Visibility = Visibility.Visible;
+        }
+    }
+
+    private async void UpdatePerformanceCatArtSources()
+    {
+        var theme = ActualTheme;
+        var fillColor = theme == ElementTheme.Light
+            ? PerformanceCatLightFill
+            : PerformanceCatDarkFill;
+        var opacity = theme == ElementTheme.Light
+            ? PerformanceCatLightOpacity
+            : PerformanceCatDarkOpacity;
+
+        PerformanceSilentCatCanvas.Opacity = opacity;
+        PerformanceSmartCatCanvas.Opacity = opacity;
+        PerformanceExtremeCatCanvas.Opacity = opacity;
+
+        var silentSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-sleep.svg", fillColor);
+        var smartSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-walk.svg", fillColor);
+        var extremeSource = await SvgAssetTintService.CreateTintedImageSourceAsync("cat-run.svg", fillColor);
+
+        if (!_isActive || ActualTheme != theme)
+        {
+            return;
+        }
+
+        PerformanceSilentCatImage.Source = silentSource;
+        PerformanceSmartCatImage.Source = smartSource;
+        PerformanceExtremeCatImage.Source = extremeSource;
     }
 
     private void SetSelectedChargeLimit(int percent)
