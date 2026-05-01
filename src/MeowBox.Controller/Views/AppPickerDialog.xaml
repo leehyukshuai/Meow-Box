@@ -24,24 +24,29 @@
         <ListView
             x:Name="AppsListView"
             Height="400"
-            ItemContainerStyle="{StaticResource AppPickerListItemStyle}"
             Style="{StaticResource ListHostStyle}"
             SelectionMode="Single"
             SelectionChanged="OnSelectionChanged">
-            <ListView.Resources>
-                <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="{ThemeResource SystemAccentColor}" Opacity="0.11" />
-                <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="{ThemeResource SystemAccentColor}" Opacity="0.14" />
-                <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="{ThemeResource SystemAccentColor}" Opacity="0.17" />
-                <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.34" />
-                <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPointerOverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.42" />
-                <SolidColorBrush x:Key="ListViewItemSelectionIndicatorPressedBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.5" />
-            </ListView.Resources>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Spacing="4">
-                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Name}" />
-                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding AppId}" TextWrapping="WrapWholeWords" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.RowSpan="2" Width="32" Height="32" Margin="6" VerticalAlignment="Center">
+                            <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}" />
+                            <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="13" Foreground="{StaticResource ListIconForegroundBrush}" Glyph="&#xECAA;" />
+                        </Grid>
+
+                        <TextBlock Grid.Column="1" Margin="12,6,0,0" Style="{ThemeResource BaseTextBlockStyle}" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Margin="12,0,0,6" Style="{ThemeResource BodyTextBlockStyle}" Text="{Binding AppId}" TextTrimming="CharacterEllipsis" />
+                    </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

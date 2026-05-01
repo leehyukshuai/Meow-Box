@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MeowBox.Core.Services;
 
@@ -13,6 +14,7 @@ public sealed partial class AppPickerDialog : ContentDialog
         _allApps = apps;
         InitializeComponent();
         PrimaryButtonClick += OnPrimaryButtonClick;
+        Opened += OnOpened;
         IsPrimaryButtonEnabled = false;
 
         FilteredApps = new ObservableCollection<InstalledAppEntry>(_allApps);
@@ -26,6 +28,11 @@ public sealed partial class AppPickerDialog : ContentDialog
     public ObservableCollection<InstalledAppEntry> FilteredApps { get; }
 
     public InstalledAppEntry? SelectedApp => AppsListView.SelectedItem as InstalledAppEntry;
+
+    private void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
+    {
+        ApplyDialogButtonStyles();
+    }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
@@ -48,6 +55,19 @@ public sealed partial class AppPickerDialog : ContentDialog
         if (SelectedApp is null)
         {
             args.Cancel = true;
+        }
+    }
+
+    private void ApplyDialogButtonStyles()
+    {
+        if (Application.Current.Resources["AccentButtonStyle"] is Style accentStyle && GetTemplateChild("PrimaryButton") is Button primaryButton)
+        {
+            primaryButton.Style = accentStyle;
+        }
+
+        if (Application.Current.Resources["SubtleButtonStyle"] is Style subtleStyle && GetTemplateChild("CloseButton") is Button closeButton)
+        {
+            closeButton.Style = subtleStyle;
         }
     }
 }

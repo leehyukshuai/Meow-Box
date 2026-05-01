@@ -393,26 +393,28 @@
                     Style="{StaticResource PanelCardStyle}">
                     <ListView
                         Style="{StaticResource ListHostStyle}"
-                        ItemContainerStyle="{StaticResource ListHostItemStyle}"
                         ItemsSource="{Binding Touchpad.AllActionEditors}"
                         SelectedItem="{Binding Touchpad.SelectedActionEditor, Mode=TwoWay}"
                         SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnSpacing="12">
+                                <Grid Height="56">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
-                                    <Border Width="28" Height="28" Background="{StaticResource ShellInfoSoftBrush}" CornerRadius="6">
-                                        <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="12" Glyph="{Binding ActionIconGlyph}" />
-                                    </Border>
+                                    <Grid Grid.RowSpan="2" Width="32" Height="32" Margin="2,6,4,6" VerticalAlignment="Center">
+                                        <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}" />
+                                        <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="13" Foreground="{StaticResource ListIconForegroundBrush}" Glyph="{Binding ActionIconGlyph}" />
+                                    </Grid>
 
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding Title}" />
-                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{Binding ActionSummary}" TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Margin="12,6,0,0" Style="{ThemeResource BaseTextBlockStyle}" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="12,0,0,6" Style="{ThemeResource BodyTextBlockStyle}" Text="{Binding ActionSummary}" TextTrimming="CharacterEllipsis" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
