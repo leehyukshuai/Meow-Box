@@ -10,7 +10,9 @@ namespace MeowBox.Controller;
 
 public partial class App : Application
 {
+    private const string SingleInstanceKey = "MeowBox.Controller";
     private static bool _pendingWindowActivation;
+    private static AppInstance? _currentInstance;
 
     public static MainWindow? MainWindow { get; private set; }
 
@@ -88,6 +90,11 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        if (!RegisterSingleInstance())
+        {
+            return;
+        }
+
         MainWindow = new MainWindow();
         MainWindow.PresentToFront();
         MainWindow.DispatcherQueue.TryEnqueue(static () =>
@@ -105,5 +112,49 @@ public partial class App : Application
                 App.MainWindow.PresentToFront();
             }
         });
+    }
+
+    private static bool RegisterSingleInstance()
+    {
+        var keyInstance = AppInstance.FindOrRegisterForKey(SingleInstanceKey);
+        if (!keyInstance.IsCurrent)
+        {
+            var activationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
+            _ = RedirectActivationAndExitAsync(keyInstance, activationArguments);
+            return false;
+        }
+
+        if (!ReferenceEquals(_currentInstance, keyInstance))
+        {
+            if (_currentInstance is not null)
+            {
+                _currentInstance.Activated -= OnActivated;
+            }
+
+            _currentInstance = keyInstance;
+            _currentInstance.Activated += OnActivated;
+        }
+
+        return true;
+    }
+
+    private static async Task RedirectActivationAndExitAsync(AppInstance keyInstance, AppActivationArguments? activationArguments)
+    {
+        try
+        {
+            if (activationArguments is not null)
+            {
+                await keyInstance.RedirectActivationToAsync(activationArguments);
+            }
+        }
+        finally
+        {
+            Current.Exit();
+        }
+    }
+
+    private static void OnActivated(object? sender, AppActivationArguments args)
+    {
+        RequestWindowActivation();
     }
 }
