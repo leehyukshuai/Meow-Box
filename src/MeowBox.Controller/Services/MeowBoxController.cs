@@ -1019,7 +1019,8 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
 
     private async Task<bool> WaitForWorkerReadyAsync(bool requireElevated = false)
     {
-        for (var attempt = 0; attempt < 20; attempt++)
+        var sawWorkerProcess = false;
+        for (var attempt = 0; attempt < 40; attempt++)
         {
             var response = await QueryWorkerStatusAsync(150);
 
@@ -1032,13 +1033,22 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
                 }
             }
 
-            if (!await Task.Run(_workerProcessService.IsWorkerProcessRunning))
+            if (await Task.Run(_workerProcessService.IsWorkerProcessRunning))
+            {
+                sawWorkerProcess = true;
+            }
+            else if (sawWorkerProcess || ServiceState != WorkerServiceState.Starting)
             {
                 MarkWorkerState(WorkerServiceState.Stopped);
                 return false;
             }
 
             await Task.Delay(80);
+        }
+
+        if (!sawWorkerProcess && ServiceState == WorkerServiceState.Starting)
+        {
+            MarkWorkerState(WorkerServiceState.Stopped);
         }
 
         return false;
