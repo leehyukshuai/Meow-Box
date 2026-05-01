@@ -1057,7 +1057,7 @@ internal sealed class WorkerHost : IDisposable
                 PersistPreferredPerformanceSelection(normalizedSelectedModeKey);
             }
 
-            var title = BatteryControlCatalog.GetSelectedPerformanceModeLabel(updatedState.SelectedPerformanceModeKey);
+            var title = BatteryControlCatalog.GetPerformanceModeLabel(updatedState.SelectedPerformanceModeKey);
             var assetKey = BatteryControlCatalog.GetPerformanceModeOsdAssetKey(updatedState.PerformanceModeKey);
             _stateMessage = "Performance mode set to " + title + ".";
 
