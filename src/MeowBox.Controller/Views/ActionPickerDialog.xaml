@@ -52,7 +52,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.RowSpan="2" Width="32" Height="32" Margin="6" VerticalAlignment="Center">
-                            <Ellipse Fill="{ThemeResource AccentFillColorDefaultBrush}" />
+                            <Ellipse Fill="{StaticResource ListIconBackgroundBrush}" />
                             <FontIcon HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe Fluent Icons" FontSize="14" Foreground="{StaticResource ListIconForegroundBrush}" Glyph="{Binding IconGlyph}" />
                         </Grid>
 

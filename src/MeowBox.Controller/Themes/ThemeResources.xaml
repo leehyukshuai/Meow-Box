@@ -137,6 +137,7 @@
 
     <SolidColorBrush x:Key="ShellAccentSoftBrush" Color="#1F4CC473" />
     <SolidColorBrush x:Key="ShellInfoSoftBrush" Color="#1F4A90E2" />
+    <SolidColorBrush x:Key="ListIconBackgroundBrush" Color="#FF4D8F73" />
     <SolidColorBrush x:Key="ListIconForegroundBrush" Color="{ThemeResource ListIconForegroundColor}" />
     <SolidColorBrush x:Key="AppPickerSelectedBackgroundBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.17" />
     <SolidColorBrush x:Key="AppPickerSelectedBorderBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.48" />
