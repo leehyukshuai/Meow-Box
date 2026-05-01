@@ -39,7 +39,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private bool _batteryControlSupported;
     private string _batteryControlStatusMessage = ResourceStringService.GetString("Battery.Status.DefaultMessage", "Start the background service to view or change the current power status.");
     private int _switchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.AutoSwitchNeverThreshold;
-    private int _switchToExtremeModeOnAcThresholdPercent = BatteryControlCatalog.AutoSwitchNeverThreshold;
     private string _currentPerformanceModeKey = BatteryControlCatalog.DefaultPerformanceModeKey;
     private string _currentPerformanceSelectionKey = BatteryControlCatalog.DefaultSelectedPerformanceModeKey;
     private bool _applyChargeLimitOnStartup = true;
@@ -231,12 +230,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     {
         get => _switchToBatteryModeOnDcThresholdPercent;
         private set => SetProperty(ref _switchToBatteryModeOnDcThresholdPercent, value);
-    }
-
-    public int SwitchToExtremeModeOnAcThresholdPercent
-    {
-        get => _switchToExtremeModeOnAcThresholdPercent;
-        private set => SetProperty(ref _switchToExtremeModeOnAcThresholdPercent, value);
     }
 
     public int CurrentChargeLimitPercent
@@ -554,14 +547,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent = normalizedPercent;
         SwitchToBatteryModeOnDcThresholdPercent = normalizedPercent;
         SaveConfiguration();
-    }
-
-    public void SetSwitchToExtremeModeOnAcThresholdPercent(int percent)
-    {
-        var normalizedPercent = BatteryControlCatalog.NormalizeExtremeModeOnAcThresholdPercent(percent);
-        _configuration.Preferences.SwitchToExtremeModeOnAcThresholdPercent = normalizedPercent;
-        SwitchToExtremeModeOnAcThresholdPercent = normalizedPercent;
-        SaveConfiguration();
+        _ = ReloadWorkerAsync();
     }
 
     public void SetPerformanceCycleModeIncluded(string modeKey, bool included)
@@ -960,8 +946,6 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             TrayIconEnabled = _configuration.Preferences.ShowTrayIcon;
             SwitchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(
                 _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent);
-            SwitchToExtremeModeOnAcThresholdPercent = BatteryControlCatalog.NormalizeExtremeModeOnAcThresholdPercent(
-                _configuration.Preferences.SwitchToExtremeModeOnAcThresholdPercent);
             ApplyChargeLimitOnStartup = !_configuration.Preferences.ResetChargeLimitToFullOnStartup;
             ReloadPerformanceCycleModeItems();
             Touchpad = new TouchpadConfigurationViewModel(_configuration.Touchpad);
@@ -1292,7 +1276,22 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
 
         CurrentPerformanceSelectionKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(state.SelectedPerformanceModeKey);
-        _configuration.Preferences.PreferredPerformanceModeKey = CurrentPerformanceSelectionKey;
+        if (string.Equals(CurrentPerformanceSelectionKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.Equals(
+                BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(_configuration.Preferences.PreferredPerformanceModeKey),
+                BatteryControlCatalog.Battery,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                _configuration.Preferences.PreferredPerformanceModeKey =
+                    BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(_configuration.Preferences.PerformanceModeCycleKeys);
+            }
+        }
+        else
+        {
+            _configuration.Preferences.PreferredPerformanceModeKey = CurrentPerformanceSelectionKey;
+        }
+
         CurrentChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(state.ChargeLimitPercent);
     }
 

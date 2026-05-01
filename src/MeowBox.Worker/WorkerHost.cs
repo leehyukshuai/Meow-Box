@@ -756,15 +756,23 @@ internal sealed class WorkerHost : IDisposable
         var normalizedSelectedModeKey = BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(state.SelectedPerformanceModeKey);
         var batteryModeOnDcThresholdPercent = BatteryControlCatalog.NormalizeBatteryModeOnDcThresholdPercent(
             _configuration.Preferences.SwitchToBatteryModeOnDcThresholdPercent);
+        var shouldUseBatteryModeOnDc = ShouldAutoSwitchOnBattery(state.BatteryLevelPercent, batteryModeOnDcThresholdPercent);
         var exitBatteryModeOnAcThresholdPercent = BatteryControlCatalog.AutoSwitchAlwaysThreshold;
         var startupCycleModeKey = BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(
             _configuration.Preferences.PerformanceModeCycleKeys);
 
         if (!state.IsAcPowered &&
-            ShouldAutoSwitchOnBattery(state.BatteryLevelPercent, batteryModeOnDcThresholdPercent) &&
+            shouldUseBatteryModeOnDc &&
             !string.Equals(normalizedSelectedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
         {
             return BatteryControlCatalog.Battery;
+        }
+
+        if (!state.IsAcPowered &&
+            !shouldUseBatteryModeOnDc &&
+            string.Equals(normalizedSelectedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase))
+        {
+            return startupCycleModeKey;
         }
 
         if (state.IsAcPowered &&

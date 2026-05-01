@@ -29,8 +29,6 @@ public sealed class AppPreferences
 
     public int SwitchToBatteryModeOnDcThresholdPercent { get; set; } = BatteryControlCatalog.AutoSwitchNeverThreshold;
 
-    public int SwitchToExtremeModeOnAcThresholdPercent { get; set; } = BatteryControlCatalog.AutoSwitchNeverThreshold;
-
     public string PreferredPerformanceModeKey { get; set; } = BatteryControlCatalog.DefaultPerformanceModeKey;
 
     public List<string> PerformanceModeCycleKeys { get; set; } = [.. BatteryControlCatalog.DefaultPerformanceModeCycleOrder];

@@ -85,17 +85,6 @@ public static class BatteryControlCatalog
         AutoSwitchAlwaysThreshold
     ];
 
-    public static IReadOnlyList<int> ExtremeModeOnAcThresholdOrder { get; } =
-    [
-        AutoSwitchNeverThreshold,
-        60,
-        70,
-        80,
-        90,
-        100,
-        AutoSwitchAlwaysThreshold
-    ];
-
     public static string GetPerformanceModeLabel(string modeKey)
     {
         return modeKey.ToLowerInvariant() switch
@@ -250,13 +239,6 @@ public static class BatteryControlCatalog
     public static int NormalizeBatteryModeOnDcThresholdPercent(int percent)
     {
         return BatteryModeOnDcThresholdOrder.Contains(percent)
-            ? percent
-            : AutoSwitchNeverThreshold;
-    }
-
-    public static int NormalizeExtremeModeOnAcThresholdPercent(int percent)
-    {
-        return ExtremeModeOnAcThresholdOrder.Contains(percent)
             ? percent
             : AutoSwitchNeverThreshold;
     }

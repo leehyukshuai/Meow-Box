@@ -14,7 +14,6 @@ public static class SupportedDeviceConfiguration
                 IsListening = true,
                 PreferPriorityStartup = true,
                 SwitchToBatteryModeOnDcThresholdPercent = BatteryControlCatalog.AutoSwitchAlwaysThreshold,
-                SwitchToExtremeModeOnAcThresholdPercent = 100,
                 PreferredPerformanceModeKey = BatteryControlCatalog.Smart,
                 PerformanceModeCycleKeys =
                 [
