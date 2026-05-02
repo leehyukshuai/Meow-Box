@@ -90,6 +90,20 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        if (UnelevatedProcessLauncher.IsCurrentProcessElevated())
+        {
+            var executablePath = Environment.ProcessPath;
+            if (!string.IsNullOrWhiteSpace(executablePath) &&
+                UnelevatedProcessLauncher.TryStart(
+                    executablePath,
+                    Path.GetDirectoryName(executablePath) ?? AppContext.BaseDirectory,
+                    out _))
+            {
+                Environment.Exit(0);
+                return;
+            }
+        }
+
         if (!RegisterSingleInstance())
         {
             return;

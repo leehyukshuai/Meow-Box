@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using MeowBox.Core.Contracts;
 using MeowBox.Core.Models;
@@ -1033,7 +1032,7 @@ internal sealed class WorkerHost : IDisposable
         return new WorkerStatus
         {
             IsRunning = true,
-            IsElevated = IsCurrentProcessElevated(),
+            IsElevated = UnelevatedProcessLauncher.IsCurrentProcessElevated(),
             IsListening = _configuration.Preferences.IsListening,
             IsTrayIconVisible = _configuration.Preferences.ShowTrayIcon,
             LastEventSummary = _lastEventSummary,
@@ -1131,11 +1130,6 @@ internal sealed class WorkerHost : IDisposable
     {
         try
         {
-            if (!IsCurrentProcessElevated())
-            {
-                return;
-            }
-
             var workerExecutablePath = Environment.ProcessPath;
             if (string.IsNullOrWhiteSpace(workerExecutablePath) || !File.Exists(workerExecutablePath))
             {
@@ -1163,13 +1157,6 @@ internal sealed class WorkerHost : IDisposable
             Type = notificationType,
             Status = BuildStatus()
         });
-    }
-
-    private static bool IsCurrentProcessElevated()
-    {
-        var identity = WindowsIdentity.GetCurrent();
-        var principal = new WindowsPrincipal(identity);
-        return principal.IsInRole(WindowsBuiltInRole.Administrator);
     }
 
     private static string BuildEventSummary(InputEvent inputEvent)
@@ -1224,17 +1211,29 @@ internal sealed class WorkerHost : IDisposable
                 return;
             }
 
-            Process.Start(new ProcessStartInfo
+            if (!TryOpenControllerUnelevated(controllerPath, out var launchError))
             {
-                FileName = controllerPath,
-                WorkingDirectory = Path.GetDirectoryName(controllerPath) ?? AppContext.BaseDirectory,
-                UseShellExecute = true
-            });
+                _stateMessage = launchError;
+            }
         }
         catch (Exception exception)
         {
             _stateMessage = "Failed to open Controller: " + exception.Message;
         }
+    }
+
+    private bool TryOpenControllerUnelevated(string controllerPath, out string errorMessage)
+    {
+        if (!EnsureInteractiveShellReadyForUi(3000))
+        {
+            errorMessage = "Windows shell is not ready to open Controller.";
+            return false;
+        }
+
+        return UnelevatedProcessLauncher.TryStart(
+            controllerPath,
+            Path.GetDirectoryName(controllerPath) ?? AppContext.BaseDirectory,
+            out errorMessage);
     }
 
     private void RequestHardExit()
