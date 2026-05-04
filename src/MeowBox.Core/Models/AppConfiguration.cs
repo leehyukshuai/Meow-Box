@@ -43,8 +43,6 @@ public sealed class AppPreferences
 
     public bool ShowEasterEggs { get; set; } = true;
 
-    public string EasterEggActivationCode { get; set; } = string.Empty;
-
     public OsdPreferences Osd { get; set; } = new();
 }
 

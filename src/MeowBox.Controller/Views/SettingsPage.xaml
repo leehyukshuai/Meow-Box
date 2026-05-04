@@ -23,10 +23,9 @@
                                 <Setter Target="ServiceCard.(Grid.Column)" Value="0" />
                                 <Setter Target="AppearanceCard.(Grid.Row)" Value="0" />
                                 <Setter Target="AppearanceCard.(Grid.Column)" Value="1" />
-                                <Setter Target="ConfigsCard.(Grid.Row)" Value="1" />
-                                <Setter Target="ConfigsCard.(Grid.Column)" Value="0" />
                                 <Setter Target="DeviceCard.(Grid.Row)" Value="1" />
-                                <Setter Target="DeviceCard.(Grid.Column)" Value="1" />
+                                <Setter Target="DeviceCard.(Grid.Column)" Value="0" />
+                                <Setter Target="SupportCard.(Grid.Row)" Value="2" />
                             </VisualState.Setters>
                         </VisualState>
                     </VisualStateGroup>
@@ -38,7 +37,6 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -93,19 +91,22 @@
                             </ComboBox>
                             <TextBlock x:Uid="LanguageRestartHintText" Style="{StaticResource CaptionTextBlockStyle}" Text="Language changes apply after restarting the app." TextWrapping="WrapWholeWords" />
                         </StackPanel>
-                    </StackPanel>
-                </Border>
 
-                <Border x:Name="ConfigsCard" Grid.Row="2" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
-                    <Grid RowSpacing="14">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                        <Border Style="{StaticResource InsetPanelCardStyle}">
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="3">
+                                    <TextBlock x:Uid="ShowEasterEggsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Cat decorations" />
+                                    <TextBlock x:Uid="ShowEasterEggsDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Display playful cat decorations in the interface." TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+                                <ToggleSwitch x:Name="ShowEasterEggsToggleSwitch" Grid.Column="1" Toggled="OnShowEasterEggsChanged" />
+                            </Grid>
+                        </Border>
 
-                        <TextBlock x:Uid="ConfigsCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Details" />
-
-                        <Border Grid.Row="1" Style="{StaticResource InsetPanelCardStyle}">
+                        <Border Style="{StaticResource InsetPanelCardStyle}">
                             <Grid RowSpacing="12">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -136,10 +137,10 @@
                                 </Grid>
                             </Grid>
                         </Border>
-                    </Grid>
+                    </StackPanel>
                 </Border>
 
-                <Border x:Name="DeviceCard" Grid.Row="3" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
+                <Border x:Name="DeviceCard" Grid.Row="2" Grid.Column="0" Style="{StaticResource PanelCardStyle}">
                     <StackPanel Spacing="14">
                         <TextBlock x:Uid="DeviceCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Configuration" />
 
@@ -152,52 +153,40 @@
                     </StackPanel>
                 </Border>
 
-                <Border x:Name="SupportCard" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource PanelCardStyle}">
+                <Border x:Name="SupportCard" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource PanelCardStyle}">
                     <StackPanel Spacing="14">
                         <TextBlock x:Uid="OpenSourceSupportCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Open source and support" />
 
                         <Border Style="{StaticResource SubtlePanelCardStyle}">
                             <StackPanel Spacing="10">
                                 <TextBlock x:Uid="ProjectIntroTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Project intro" />
-                                <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" TextWrapping="Wrap">
-                                    <Run x:Uid="ProjectIntroBodyRun" Text="Meow Box is an open-source tool for Xiaomi Book Pro 14 2026, an open-source alternative to Xiaomi PC Manager, and is not compatible with Xiaomi PC Manager. Project link: " />
-                                    <Hyperlink Click="OnOpenGitHubClick">https://github.com/leehyukshuai/Meow-Box</Hyperlink>
-                                </TextBlock>
+                                <TextBlock x:Uid="ProjectIntroBodyRun" Style="{StaticResource CardBodyTextBlockStyle}" Text="Meow Box is an open-source tool for Xiaomi Book Pro 14 2026, an open-source alternative to Xiaomi PC Manager, and is not compatible with Xiaomi PC Manager." TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock x:Uid="ProjectLinkLabelRun" VerticalAlignment="Center" Style="{StaticResource CardBodyTextBlockStyle}" Text="Project link: " />
+                                    <HyperlinkButton Padding="0" MinWidth="0" HorizontalAlignment="Left" Click="OnOpenGitHubClick" Content="https://github.com/leehyukshuai/Meow-Box" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <TextBlock x:Uid="BilibiliHomeLabelRun" VerticalAlignment="Center" Style="{StaticResource CardBodyTextBlockStyle}" Text="Bilibili page: " />
+                                    <HyperlinkButton Padding="0" MinWidth="0" HorizontalAlignment="Left" Click="OnOpenBilibiliClick" Content="https://space.bilibili.com/687988554" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource SubtlePanelCardStyle}">
                             <StackPanel Spacing="10">
                                 <TextBlock x:Uid="DonationTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Support the author" />
-                                <TextBlock Style="{StaticResource CardBodyTextBlockStyle}" TextWrapping="Wrap">
-                                    <Run x:Uid="DonationDescriptionRun" Text="If this software helps you, you are welcome to buy the author a milk tea and support future development. Afdian link: " />
-                                    <Hyperlink Click="OnOpenAfdianClick">https://ifdian.net/a/Willowbank-September</Hyperlink>
-                                </TextBlock>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Style="{StaticResource SubtlePanelCardStyle}">
-                            <StackPanel Spacing="12">
-                                <TextBlock x:Uid="ActivationTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Activate easter eggs" />
-                                <TextBlock x:Name="ActivationStatusTextBlock" Style="{StaticResource CardBodyTextBlockStyle}" Text="Not activated yet. Donate on Afdian to get an activation code." TextWrapping="Wrap" />
-                                <Grid ColumnSpacing="10">
+                                <TextBlock x:Uid="DonationDescriptionText" Style="{StaticResource CardBodyTextBlockStyle}" Text="If this software helps you, you are welcome to buy the author a milk tea and support future development." TextWrapping="Wrap" />
+                                <Grid ColumnSpacing="16" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBox x:Uid="ActivationCodeTextBox" x:Name="ActivationCodeTextBox" PlaceholderText="Enter activation code" />
-                                    <Button x:Uid="ActivateEasterEggsButton" x:Name="ActivateEasterEggsButton" Grid.Column="1" VerticalAlignment="Stretch" Click="OnActivateEasterEggsClick" Content="Activate" Style="{StaticResource AccentButtonStyle}" />
-                                </Grid>
-                                <Grid x:Name="EasterEggVisibilityRow" ColumnSpacing="16" Visibility="Collapsed">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Spacing="3">
-                                        <TextBlock x:Uid="ShowEasterEggsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Show easter eggs" />
-                                        <TextBlock x:Uid="ShowEasterEggsDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Display playful cat decorations in the interface." TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                    <ToggleSwitch x:Name="ShowEasterEggsToggleSwitch" Grid.Column="1" Toggled="OnShowEasterEggsChanged" />
+                                    <Border Padding="8" Background="White" CornerRadius="8">
+                                        <Image Source="ms-appx:///assets/support/alipay.png" Width="160" Height="160" Stretch="Uniform" />
+                                    </Border>
+                                    <Border Grid.Column="1" Padding="8" Background="White" CornerRadius="8">
+                                        <Image Source="ms-appx:///assets/support/wxpay.png" Width="160" Height="160" Stretch="Uniform" />
+                                    </Border>
                                 </Grid>
                             </StackPanel>
                         </Border>

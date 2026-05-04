@@ -11,7 +11,7 @@ namespace MeowBox.Controller.Views;
 public sealed partial class SettingsPage : Page
 {
     private static readonly Uri GitHubRepositoryUri = new("https://github.com/leehyukshuai/Meow-Box");
-    private static readonly Uri AfdianUri = new("https://ifdian.net/a/Willowbank-September");
+    private static readonly Uri BilibiliHomeUri = new("https://space.bilibili.com/687988554");
 
     private bool _isLoading;
 
@@ -42,7 +42,6 @@ public sealed partial class SettingsPage : Page
             nameof(MeowBoxController.ServiceRunning) or
             nameof(MeowBoxController.LanguagePreference) or
             nameof(MeowBoxController.TrayIconEnabled) or
-            nameof(MeowBoxController.EasterEggsActivated) or
             nameof(MeowBoxController.ShowEasterEggs) or
             nameof(MeowBoxController.OsdDurationMs) or
             nameof(MeowBoxController.OsdDisplayMode) or
@@ -63,12 +62,6 @@ public sealed partial class SettingsPage : Page
         ServiceToggleSwitch.IsEnabled = Controller.ServiceState is not WorkerServiceState.Starting and not WorkerServiceState.Stopping;
         TrayIconToggleSwitch.IsOn = Controller.TrayIconEnabled;
         ShowEasterEggsToggleSwitch.IsOn = Controller.ShowEasterEggs;
-        ActivationCodeTextBox.IsEnabled = !Controller.EasterEggsActivated;
-        ActivateEasterEggsButton.IsEnabled = !Controller.EasterEggsActivated;
-        EasterEggVisibilityRow.Visibility = Controller.EasterEggsActivated ? Visibility.Visible : Visibility.Collapsed;
-        ActivationStatusTextBlock.Text = Controller.EasterEggsActivated
-            ? ResourceStringService.GetString("ActivationStatusText.Activated", "Activated. You can choose whether to show cat decorations.")
-            : ResourceStringService.GetString("ActivationStatusText.NotActivated", "Not activated yet. Donate on Afdian to get an activation code.");
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
@@ -184,29 +177,9 @@ public sealed partial class SettingsPage : Page
         await Launcher.LaunchUriAsync(GitHubRepositoryUri);
     }
 
-    private async void OnOpenAfdianClick(object sender, RoutedEventArgs e)
+    private async void OnOpenBilibiliClick(object sender, RoutedEventArgs e)
     {
-        await Launcher.LaunchUriAsync(AfdianUri);
-    }
-
-    private async void OnActivateEasterEggsClick(object sender, RoutedEventArgs e)
-    {
-        if (_isLoading)
-        {
-            return;
-        }
-
-        if (!Controller.TryActivateEasterEggs(ActivationCodeTextBox.Text))
-        {
-            await ShowMessageAsync(
-                ResourceStringService.GetString("Settings.Messages.ActivationFailed.Title", "Activation failed"),
-                ResourceStringService.GetString("Settings.Messages.ActivationFailed.Body", "The activation code is incorrect. Please copy the code from Afdian and try again."));
-            return;
-        }
-
-        ActivationCodeTextBox.Text = string.Empty;
-        SyncState();
-        await ShowActivationSuccessAsync();
+        await Launcher.LaunchUriAsync(BilibiliHomeUri);
     }
 
     private void OnOpenConfigFolderClick(object sender, RoutedEventArgs e)
@@ -267,59 +240,6 @@ public sealed partial class SettingsPage : Page
             XamlRoot = Content.XamlRoot,
             Title = title,
             Content = message,
-            CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
-        };
-
-        await dialog.ShowAsync();
-    }
-
-    private async Task ShowActivationSuccessAsync()
-    {
-        var content = new Border
-        {
-            Padding = new Thickness(20),
-            CornerRadius = new CornerRadius(18),
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["LayerFillColorAltBrush"],
-            Child = new StackPanel
-            {
-                Spacing = 12,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = "🎉  🐾  🎊",
-                        FontSize = 34,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        TextAlignment = TextAlignment.Center
-                    },
-                    new TextBlock
-                    {
-                        Text = ResourceStringService.GetString("Settings.Messages.ActivationSuccess.Headline", "Easter eggs activated!"),
-                        FontSize = 22,
-                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        TextAlignment = TextAlignment.Center,
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    },
-                    new TextBlock
-                    {
-                        Text = ResourceStringService.GetString("Settings.Messages.ActivationSuccess.Body", "Thank you for supporting Meow Box. You can now choose whether to show cat decorations in Open source and support."),
-                        Style = (Style)Application.Current.Resources["CardBodyTextBlockStyle"],
-                        TextAlignment = TextAlignment.Center,
-                        TextWrapping = TextWrapping.WrapWholeWords,
-                        MaxWidth = 360
-                    }
-                }
-            }
-        };
-
-        var dialog = new ContentDialog
-        {
-            RequestedTheme = App.ThemeService.GetResolvedTheme(),
-            XamlRoot = Content.XamlRoot,
-            Title = ResourceStringService.GetString("Settings.Messages.ActivationSuccess.Title", "Congratulations"),
-            Content = content,
             CloseButtonText = ResourceStringService.GetString("Dialog.Close", "Close")
         };
 
