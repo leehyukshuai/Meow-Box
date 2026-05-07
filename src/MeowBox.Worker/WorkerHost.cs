@@ -1058,7 +1058,6 @@ internal sealed class WorkerHost : IDisposable
             var updatedState = DecorateBatteryState(_batteryControlService.SetPerformanceModeFast(normalizedModeKey));
             updatedState.SelectedPerformanceModeKey = normalizedSelectedModeKey;
             updatedState.IsBatterySaverEnabled = string.Equals(normalizedModeKey, BatteryControlCatalog.Battery, StringComparison.OrdinalIgnoreCase);
-            _windowsPowerModeService.SetActiveScheme(ResolveWindowsPowerSchemeAlias(normalizedModeKey));
             if (persistPreference)
             {
                 PersistPreferredPerformanceSelection(normalizedSelectedModeKey);
@@ -1086,17 +1085,6 @@ internal sealed class WorkerHost : IDisposable
             ? cachedState
             : _batteryControlService.QueryState();
         return DecorateBatteryState(state);
-    }
-
-    private static string ResolveWindowsPowerSchemeAlias(string modeKey)
-    {
-        return BatteryControlCatalog.NormalizePerformanceModeKey(modeKey) switch
-        {
-            BatteryControlCatalog.Battery or BatteryControlCatalog.Silent => WindowsPowerModeService.PowerSaverSchemeAlias,
-            BatteryControlCatalog.Smart => WindowsPowerModeService.BalancedSchemeAlias,
-            BatteryControlCatalog.Turbo or BatteryControlCatalog.Beast => WindowsPowerModeService.HighPerformanceSchemeAlias,
-            _ => WindowsPowerModeService.BalancedSchemeAlias
-        };
     }
 
     private BatteryControlState DecorateBatteryState(BatteryControlState state)

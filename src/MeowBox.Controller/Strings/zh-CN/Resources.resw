@@ -1150,25 +1150,25 @@
     <value>极限模式</value>
   </data>
   <data name="PerformanceExtremeInfoBar.Message" xml:space="preserve">
-    <value>极限模式会根据当前是否插电，将硬件切换为极速或狂暴模式，同时把 Windows 电源管理切换为高性能方案。</value>
+    <value>极限模式会根据当前是否插电，将硬件切换为极速或狂暴模式。适合游戏、编译或高负载任务，会优先释放性能并可能带来更高噪音和温度。</value>
   </data>
   <data name="PerformanceSilentInfoBar.Title" xml:space="preserve">
     <value>静谧模式</value>
   </data>
   <data name="PerformanceSilentInfoBar.Message" xml:space="preserve">
-    <value>静谧模式会在设置硬件静谧模式的同时，把 Windows 电源管理切换为节能方案。</value>
+    <value>静谧模式会将硬件切换为静谧模式。适合轻办公、浏览网页或夜间使用，优先降低风扇噪音和发热。</value>
   </data>
   <data name="PerformanceSmartInfoBar.Title" xml:space="preserve">
     <value>智能模式</value>
   </data>
   <data name="PerformanceSmartInfoBar.Message" xml:space="preserve">
-    <value>智能模式会在设置硬件智能模式的同时，把 Windows 电源管理切换为平衡方案。</value>
+    <value>智能模式会将硬件切换为智能模式。适合日常使用，会在性能、温度和噪音之间自动取得平衡。</value>
   </data>
   <data name="PerformanceBatteryInfoBar.Title" xml:space="preserve">
     <value />
   </data>
   <data name="PerformanceBatteryInfoBar.Message" xml:space="preserve">
-    <value>省电模式会在设置硬件省电模式的同时，开启 Windows 的节能模式。插电后会自动退出省电模式，并使用默认的性能模式。</value>
+    <value>省电模式会将硬件切换为省电模式，并开启 Windows 节能模式。适合离电使用或低电量场景，会优先延长续航并降低后台耗电。插电后会自动退出省电模式，并使用默认的性能模式。</value>
   </data>
   <data name="PerformanceModeDisabledByBatterySaver.Message" xml:space="preserve">
     <value>在使用省电模式时，无法调整其他性能模式，退出省电模式后才可以进行调节。</value>

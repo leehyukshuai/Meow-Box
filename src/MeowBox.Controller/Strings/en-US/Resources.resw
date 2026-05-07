@@ -1150,25 +1150,25 @@
     <value>Extreme mode</value>
   </data>
   <data name="PerformanceExtremeInfoBar.Message" xml:space="preserve">
-    <value>Extreme sets the hardware to Turbo or Beast based on AC power and also switches Windows power management to High performance.</value>
+    <value>Extreme sets the hardware to Turbo or Beast based on AC power. Use it for gaming, compiling, or other heavy workloads; it prioritizes performance and may increase fan noise and temperature.</value>
   </data>
   <data name="PerformanceSilentInfoBar.Title" xml:space="preserve">
     <value>Silent mode</value>
   </data>
   <data name="PerformanceSilentInfoBar.Message" xml:space="preserve">
-    <value>Silent sets the hardware to Silent mode and also switches Windows power management to Power saver.</value>
+    <value>Silent sets the hardware to Silent mode. Use it for light office work, web browsing, or nighttime use; it prioritizes lower fan noise and heat.</value>
   </data>
   <data name="PerformanceSmartInfoBar.Title" xml:space="preserve">
     <value>Smart mode</value>
   </data>
   <data name="PerformanceSmartInfoBar.Message" xml:space="preserve">
-    <value>Smart sets the hardware to Smart mode and also switches Windows power management to Balanced.</value>
+    <value>Smart sets the hardware to Smart mode. Use it for everyday work; it automatically balances performance, temperature, and noise.</value>
   </data>
   <data name="PerformanceBatteryInfoBar.Title" xml:space="preserve">
     <value></value>
   </data>
   <data name="PerformanceBatteryInfoBar.Message" xml:space="preserve">
-    <value>Battery saver sets the hardware to Battery saver mode and enables Windows Energy Saver. When AC power is connected, Battery saver exits automatically and switches to the default performance mode.</value>
+    <value>Battery saver sets the hardware to Battery saver mode and enables Windows Energy Saver. Use it on battery power or when charge is low; it prioritizes longer runtime and lower background power use. When AC power is connected, Battery saver exits automatically and switches to the default performance mode.</value>
   </data>
   <data name="PerformanceModeDisabledByBatterySaver.Message" xml:space="preserve">
     <value>While Battery saver is active, other performance modes cannot be adjusted. You can change them again after exiting Battery saver.</value>
