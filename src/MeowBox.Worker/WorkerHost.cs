@@ -398,16 +398,13 @@ internal sealed class WorkerHost : IDisposable
         var startupCycleModeKey = BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(
             _configuration.Preferences.PerformanceModeCycleKeys);
         var shouldRestorePerformanceMode = true;
-        var shouldRestoreChargeLimit = _configuration.Preferences.ResetChargeLimitToFullOnStartup;
-        if (!shouldRestorePerformanceMode && !shouldRestoreChargeLimit)
-        {
-            return;
-        }
+        var startupChargeLimitPercent = _configuration.Preferences.ResetChargeLimitToFullOnStartup
+            ? BatteryControlCatalog.DefaultChargeLimitPercent
+            : BatteryControlCatalog.NormalizeChargeLimitPercent(_configuration.Preferences.PreferredChargeLimitPercent);
 
         try
         {
             await Task.Delay(2000);
-            var skippedBecauseBatterySaverWasAlreadyActive = false;
             await Task.Run(() =>
             {
                 var currentState = DecorateBatteryState(_batteryControlService.QueryState());
@@ -420,10 +417,6 @@ internal sealed class WorkerHost : IDisposable
                         BatteryControlCatalog.NormalizeSelectedPerformanceModeKey(currentState.SelectedPerformanceModeKey),
                         BatteryControlCatalog.Battery,
                         StringComparison.OrdinalIgnoreCase);
-                if (batterySaverAlreadyActive)
-                {
-                    skippedBecauseBatterySaverWasAlreadyActive = true;
-                }
 
                 if (!batterySaverAlreadyActive && shouldRestorePerformanceMode)
                 {
@@ -433,15 +426,8 @@ internal sealed class WorkerHost : IDisposable
                     }
                 }
 
-                if (shouldRestoreChargeLimit)
-                {
-                    _batteryControlService.SetChargeLimitPercentFast(BatteryControlCatalog.DefaultChargeLimitPercent);
-                }
+                _batteryControlService.SetChargeLimitPercentFast(startupChargeLimitPercent);
             });
-            if (skippedBecauseBatterySaverWasAlreadyActive && !shouldRestoreChargeLimit)
-            {
-                return;
-            }
 
             await Task.Delay(900);
             await Task.Run(() => DecorateBatteryState(_batteryControlService.QueryState()));
