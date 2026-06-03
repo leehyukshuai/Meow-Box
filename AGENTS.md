@@ -276,12 +276,16 @@ Packaging rules:
 - `dotnet build` on `MeowBox.Controller` should also produce the local worker runtime payload
 - `build.ps1` is for release packaging only; it should not refresh `build/bin/MeowBox/`
 - default `.\build.ps1` should emit `artifacts/MeowBox/`
+- `.\build.ps1 -SelfContained` should emit `artifacts/MeowBox-self-contained/`
 - `-Zip` and `-Msi` add extra distributables on top of `artifacts/MeowBox/`
 - default portable and installer payloads should prefer smaller framework-dependent `win-x64` publish output
+- self-contained artifact names should include `self-contained`
+- self-contained packages should remove unnecessary WinUI `.mui` language folders while keeping English and Chinese resources
 - `build.ps1` only exposes these public switches:
   - `-Version`
   - `-Zip`
   - `-Msi`
+  - `-SelfContained`
 - the Controller publish step must preserve loose WinUI `.pri` / `.xbf` resources in the publish directory, otherwise the unpackaged app can crash at startup
 
 If you change packaging paths, update:

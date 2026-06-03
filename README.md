@@ -107,6 +107,7 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 - `-Version 1.0.0` — 指定输出版本号
 - `-Zip` — 额外生成 Portable zip 包
 - `-Msi` — 额外生成 MSI 安装包
+- `-SelfContained` — 生成自包含包，内置 .NET 和 Windows App SDK 运行时
 
 示例：
 
@@ -114,6 +115,7 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 .\build.ps1 -Version 1.0.0 -Zip
 .\build.ps1 -Version 1.0.0 -Msi
 .\build.ps1 -Version 1.0.0 -Zip -Msi
+.\build.ps1 -Version 1.0.0 -Zip -SelfContained
 ```
 
 本地构建输出：
@@ -126,6 +128,12 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 - `artifacts/MeowBox/`
 - `artifacts/MeowBox-portable-v<version>.zip`
 - `artifacts/MeowBox-setup-v<version>.msi`
+
+使用 `-SelfContained` 时，发布名称会标注为 self-contained：
+
+- `artifacts/MeowBox-self-contained/`
+- `artifacts/MeowBox-self-contained-portable-v<version>.zip`
+- `artifacts/MeowBox-self-contained-setup-v<version>.msi`
 
 ### 🎨 版权相关
 
@@ -235,6 +243,7 @@ Optional arguments:
 - `-Version 1.0.0` — sets the output version
 - `-Zip` — also builds a Portable zip
 - `-Msi` — also builds an MSI installer
+- `-SelfContained` — builds a self-contained package with bundled .NET and Windows App SDK runtimes
 
 Examples:
 
@@ -242,6 +251,7 @@ Examples:
 .\build.ps1 -Version 1.0.0 -Zip
 .\build.ps1 -Version 1.0.0 -Msi
 .\build.ps1 -Version 1.0.0 -Zip -Msi
+.\build.ps1 -Version 1.0.0 -Zip -SelfContained
 ```
 
 Local build outputs:
@@ -254,6 +264,12 @@ Release outputs:
 - `artifacts/MeowBox/`
 - `artifacts/MeowBox-portable-v<version>.zip`
 - `artifacts/MeowBox-setup-v<version>.msi`
+
+With `-SelfContained`, release names are marked as self-contained:
+
+- `artifacts/MeowBox-self-contained/`
+- `artifacts/MeowBox-self-contained-portable-v<version>.zip`
+- `artifacts/MeowBox-self-contained-setup-v<version>.msi`
 
 ### 🎨 Copyright
 

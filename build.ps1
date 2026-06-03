@@ -2,7 +2,8 @@ param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version = '0.1.0',
     [switch]$Zip,
-    [switch]$Msi
+    [switch]$Msi,
+    [switch]$SelfContained
 )
 
 $ErrorActionPreference = 'Stop'
@@ -77,6 +78,39 @@ function New-StableGuid {
     }
 }
 
+function Remove-ExtraMuiLanguageDirectories {
+    param([string]$RootDirectory)
+
+    $preservedLanguages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $null = $preservedLanguages.Add('en-US')
+    $null = $preservedLanguages.Add('en-us')
+    $null = $preservedLanguages.Add('zh-CN')
+    $null = $preservedLanguages.Add('zh-cn')
+
+    foreach ($directory in Get-ChildItem -LiteralPath $RootDirectory -Directory) {
+        if ($preservedLanguages.Contains($directory.Name)) {
+            continue
+        }
+
+        $files = @(Get-ChildItem -LiteralPath $directory.FullName -File -ErrorAction SilentlyContinue)
+        if ($files.Count -eq 0) {
+            continue
+        }
+
+        $containsOnlyMuiFiles = $true
+        foreach ($file in $files) {
+            if ($file.Extension -ne '.mui') {
+                $containsOnlyMuiFiles = $false
+                break
+            }
+        }
+
+        if ($containsOnlyMuiFiles) {
+            Remove-Item -LiteralPath $directory.FullName -Recurse -Force
+        }
+    }
+}
+
 function Write-WixDirectory {
     param(
         [string]$DirectoryPath,
@@ -145,10 +179,13 @@ $controllerPublishOutput = Join-Path $publishRoot 'controller'
 $workerPublishOutput = Join-Path $publishRoot 'worker'
 $controllerPublishBuildOutput = Join-Path $publishBuildRoot 'controller'
 $workerPublishBuildOutput = Join-Path $publishBuildRoot 'worker'
-$portableRoot = Join-Path $artifactsRoot 'MeowBox'
+$portableDirectoryName = if ($SelfContained) { 'MeowBox-self-contained' } else { 'MeowBox' }
+$portableArchiveName = if ($SelfContained) { 'MeowBox-self-contained-portable-v{0}.zip' } else { 'MeowBox-portable-v{0}.zip' }
+$installerName = if ($SelfContained) { 'MeowBox-self-contained-setup-v{0}.msi' } else { 'MeowBox-setup-v{0}.msi' }
+$portableRoot = Join-Path $artifactsRoot $portableDirectoryName
 $portableWorkerRoot = Join-Path $portableRoot 'runtime\worker'
-$portableZipPath = Join-Path $artifactsRoot ("MeowBox-portable-v{0}.zip" -f $Version)
-$msiPath = Join-Path $artifactsRoot ("MeowBox-setup-v{0}.msi" -f $Version)
+$portableZipPath = Join-Path $artifactsRoot ($portableArchiveName -f $Version)
+$msiPath = Join-Path $artifactsRoot ($installerName -f $Version)
 $controllerProject = Join-Path $srcRoot 'MeowBox.Controller\MeowBox.Controller.csproj'
 $workerProject = Join-Path $srcRoot 'MeowBox.Worker\MeowBox.Worker.csproj'
 $installerProject = Join-Path $srcRoot 'MeowBox.Setup\MeowBox.Setup.wixproj'
@@ -173,9 +210,16 @@ New-Item -ItemType Directory -Force -Path $artifactsRoot | Out-Null
 $publishArguments = @(
     '-c', 'Release',
     '-r', 'win-x64',
-    '-p:Platform=x64',
-    '-p:SelfContained=false'
+    '-p:Platform=x64'
 )
+
+if ($SelfContained) {
+    $publishArguments += '--self-contained'
+    $publishArguments += 'true'
+}
+else {
+    $publishArguments += '-p:SelfContained=false'
+}
 
 $controllerPublishArguments = @(
     'publish',
@@ -184,6 +228,11 @@ $controllerPublishArguments = @(
     ('-p:OutputPath={0}' -f $controllerPublishBuildOutput),
     '-p:SkipBuildWorkerForLocalRuntime=true'
 ) + $publishArguments
+
+if ($SelfContained) {
+    $controllerPublishArguments += '-p:WindowsAppSDKSelfContained=true'
+}
+
 Invoke-Dotnet $controllerPublishArguments
 Copy-DirectoryContent -SourceDirectory $controllerPublishOutput -DestinationDirectory $portableRoot
 
@@ -197,6 +246,10 @@ Invoke-Dotnet $workerPublishArguments
 Copy-DirectoryContent -SourceDirectory $workerPublishOutput -DestinationDirectory $portableWorkerRoot
 
 Get-ChildItem -Path $portableRoot -Recurse -Include *.pdb | Remove-Item -Force
+if ($SelfContained) {
+    Remove-ExtraMuiLanguageDirectories -RootDirectory $portableRoot
+    Remove-ExtraMuiLanguageDirectories -RootDirectory $portableWorkerRoot
+}
 
 if ($Zip) {
     if (Test-Path $portableZipPath) {
