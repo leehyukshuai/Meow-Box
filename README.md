@@ -18,6 +18,12 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 
 ### ✨ 更新状况
 
+#### **v3.2.0**
+
+- 修复了触控板重按永不触发失效的问题
+- 修复了充电阈值在电脑休眠后失效的问题
+- 加入了 self-contained 的构建选项
+
 #### **v3.1.0**
 
 - 移除了 Windows 电源计划集成，避免修改亮度等系统设置
@@ -153,6 +159,12 @@ Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM
 > The current codebase is a standalone adaptation of the author's previous project, [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool), specifically tailored for `Xiaomi Book Pro 14 2026`. If your device does not match, you can use [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) for the supported version instead.
 
 ### ✨ Release status
+
+#### **v3.2.0**
+
+- Fixed an issue where touchpad deep press could stop triggering permanently
+- Fixed an issue where the charging threshold could stop working after the PC resumed from sleep
+- Added a self-contained build option
 
 #### **v3.1.0**
 
