@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using MeowBox.Core.Contracts;
 using MeowBox.Core.Models;
 using MeowBox.Core.Services;
@@ -45,6 +46,7 @@ internal sealed class WorkerHost : IDisposable
     private string _stateMessage = "Starting worker";
     private volatile bool _interactiveShellReady;
     private int _batteryAutomationTickInProgress;
+    private int _batteryStateRestoreInProgress;
     private int _lastSyncedBatteryModeOnDcThresholdPercent = int.MinValue;
     private int _shutdownSignaled;
 
@@ -73,6 +75,7 @@ internal sealed class WorkerHost : IDisposable
         LoadConfiguration();
         StartConfigWatcher();
         StartBatteryAutomationMonitor();
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
         _ = NotifyControllerAsync(WorkerNotificationType.Started);
         _ = Task.Run(CompleteDeferredStartupAsync);
     }
@@ -83,7 +86,7 @@ internal sealed class WorkerHost : IDisposable
         {
             StartWmiWatcher();
             EnsureAutostartRegistration();
-            await RestorePreferredBatteryStateOnStartupAsync();
+            await RestorePreferredBatteryStateAfterHardwareResetAsync();
         }
         catch (Exception exception)
         {
@@ -171,6 +174,7 @@ internal sealed class WorkerHost : IDisposable
 
     public void Dispose()
     {
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         _shellReadyCancellation.Cancel();
         _nativeActionService.ReleaseBrightnessAdjustment();
         _touchpadEdgeSlideService.Dispose();
@@ -214,6 +218,16 @@ internal sealed class WorkerHost : IDisposable
                 Error = "Unknown worker command."
             })
         };
+    }
+
+    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode != PowerModes.Resume)
+        {
+            return;
+        }
+
+        _ = Task.Run(RestorePreferredBatteryStateAfterHardwareResetAsync);
     }
 
     private WorkerResponse ReloadConfig()
@@ -393,12 +407,16 @@ internal sealed class WorkerHost : IDisposable
         }
     }
 
-    private async Task RestorePreferredBatteryStateOnStartupAsync()
+    private async Task RestorePreferredBatteryStateAfterHardwareResetAsync()
     {
-        var startupCycleModeKey = BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(
+        if (Interlocked.Exchange(ref _batteryStateRestoreInProgress, 1) != 0)
+        {
+            return;
+        }
+
+        var restoreCycleModeKey = BatteryControlCatalog.GetDefaultPerformanceModeCycleKey(
             _configuration.Preferences.PerformanceModeCycleKeys);
-        var shouldRestorePerformanceMode = true;
-        var startupChargeLimitPercent = _configuration.Preferences.ResetChargeLimitToFullOnStartup
+        var restoreChargeLimitPercent = _configuration.Preferences.ResetChargeLimitToFullOnStartup
             ? BatteryControlCatalog.DefaultChargeLimitPercent
             : BatteryControlCatalog.NormalizeChargeLimitPercent(_configuration.Preferences.PreferredChargeLimitPercent);
 
@@ -418,15 +436,15 @@ internal sealed class WorkerHost : IDisposable
                         BatteryControlCatalog.Battery,
                         StringComparison.OrdinalIgnoreCase);
 
-                if (!batterySaverAlreadyActive && shouldRestorePerformanceMode)
+                if (!batterySaverAlreadyActive)
                 {
                     lock (_performanceModeSync)
                     {
-                        ApplyPerformanceMode(startupCycleModeKey, persistPreference: false);
+                        ApplyPerformanceMode(restoreCycleModeKey, persistPreference: false);
                     }
                 }
 
-                _batteryControlService.SetChargeLimitPercentFast(startupChargeLimitPercent);
+                _batteryControlService.SetChargeLimitPercentFast(restoreChargeLimitPercent);
             });
 
             await Task.Delay(900);
@@ -435,6 +453,10 @@ internal sealed class WorkerHost : IDisposable
         }
         catch
         {
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _batteryStateRestoreInProgress, 0);
         }
     }
 
