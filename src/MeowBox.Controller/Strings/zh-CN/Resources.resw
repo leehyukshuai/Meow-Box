@@ -420,11 +420,20 @@
   <data name="BatteryHealthLabelTextBlock.Text" xml:space="preserve">
     <value>电池健康度</value>
   </data>
-  <data name="BatteryHealthDescriptionTextBlock.Text" xml:space="preserve">
-    <value>当前满充容量与设计容量的比值</value>
-  </data>
   <data name="Battery.Health.Unavailable" xml:space="preserve">
     <value>不可用</value>
+  </data>
+  <data name="Battery.Health.Excellent" xml:space="preserve">
+    <value>极佳</value>
+  </data>
+  <data name="Battery.Health.Good" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="Battery.Health.Fair" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="Battery.Health.Poor" xml:space="preserve">
+    <value>较差</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
     <value>轻按阈值</value>

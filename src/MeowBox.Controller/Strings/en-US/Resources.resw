@@ -420,11 +420,20 @@
   <data name="BatteryHealthLabelTextBlock.Text" xml:space="preserve">
     <value>Battery health</value>
   </data>
-  <data name="BatteryHealthDescriptionTextBlock.Text" xml:space="preserve">
-    <value>Current full-charge capacity compared with design capacity</value>
-  </data>
   <data name="Battery.Health.Unavailable" xml:space="preserve">
     <value>Unavailable</value>
+  </data>
+  <data name="Battery.Health.Excellent" xml:space="preserve">
+    <value>Excellent</value>
+  </data>
+  <data name="Battery.Health.Good" xml:space="preserve">
+    <value>Good</value>
+  </data>
+  <data name="Battery.Health.Fair" xml:space="preserve">
+    <value>Fair</value>
+  </data>
+  <data name="Battery.Health.Poor" xml:space="preserve">
+    <value>Poor</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
     <value>Light threshold</value>

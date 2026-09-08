@@ -266,6 +266,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
             if (SetProperty(ref _currentBatteryHealthPercent, value))
             {
                 OnPropertyChanged(nameof(CurrentBatteryHealthLabel));
+                OnPropertyChanged(nameof(CurrentBatteryHealthStatusLabel));
             }
         }
     }
@@ -273,6 +274,15 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     public string CurrentBatteryHealthLabel => CurrentBatteryHealthPercent < 0
         ? ResourceStringService.GetString("Battery.Health.Unavailable", "Unavailable")
         : CurrentBatteryHealthPercent.ToString(System.Globalization.CultureInfo.CurrentCulture) + "%";
+
+    public string CurrentBatteryHealthStatusLabel => CurrentBatteryHealthPercent switch
+    {
+        >= 100 => ResourceStringService.GetString("Battery.Health.Excellent", "Excellent"),
+        >= 80 => ResourceStringService.GetString("Battery.Health.Good", "Good"),
+        >= 60 => ResourceStringService.GetString("Battery.Health.Fair", "Fair"),
+        >= 0 => ResourceStringService.GetString("Battery.Health.Poor", "Poor"),
+        _ => string.Empty
+    };
 
     public bool ResetChargeLimitToFullOnStartup
     {
@@ -1411,9 +1421,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
 
         CurrentChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(state.ChargeLimitPercent);
-        CurrentBatteryHealthPercent = state.BatteryHealthPercent < 0
-            ? -1
-            : Math.Clamp(state.BatteryHealthPercent, 0, 100);
+        CurrentBatteryHealthPercent = state.BatteryHealthPercent;
     }
 
     private void ReloadPerformanceCycleModeItems()

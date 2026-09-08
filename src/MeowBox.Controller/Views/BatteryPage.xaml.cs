@@ -19,8 +19,6 @@ public sealed partial class BatteryPage : Page
     private const string PerformanceCatDarkFill = "#D8E0EA";
     private const double PerformanceCatLightOpacity = 0.24;
     private const double PerformanceCatDarkOpacity = 0.42;
-    private const double BatteryHealthFillMaxWidth = 60;
-
     private bool _isLoading;
     private bool _isActive;
     private bool _isChargeLimitPointerInteraction;
@@ -91,6 +89,7 @@ public sealed partial class BatteryPage : Page
     private void OnActualThemeChanged(FrameworkElement sender, object args)
     {
         UpdatePerformanceCatArtSources();
+        SyncBatteryHealthUi();
     }
 
     private void ApplyStaticLabels()
@@ -138,9 +137,7 @@ public sealed partial class BatteryPage : Page
 
         SyncPerformanceModeSelectionUi(Controller.CurrentPerformanceSelectionKey, batterySaverTriggered);
         SetSelectedChargeLimit(_requestedChargeLimitPercent ?? Controller.CurrentChargeLimitPercent);
-        BatteryHealthValueTextBlock.Text = Controller.CurrentBatteryHealthLabel;
-        BatteryHealthFillBorder.Width = BatteryHealthFillMaxWidth * Math.Max(0, Controller.CurrentBatteryHealthPercent) / 100d;
-        BatteryHealthIndicatorGrid.Opacity = Controller.CurrentBatteryHealthPercent < 0 ? 0.35 : 1;
+        SyncBatteryHealthUi();
         SetSelectedComboBoxTag(SwitchToBatteryModeOnDcComboBox, Controller.SwitchToBatteryModeOnDcThresholdPercent);
         ChargeStartupApplyToggleSwitch.IsOn = Controller.ResetChargeLimitToFullOnStartup;
 
@@ -151,6 +148,40 @@ public sealed partial class BatteryPage : Page
         ChargeStartupApplyToggleSwitch.IsEnabled = !Controller.BatteryControlBusy;
 
         _isLoading = false;
+    }
+
+    private void SyncBatteryHealthUi()
+    {
+        BatteryHealthValueTextBlock.Text = Controller.CurrentBatteryHealthLabel;
+        BatteryHealthStatusTextBlock.Text = Controller.CurrentBatteryHealthStatusLabel;
+
+        if (Controller.CurrentBatteryHealthPercent < 0)
+        {
+            BatteryHealthValueTextBlock.ClearValue(TextBlock.ForegroundProperty);
+            BatteryHealthStatusTextBlock.ClearValue(TextBlock.ForegroundProperty);
+            return;
+        }
+
+        var brush = new SolidColorBrush(GetBatteryHealthColor(Controller.CurrentBatteryHealthPercent));
+        BatteryHealthValueTextBlock.Foreground = brush;
+        BatteryHealthStatusTextBlock.Foreground = brush;
+    }
+
+    private Windows.UI.Color GetBatteryHealthColor(int percent)
+    {
+        var dark = ActualTheme == ElementTheme.Dark;
+        return percent switch
+        {
+            >= 80 => dark
+                ? ColorHelper.FromArgb(255, 92, 214, 139)
+                : ColorHelper.FromArgb(255, 36, 128, 74),
+            >= 60 => dark
+                ? ColorHelper.FromArgb(255, 242, 192, 90)
+                : ColorHelper.FromArgb(255, 156, 104, 24),
+            _ => dark
+                ? ColorHelper.FromArgb(255, 255, 125, 125)
+                : ColorHelper.FromArgb(255, 180, 52, 52)
+        };
     }
 
     private async Task InitializeBatteryControlsAsync(CancellationToken cancellationToken)

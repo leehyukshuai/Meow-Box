@@ -74,7 +74,7 @@ public sealed class WindowsPowerModeService
             var healthPercent = (int)Math.Round(
                 totalFullChargeCapacity * 100d / totalDesignedCapacity,
                 MidpointRounding.AwayFromZero);
-            return Math.Clamp(healthPercent, 0, 100);
+            return healthPercent;
         }
         catch
         {
