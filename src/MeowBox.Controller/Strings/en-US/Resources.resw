@@ -399,9 +399,6 @@
   <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
     <value>Could not restore defaults</value>
   </data>
-  <data name="BatteryRefreshButton.Content" xml:space="preserve">
-    <value>Refresh</value>
-  </data>
   <data name="BatteryPerformanceTitleText.Text" xml:space="preserve">
     <value>Performance</value>
   </data>
@@ -413,6 +410,15 @@
   </data>
   <data name="ChargeLimitLabelTextBlock.Text" xml:space="preserve">
     <value>Charge limit</value>
+  </data>
+  <data name="BatteryHealthLabelTextBlock.Text" xml:space="preserve">
+    <value>Battery health</value>
+  </data>
+  <data name="BatteryHealthDescriptionTextBlock.Text" xml:space="preserve">
+    <value>Current full-charge capacity compared with design capacity</value>
+  </data>
+  <data name="Battery.Health.Unavailable" xml:space="preserve">
+    <value>Unavailable</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
     <value>Light threshold</value>

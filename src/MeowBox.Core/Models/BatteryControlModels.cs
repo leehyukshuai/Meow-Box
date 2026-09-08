@@ -18,6 +18,8 @@ public sealed class BatteryControlState
 
     public int BatteryLevelPercent { get; set; } = -1;
 
+    public int BatteryHealthPercent { get; set; } = -1;
+
     public int ChargeLimitPercent { get; set; } = BatteryControlCatalog.DefaultChargeLimitPercent;
 }
 

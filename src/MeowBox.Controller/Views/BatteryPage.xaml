@@ -19,16 +19,7 @@
                     Grid.Row="0"
                     IsClosable="False"
                     IsOpen="False"
-                    Severity="Informational">
-                    <InfoBar.ActionButton>
-                        <Button
-                            x:Uid="BatteryRefreshButton"
-                            x:Name="RefreshButton"
-                            Click="OnRefreshButtonClick"
-                            Content="Refresh"
-                            Style="{StaticResource SubtleButtonStyle}" />
-                    </InfoBar.ActionButton>
-                </InfoBar>
+                    Severity="Informational" />
 
                 <Border
                     x:Name="PerformanceCard"
@@ -292,6 +283,70 @@
                             IsClosable="False"
                             IsOpen="True"
                             Severity="Informational" />
+
+                        <Border
+                            Padding="14"
+                            Style="{StaticResource SubtlePanelCardStyle}">
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Uid="BatteryHealthLabelTextBlock"
+                                        Style="{StaticResource CardTitleTextBlockStyle}"
+                                        Text="Battery health" />
+                                    <TextBlock
+                                        x:Uid="BatteryHealthDescriptionTextBlock"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="Current full-charge capacity compared with design capacity"
+                                        TextWrapping="WrapWholeWords" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Center">
+                                    <Grid
+                                        x:Name="BatteryHealthIndicatorGrid"
+                                        Width="73"
+                                        Height="28">
+                                        <Border
+                                            Width="68"
+                                            Height="28"
+                                            HorizontalAlignment="Left"
+                                            Padding="3"
+                                            BorderBrush="{ThemeResource TextFillColorSecondaryBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="5">
+                                            <Grid Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="2">
+                                                <Border
+                                                    x:Name="BatteryHealthFillBorder"
+                                                    Width="0"
+                                                    HorizontalAlignment="Left"
+                                                    Background="#4CCB7F"
+                                                    CornerRadius="2" />
+                                            </Grid>
+                                        </Border>
+                                        <Border
+                                            Width="5"
+                                            Height="10"
+                                            HorizontalAlignment="Right"
+                                            Background="{ThemeResource TextFillColorSecondaryBrush}"
+                                            CornerRadius="0,2,2,0" />
+                                    </Grid>
+
+                                    <TextBlock
+                                        x:Name="BatteryHealthValueTextBlock"
+                                        FontWeight="SemiBold"
+                                        Text="Unavailable"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <Border
                             Style="{StaticResource SubtlePanelCardStyle}"

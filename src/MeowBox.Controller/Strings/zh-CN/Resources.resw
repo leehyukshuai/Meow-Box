@@ -399,9 +399,6 @@
   <data name="Settings.Messages.RestoreDefaultsFailed.Title" xml:space="preserve">
     <value>无法恢复默认设置</value>
   </data>
-  <data name="BatteryRefreshButton.Content" xml:space="preserve">
-    <value>重新读取</value>
-  </data>
   <data name="BatteryPerformanceTitleText.Text" xml:space="preserve">
     <value>性能模式</value>
   </data>
@@ -413,6 +410,15 @@
   </data>
   <data name="ChargeLimitLabelTextBlock.Text" xml:space="preserve">
     <value>充电上限</value>
+  </data>
+  <data name="BatteryHealthLabelTextBlock.Text" xml:space="preserve">
+    <value>电池健康度</value>
+  </data>
+  <data name="BatteryHealthDescriptionTextBlock.Text" xml:space="preserve">
+    <value>当前满充容量与设计容量的比值</value>
+  </data>
+  <data name="Battery.Health.Unavailable" xml:space="preserve">
+    <value>不可用</value>
   </data>
   <data name="TouchpadPressSensitivityLabelText.Text" xml:space="preserve">
     <value>轻按阈值</value>

@@ -52,6 +52,7 @@ public sealed class BatteryControlService
                 SelectedPerformanceModeKey = BatteryControlCatalog.GetPerformanceModeKey(performanceResponse.Data0.Value),
                 IsAcPowered = _windowsPowerModeService.IsAcPowered(),
                 BatteryLevelPercent = _windowsPowerModeService.GetBatteryLevelPercent(),
+                BatteryHealthPercent = _windowsPowerModeService.GetBatteryHealthPercent(),
                 IsBatterySaverEnabled = string.Equals(
                     BatteryControlCatalog.GetPerformanceModeKey(performanceResponse.Data0.Value),
                     BatteryControlCatalog.Battery,
@@ -284,6 +285,7 @@ public sealed class BatteryControlService
             IsBatterySaverEnabled = state.IsBatterySaverEnabled,
             IsAcPowered = state.IsAcPowered,
             BatteryLevelPercent = state.BatteryLevelPercent,
+            BatteryHealthPercent = state.BatteryHealthPercent,
             ChargeLimitPercent = state.ChargeLimitPercent
         };
     }

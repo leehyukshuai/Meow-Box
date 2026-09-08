@@ -44,6 +44,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private string _currentPerformanceSelectionKey = BatteryControlCatalog.DefaultSelectedPerformanceModeKey;
     private bool _resetChargeLimitToFullOnStartup;
     private int _currentChargeLimitPercent = BatteryControlCatalog.DefaultChargeLimitPercent;
+    private int _currentBatteryHealthPercent = -1;
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
@@ -256,6 +257,22 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     }
 
     public string CurrentChargeLimitLabel => BatteryControlCatalog.GetChargeLimitLabel(CurrentChargeLimitPercent);
+
+    public int CurrentBatteryHealthPercent
+    {
+        get => _currentBatteryHealthPercent;
+        private set
+        {
+            if (SetProperty(ref _currentBatteryHealthPercent, value))
+            {
+                OnPropertyChanged(nameof(CurrentBatteryHealthLabel));
+            }
+        }
+    }
+
+    public string CurrentBatteryHealthLabel => CurrentBatteryHealthPercent < 0
+        ? ResourceStringService.GetString("Battery.Health.Unavailable", "Unavailable")
+        : CurrentBatteryHealthPercent.ToString(System.Globalization.CultureInfo.CurrentCulture) + "%";
 
     public bool ResetChargeLimitToFullOnStartup
     {
@@ -1394,6 +1411,9 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         }
 
         CurrentChargeLimitPercent = BatteryControlCatalog.NormalizeChargeLimitPercent(state.ChargeLimitPercent);
+        CurrentBatteryHealthPercent = state.BatteryHealthPercent < 0
+            ? -1
+            : Math.Clamp(state.BatteryHealthPercent, 0, 100);
     }
 
     private void ReloadPerformanceCycleModeItems()

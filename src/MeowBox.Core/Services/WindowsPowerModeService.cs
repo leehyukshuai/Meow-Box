@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Management;
 
 namespace MeowBox.Core.Services;
 
@@ -36,6 +37,44 @@ public sealed class WindowsPowerModeService
             }
 
             return Math.Clamp((int)status.BatteryLifePercent, 0, 100);
+        }
+        catch
+        {
+            return -1;
+        }
+    }
+
+    public int GetBatteryHealthPercent()
+    {
+        try
+        {
+            var designedCapacities = ReadBatteryCapacities("BatteryStaticData", "DesignedCapacity");
+            var fullChargeCapacities = ReadBatteryCapacities("BatteryFullChargedCapacity", "FullChargedCapacity");
+            ulong totalDesignedCapacity = 0;
+            ulong totalFullChargeCapacity = 0;
+
+            foreach (var (instanceName, designedCapacity) in designedCapacities)
+            {
+                if (designedCapacity is 0 or uint.MaxValue ||
+                    !fullChargeCapacities.TryGetValue(instanceName, out var fullChargeCapacity) ||
+                    fullChargeCapacity is 0 or uint.MaxValue)
+                {
+                    continue;
+                }
+
+                totalDesignedCapacity += designedCapacity;
+                totalFullChargeCapacity += fullChargeCapacity;
+            }
+
+            if (totalDesignedCapacity == 0)
+            {
+                return -1;
+            }
+
+            var healthPercent = (int)Math.Round(
+                totalFullChargeCapacity * 100d / totalDesignedCapacity,
+                MidpointRounding.AwayFromZero);
+            return Math.Clamp(healthPercent, 0, 100);
         }
         catch
         {
@@ -93,6 +132,26 @@ public sealed class WindowsPowerModeService
             PowerSaverSchemeAlias => PowerSaverSchemeGuid,
             _ => throw new ArgumentOutOfRangeException(nameof(schemeAlias), schemeAlias, "Unknown Windows power scheme alias.")
         };
+    }
+
+    private static Dictionary<string, uint> ReadBatteryCapacities(string className, string propertyName)
+    {
+        using var searcher = new ManagementObjectSearcher(
+            @"\\.\root\wmi",
+            $"SELECT InstanceName, {propertyName} FROM {className}");
+        using var collection = searcher.Get();
+        var capacities = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (ManagementObject battery in collection)
+        {
+            var instanceName = battery["InstanceName"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(instanceName) && battery[propertyName] is not null)
+            {
+                capacities[instanceName] = Convert.ToUInt32(battery[propertyName]);
+            }
+        }
+
+        return capacities;
     }
 
     private static int NormalizeEnergySaverBatteryThresholdPercent(int percent)

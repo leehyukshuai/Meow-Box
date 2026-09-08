@@ -19,6 +19,7 @@ public sealed partial class BatteryPage : Page
     private const string PerformanceCatDarkFill = "#D8E0EA";
     private const double PerformanceCatLightOpacity = 0.24;
     private const double PerformanceCatDarkOpacity = 0.42;
+    private const double BatteryHealthFillMaxWidth = 60;
 
     private bool _isLoading;
     private bool _isActive;
@@ -72,6 +73,7 @@ public sealed partial class BatteryPage : Page
             nameof(MeowBoxController.CurrentPerformanceModeKey) or
             nameof(MeowBoxController.CurrentPerformanceSelectionKey) or
             nameof(MeowBoxController.CurrentChargeLimitPercent) or
+            nameof(MeowBoxController.CurrentBatteryHealthPercent) or
             nameof(MeowBoxController.SwitchToBatteryModeOnDcThresholdPercent) or
             nameof(MeowBoxController.ResetChargeLimitToFullOnStartup) or
             nameof(MeowBoxController.ShowEasterEggs) or
@@ -116,8 +118,6 @@ public sealed partial class BatteryPage : Page
         RuntimeNoticeInfoBar.Title = BuildRuntimeStateText();
         RuntimeNoticeInfoBar.Message = Controller.BatteryControlStatusMessage;
         RuntimeNoticeInfoBar.Severity = ResolveRuntimeNoticeSeverity();
-        RefreshButton.IsEnabled = Controller.ServiceRunning && Controller.WorkerElevated && !Controller.BatteryControlBusy;
-        RefreshButton.Visibility = Controller.ServiceRunning && Controller.WorkerElevated ? Visibility.Visible : Visibility.Collapsed;
 
         RuntimeNoticeInfoBar.Visibility = showNotice ? Visibility.Visible : Visibility.Collapsed;
         RuntimeNoticeInfoBar.IsOpen = showNotice;
@@ -138,6 +138,9 @@ public sealed partial class BatteryPage : Page
 
         SyncPerformanceModeSelectionUi(Controller.CurrentPerformanceSelectionKey, batterySaverTriggered);
         SetSelectedChargeLimit(_requestedChargeLimitPercent ?? Controller.CurrentChargeLimitPercent);
+        BatteryHealthValueTextBlock.Text = Controller.CurrentBatteryHealthLabel;
+        BatteryHealthFillBorder.Width = BatteryHealthFillMaxWidth * Math.Max(0, Controller.CurrentBatteryHealthPercent) / 100d;
+        BatteryHealthIndicatorGrid.Opacity = Controller.CurrentBatteryHealthPercent < 0 ? 0.35 : 1;
         SetSelectedComboBoxTag(SwitchToBatteryModeOnDcComboBox, Controller.SwitchToBatteryModeOnDcThresholdPercent);
         ChargeStartupApplyToggleSwitch.IsOn = Controller.ResetChargeLimitToFullOnStartup;
 
@@ -150,19 +153,14 @@ public sealed partial class BatteryPage : Page
         _isLoading = false;
     }
 
-    private async Task InitializeBatteryControlsAsync(CancellationToken cancellationToken, bool forceRefresh = false)
+    private async Task InitializeBatteryControlsAsync(CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (cancellationToken.IsCancellationRequested || Controller.BatteryControlBusy)
         {
             return;
         }
 
-        if (Controller.BatteryControlBusy)
-        {
-            return;
-        }
-
-        if (!Controller.ServiceRunning || !Controller.WorkerElevated || (!forceRefresh && Controller.BatteryStateKnown))
+        if (!Controller.ServiceRunning || !Controller.WorkerElevated || Controller.BatteryStateKnown)
         {
             return;
         }
@@ -185,17 +183,6 @@ public sealed partial class BatteryPage : Page
                 ResourceStringService.GetString("Battery.Error.Failed", "Battery controls failed"),
                 exception.Message);
         }
-    }
-
-    private async void OnRefreshButtonClick(object sender, RoutedEventArgs e)
-    {
-        if (!Controller.ServiceRunning || !Controller.WorkerElevated)
-        {
-            SyncState();
-            return;
-        }
-
-        await InitializeBatteryControlsAsync(_pageLifetimeCts?.Token ?? CancellationToken.None, forceRefresh: true);
     }
 
     private async void OnPerformanceModeButtonClick(object sender, RoutedEventArgs e)
