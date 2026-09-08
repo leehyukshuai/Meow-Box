@@ -71,6 +71,7 @@ public static class ActionCatalog
             new ActionOption(HotkeyActionType.OpenSettings, ResourceStringService.GetString("Action.OpenSettings.Label", "Open Windows Settings"), ResourceStringService.GetString("Action.OpenSettings.Description", "Launches the native Settings app."), "", ActionTag.System),
             new ActionOption(HotkeyActionType.OpenProjection, ResourceStringService.GetString("Action.OpenProjection.Label", "Open projection switcher"), ResourceStringService.GetString("Action.OpenProjection.Description", "Launches the native projection overlay."), "", ActionTag.System, ActionTag.Display),
             new ActionOption(HotkeyActionType.ToggleTouchpad, ResourceStringService.GetString("Action.ToggleTouchpad.Label", "Toggle touchpad"), ResourceStringService.GetString("Action.ToggleTouchpad.Description", "Turns the Windows touchpad off or back on on supported devices."), "\uEFA5", ActionTag.System),
+            new ActionOption(HotkeyActionType.ToggleTouchscreen, ResourceStringService.GetString("Action.ToggleTouchscreen.Label", "Toggle touchscreen"), ResourceStringService.GetString("Action.ToggleTouchscreen.Description", "Turns the computer touchscreen off or back on."), "", ActionTag.System, ActionTag.Display),
             new ActionOption(HotkeyActionType.MicrophoneMuteOn, ResourceStringService.GetString("Action.MicMuteOn.Label", "Mute microphone input"), ResourceStringService.GetString("Action.MicMuteOn.Description", "Turns the default microphone capture device off."), "", ActionTag.System, ActionTag.Audio),
             new ActionOption(HotkeyActionType.MicrophoneMuteOff, ResourceStringService.GetString("Action.MicMuteOff.Label", "Unmute microphone input"), ResourceStringService.GetString("Action.MicMuteOff.Description", "Turns the default microphone capture device back on."), "", ActionTag.System, ActionTag.Audio),
             new ActionOption(HotkeyActionType.VolumeUp, ResourceStringService.GetString("Action.VolumeUp.Label", "Volume up"), ResourceStringService.GetString("Action.VolumeUp.Description", "Raises the master output volume."), "", ActionTag.Audio, ActionTag.Media),
@@ -187,6 +188,7 @@ public static class ActionCatalog
     {
         return string.Equals(key, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(key, HotkeyActionType.ToggleTouchpad, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(key, HotkeyActionType.ToggleTouchscreen, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(key, HotkeyActionType.ShowFnLockOsd, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(key, HotkeyActionType.ShowCapsLockOsd, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(key, HotkeyActionType.ShowKeyboardBacklightOsd, StringComparison.OrdinalIgnoreCase) ||

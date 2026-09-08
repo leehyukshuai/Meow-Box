@@ -627,7 +627,8 @@ internal sealed class WorkerHost : IDisposable
 
     private static bool ShouldExecuteOnBackgroundThread(KeyActionMappingConfiguration mapping)
     {
-        return string.Equals(mapping.Action?.Type, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(mapping.Action?.Type, HotkeyActionType.CyclePerformanceMode, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(mapping.Action?.Type, HotkeyActionType.ToggleTouchscreen, StringComparison.OrdinalIgnoreCase);
     }
 
     private ActionExecutionOsd? ExecuteAction(ActionDefinitionConfiguration action, InputEvent? inputEvent)
@@ -656,6 +657,8 @@ internal sealed class WorkerHost : IDisposable
                 return null;
             case HotkeyActionType.ToggleTouchpad:
                 return ExecuteToggleTouchpadAction();
+            case HotkeyActionType.ToggleTouchscreen:
+                return ExecuteToggleTouchscreenAction();
             case HotkeyActionType.MicrophoneMuteOn:
                 AudioEndpointController.SetCaptureMute(true);
                 return ResolveBuiltInActionOsd(action.Type);
@@ -867,6 +870,25 @@ internal sealed class WorkerHost : IDisposable
             new IconConfiguration
             {
                 Mode = string.IsNullOrWhiteSpace(assetKey) ? IconSourceMode.None : IconSourceMode.CustomFile,
+                Path = assetKey
+            });
+    }
+
+    private ActionExecutionOsd ExecuteToggleTouchscreenAction()
+    {
+        var isEnabled = _nativeActionService.ToggleTouchscreen();
+        var title = isEnabled
+            ? ResourceStringService.GetString("Osd.Title.TouchscreenOn", "Touchscreen on")
+            : ResourceStringService.GetString("Osd.Title.TouchscreenOff", "Touchscreen off");
+        var assetKey = isEnabled
+            ? BuiltInOsdAsset.TouchscreenOn
+            : BuiltInOsdAsset.TouchscreenOff;
+
+        return new ActionExecutionOsd(
+            title,
+            new IconConfiguration
+            {
+                Mode = IconSourceMode.CustomFile,
                 Path = assetKey
             });
     }

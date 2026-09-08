@@ -195,6 +195,12 @@
   <data name="Osd.Title.Touchpad" xml:space="preserve">
     <value>Touchpad</value>
   </data>
+  <data name="Osd.Title.TouchscreenOn" xml:space="preserve">
+    <value>Touchscreen on</value>
+  </data>
+  <data name="Osd.Title.TouchscreenOff" xml:space="preserve">
+    <value>Touchscreen off</value>
+  </data>
   <data name="OsdDescriptionText.Text" xml:space="preserve">
     <value>Optionally show an OSD when this mapping runs.</value>
   </data>
@@ -732,6 +738,12 @@
   <data name="Action.ToggleTouchpad.Description" xml:space="preserve">
     <value>Turns the Windows touchpad off or back on on supported devices.</value>
   </data>
+  <data name="Action.ToggleTouchscreen.Label" xml:space="preserve">
+    <value>Toggle touchscreen</value>
+  </data>
+  <data name="Action.ToggleTouchscreen.Description" xml:space="preserve">
+    <value>Turns the computer touchscreen off or back on.</value>
+  </data>
   <data name="Action.MicMuteOn.Label" xml:space="preserve">
     <value>Mute microphone input</value>
   </data>
@@ -1130,6 +1142,12 @@
   </data>
   <data name="Worker.DeviceNotSupported" xml:space="preserve">
     <value>The device does not expose the performance mode controls.</value>
+  </data>
+  <data name="Worker.TouchscreenNotFound" xml:space="preserve">
+    <value>No HID touchscreen was found.</value>
+  </data>
+  <data name="Worker.TouchscreenToggleFailed" xml:space="preserve">
+    <value>Windows could not change the touchscreen state.</value>
   </data>
   <data name="TouchpadItem.Content" xml:space="preserve">
     <value>Touch</value>

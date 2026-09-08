@@ -33,6 +33,50 @@ public sealed class NativeActionService
         return TryGetTouchpadEnabled();
     }
 
+    public bool ToggleTouchscreen()
+    {
+        using var searcher = new ManagementObjectSearcher(
+            "SELECT DeviceID, HardwareID, CompatibleID, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE PNPClass = 'HIDClass'");
+        using var results = searcher.Get();
+        var touchscreens = results.Cast<ManagementObject>()
+            .Where(IsTouchscreenDevice)
+            .ToList();
+
+        if (touchscreens.Count == 0)
+        {
+            throw new InvalidOperationException(ResourceStringService.GetString(
+                "Worker.TouchscreenNotFound",
+                "No HID touchscreen was found."));
+        }
+
+        try
+        {
+            var shouldEnable = touchscreens.All(IsDisabledDevice);
+
+            foreach (var touchscreen in touchscreens.Where(device => IsDisabledDevice(device) == shouldEnable))
+            {
+                var deviceId = Convert.ToString(touchscreen["DeviceID"]);
+                if (string.IsNullOrWhiteSpace(deviceId))
+                {
+                    throw new InvalidOperationException(ResourceStringService.GetString(
+                        "Worker.TouchscreenToggleFailed",
+                        "Windows could not change the touchscreen state."));
+                }
+
+                SetPnpDeviceEnabled(deviceId, shouldEnable);
+            }
+
+            return shouldEnable;
+        }
+        finally
+        {
+            foreach (var touchscreen in touchscreens)
+            {
+                touchscreen.Dispose();
+            }
+        }
+    }
+
     public void SendConfiguredKeyChord(KeyChordConfiguration? keyChord)
     {
         var normalizedChord = StandardKeyCatalog.NormalizeChord(keyChord);
@@ -231,6 +275,47 @@ public sealed class NativeActionService
         }
     }
 
+    private static bool IsTouchscreenDevice(ManagementObject device)
+    {
+        return ContainsTouchscreenUsage(device["HardwareID"] as string[]) ||
+               ContainsTouchscreenUsage(device["CompatibleID"] as string[]);
+    }
+
+    private static bool ContainsTouchscreenUsage(IEnumerable<string>? ids)
+    {
+        return ids?.Any(id => id.Contains(TouchscreenHidUsage, StringComparison.OrdinalIgnoreCase)) == true;
+    }
+
+    private static bool IsDisabledDevice(ManagementObject device)
+    {
+        return Convert.ToUInt32(device["ConfigManagerErrorCode"] ?? 0u) == DeviceDisabledErrorCode;
+    }
+
+    private static void SetPnpDeviceEnabled(string deviceId, bool enabled)
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "pnputil.exe"),
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add(enabled ? "/enable-device" : "/disable-device");
+        startInfo.ArgumentList.Add(deviceId);
+
+        using var process = Process.Start(startInfo);
+        if (process is null || !process.WaitForExit(PnpDeviceOperationTimeoutMs) || process.ExitCode != 0)
+        {
+            if (process is { HasExited: false })
+            {
+                process.Kill(entireProcessTree: true);
+            }
+
+            throw new InvalidOperationException(ResourceStringService.GetString(
+                "Worker.TouchscreenToggleFailed",
+                "Windows could not change the touchscreen state."));
+        }
+    }
+
     private static void StepBrightness(int delta)
     {
         if (delta == 0)
@@ -379,6 +464,9 @@ public sealed class NativeActionService
     private const ushort VkMediaNext = 0xB0;
     private const ushort VkMediaPrevious = 0xB1;
     private const ushort VkMediaPlayPause = 0xB3;
+    private const string TouchscreenHidUsage = "UP:000D_U:0004";
+    private const uint DeviceDisabledErrorCode = 22;
+    private const int PnpDeviceOperationTimeoutMs = 10000;
     private const string BrightnessDevicePath = @"\\?\ROOT#SYSTEM#0001#{8888f630-72b2-11d2-b852-00c04fad5171}";
     private const uint GenericWrite = 0x40000000;
     private const uint FileShareRead = 0x1;
