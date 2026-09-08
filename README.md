@@ -18,6 +18,13 @@ Meow Box 是一个适用于 **Xiaomi Book Pro 14 2026** 的厂商按键和触控
 
 ### ✨ 更新状况
 
+#### **v3.3.0**
+
+- 优化了界面布局和控件交互
+- 加入了大小写切换提示开关
+- 加入了关闭或重新开启触摸屏的按键动作
+- 在设置页显示当前版本号
+
 #### **v3.2.0**
 
 - 修复了触控板重按永不触发失效的问题
@@ -110,7 +117,7 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 
 可选参数：
 
-- `-Version 1.0.0` — 指定输出版本号
+- `-Version 3.3.0` — 覆盖版本号；默认读取 `Directory.Build.props`，同步用于程序、压缩包和安装包
 - `-Zip` — 额外生成 Portable zip 包
 - `-Msi` — 额外生成 MSI 安装包
 - `-SelfContained` — 生成自包含包，内置 .NET 和 Windows App SDK 运行时
@@ -118,10 +125,10 @@ dotnet build .\src\MeowBox.Controller\MeowBox.Controller.csproj -c Debug
 示例：
 
 ```powershell
-.\build.ps1 -Version 1.0.0 -Zip
-.\build.ps1 -Version 1.0.0 -Msi
-.\build.ps1 -Version 1.0.0 -Zip -Msi
-.\build.ps1 -Version 1.0.0 -Zip -SelfContained
+.\build.ps1 -Zip
+.\build.ps1 -Msi
+.\build.ps1 -Zip -Msi
+.\build.ps1 -Zip -SelfContained
 ```
 
 本地构建输出：
@@ -159,6 +166,13 @@ Meow Box is a customization tool for **Xiaomi Book Pro 14 2026**, focused on OEM
 > The current codebase is a standalone adaptation of the author's previous project, [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool), specifically tailored for `Xiaomi Book Pro 14 2026`. If your device does not match, you can use [`Fn Mapping Tool`](https://github.com/leehyukshuai/Fn-Mapping-Tool) for the supported version instead.
 
 ### ✨ Release status
+
+#### **v3.3.0**
+
+- Improved the interface layout and controls
+- Added a Caps Lock indicator toggle
+- Added an action to turn the touchscreen off or back on
+- Added the current version to Settings
 
 #### **v3.2.0**
 
@@ -252,7 +266,7 @@ For release packaging, use:
 
 Optional arguments:
 
-- `-Version 1.0.0` — sets the output version
+- `-Version 3.3.0` — overrides the version; defaults to `Directory.Build.props` and applies to the application, archive, and installer
 - `-Zip` — also builds a Portable zip
 - `-Msi` — also builds an MSI installer
 - `-SelfContained` — builds a self-contained package with bundled .NET and Windows App SDK runtimes
@@ -260,10 +274,10 @@ Optional arguments:
 Examples:
 
 ```powershell
-.\build.ps1 -Version 1.0.0 -Zip
-.\build.ps1 -Version 1.0.0 -Msi
-.\build.ps1 -Version 1.0.0 -Zip -Msi
-.\build.ps1 -Version 1.0.0 -Zip -SelfContained
+.\build.ps1 -Zip
+.\build.ps1 -Msi
+.\build.ps1 -Zip -Msi
+.\build.ps1 -Zip -SelfContained
 ```
 
 Local build outputs:
