@@ -195,6 +195,12 @@
   <data name="Osd.Title.Touchpad" xml:space="preserve">
     <value>触控板</value>
   </data>
+  <data name="Osd.Title.TouchscreenOn" xml:space="preserve">
+    <value>触摸屏已开启</value>
+  </data>
+  <data name="Osd.Title.TouchscreenOff" xml:space="preserve">
+    <value>触摸屏已关闭</value>
+  </data>
   <data name="OsdDescriptionText.Text" xml:space="preserve">
     <value>可选：在此映射运行时显示 OSD。</value>
   </data>
@@ -720,6 +726,12 @@
   <data name="Action.ToggleTouchpad.Description" xml:space="preserve">
     <value>在支持的设备上关闭或重新开启 Windows 触控板。</value>
   </data>
+  <data name="Action.ToggleTouchscreen.Label" xml:space="preserve">
+    <value>切换触摸屏开关</value>
+  </data>
+  <data name="Action.ToggleTouchscreen.Description" xml:space="preserve">
+    <value>关闭或重新开启电脑触摸屏。</value>
+  </data>
   <data name="Action.MicMuteOn.Label" xml:space="preserve">
     <value>麦克风静音</value>
   </data>
@@ -1118,6 +1130,12 @@
   </data>
   <data name="Worker.DeviceNotSupported" xml:space="preserve">
     <value>设备没有暴露性能模式控制接口。</value>
+  </data>
+  <data name="Worker.TouchscreenNotFound" xml:space="preserve">
+    <value>未找到 HID 触摸屏。</value>
+  </data>
+  <data name="Worker.TouchscreenToggleFailed" xml:space="preserve">
+    <value>Windows 无法更改触摸屏状态。</value>
   </data>
   <data name="TouchpadItem.Content" xml:space="preserve">
     <value>触控板</value>

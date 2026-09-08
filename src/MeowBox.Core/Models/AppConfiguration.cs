@@ -258,6 +258,7 @@ public static class HotkeyActionType
     public const string OpenSettings = "OpenSettings";
     public const string OpenProjection = "OpenProjection";
     public const string ToggleTouchpad = "ToggleTouchpad";
+    public const string ToggleTouchscreen = "ToggleTouchscreen";
     public const string MicrophoneMuteOn = "MicrophoneMuteOn";
     public const string MicrophoneMuteOff = "MicrophoneMuteOff";
     public const string VolumeUp = "VolumeUp";
@@ -321,6 +322,8 @@ public static class BuiltInOsdAsset
     public const string BacklightAuto = "backlight-auto";
     public const string TouchpadOff = "touchpad-off";
     public const string TouchpadOn = "touchpad-on";
+    public const string TouchscreenOff = "touchscreen-off";
+    public const string TouchscreenOn = "touchscreen-on";
     public const string PerformanceBattery = "performance-battery";
     public const string PerformanceSilent = "performance-silent";
     public const string PerformanceSmart = "performance-smart";
