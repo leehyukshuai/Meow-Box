@@ -5,7 +5,7 @@
     <InstallerPlatform>x64</InstallerPlatform>
     <Platform>x64</Platform>
     <Culture>en-US</Culture>
-    <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0</ProductVersion>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">$(Version)</ProductVersion>
     <OutputName>MeowBox.Setup</OutputName>
     <SuppressValidation>true</SuppressValidation>
     <DefineConstants>ProductVersion=$(ProductVersion)</DefineConstants>

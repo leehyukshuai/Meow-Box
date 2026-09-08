@@ -191,7 +191,14 @@
                 </Border>
                 <Border x:Name="SupportCard" Style="{StaticResource PanelCardStyle}">
                     <StackPanel Spacing="14">
-                        <TextBlock x:Uid="OpenSourceSupportCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Open source and support" />
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Uid="OpenSourceSupportCardTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Open source and support" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind AppVersion}" VerticalAlignment="Center" />
+                        </Grid>
                         <Border Style="{StaticResource FlatPanelStyle}">
                             <StackPanel Spacing="10">
                                 <TextBlock x:Uid="ProjectIntroTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Project intro" />

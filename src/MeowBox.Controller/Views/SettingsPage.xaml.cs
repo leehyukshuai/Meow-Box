@@ -17,6 +17,8 @@ public sealed partial class SettingsPage : Page
 
     public MeowBoxController Controller => App.Controller;
 
+    public string AppVersion => $"v{typeof(App).Assembly.GetName().Version!.ToString(3)}";
+
     public SettingsPage()
     {
         InitializeComponent();

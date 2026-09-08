@@ -1,12 +1,17 @@
 param(
     [ValidatePattern('^\d+\.\d+\.\d+$')]
-    [string]$Version = '0.1.0',
+    [string]$Version,
     [switch]$Zip,
     [switch]$Msi,
     [switch]$SelfContained
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    [xml]$versionProperties = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Directory.Build.props') -Raw
+    $Version = [string]$versionProperties.Project.PropertyGroup.Version
+}
 
 function Invoke-Dotnet {
     param([string[]]$Arguments)
@@ -210,7 +215,8 @@ New-Item -ItemType Directory -Force -Path $artifactsRoot | Out-Null
 $publishArguments = @(
     '-c', 'Release',
     '-r', 'win-x64',
-    '-p:Platform=x64'
+    '-p:Platform=x64',
+    ('-p:Version={0}' -f $Version)
 )
 
 if ($SelfContained) {

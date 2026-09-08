@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <Version>3.2.0</Version>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)build\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
   </PropertyGroup>
