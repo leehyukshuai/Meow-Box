@@ -92,7 +92,7 @@
 
                             <TextBlock x:Uid="MappingDetailsTitleText" Style="{StaticResource SectionTitleTextBlockStyle}" Text="Mapping details" />
 
-                            <Border Grid.Row="1" Style="{StaticResource SubtlePanelCardStyle}">
+                            <Border Grid.Row="1" Padding="0,0,0,16" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
                                 <StackPanel Spacing="12">
                                     <StackPanel Spacing="2">
                                         <TextBlock Style="{StaticResource CardTitleTextBlockStyle}" Text="{Binding SelectedMapping.KeyDisplayName, Mode=OneWay}" />
@@ -101,7 +101,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Row="2" Style="{StaticResource SubtlePanelCardStyle}">
+                            <Border Grid.Row="2">
                                 <StackPanel Spacing="16">
                                     <Grid ColumnSpacing="12">
                                         <Grid.ColumnDefinitions>

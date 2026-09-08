@@ -334,10 +334,10 @@
     <value>OSD 大小（%）</value>
   </data>
   <data name="CapsLockOsdTitleText.Text" xml:space="preserve">
-    <value>Caps Lock OSD</value>
+    <value>大小写切换提示</value>
   </data>
   <data name="CapsLockOsdDescriptionText.Text" xml:space="preserve">
-    <value>切换大写锁定状态时显示 OSD。</value>
+    <value>按下 Caps Lock 键时，显示大写锁定的开启或关闭状态。</value>
   </data>
   <data name="ClearActionButtonText.Content" xml:space="preserve">
     <value>清空动作</value>
@@ -1287,4 +1287,24 @@
   <data name="TouchpadFeedbackStrongerItem.Content" xml:space="preserve">
     <value>较强</value>
   </data>
+  <data name="ThemeSettingLabel.Text" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="LanguageSettingLabel.Text" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="OsdContentSettingLabel.Text" xml:space="preserve">
+    <value>OSD 内容</value>
+  </data>
+  <data name="OsdDurationSettingLabel.Text" xml:space="preserve">
+    <value>OSD 持续时间（毫秒）</value>
+  </data>
+  <data name="OsdOpacitySettingLabel.Text" xml:space="preserve">
+    <value>背景不透明度（%）</value>
+  </data>
+  <data name="OsdScaleSettingLabel.Text" xml:space="preserve">
+    <value>OSD 大小（%）</value>
+  </data>
+  <data name="DecreaseValueButton.AutomationProperties.Name" xml:space="preserve"><value>减少数值</value></data>
+  <data name="IncreaseValueButton.AutomationProperties.Name" xml:space="preserve"><value>增加数值</value></data>
 </root>

@@ -218,7 +218,7 @@ internal sealed class OsdForm : Form
         var targetScreen = ResolveTargetScreen(targetWindow);
         ApplyScaledLayout(ResolveScaleFactor(targetWindow), preferences);
         UpdateSteadyPosition(targetScreen.WorkingArea);
-        BeginShowAnimation(Math.Clamp(preferences.DurationMs, 500, 10000));
+        BeginShowAnimation(OsdPreferences.NormalizeDuration(preferences.DurationMs));
         Invalidate();
     }
 
@@ -327,7 +327,9 @@ internal sealed class OsdForm : Form
 
     private void ApplyScaledLayout(float dpiScaleFactor, OsdPreferences preferences)
     {
-        var scale = Math.Max(0.42f, dpiScaleFactor * (Math.Clamp(preferences.ScalePercent, 60, 200) / 100f) * SizeBaselineFactor);
+        var sizeFactor = OsdPreferences.NormalizeSize(preferences.SizePercent) / 100f;
+        var baselineScale = dpiScaleFactor * (RuntimeDefaults.DefaultOsdScalePercent / 100f) * SizeBaselineFactor;
+        var scale = baselineScale * sizeFactor;
         _showOffsetPx = ScaleValue(18, scale);
         _hideOffsetPx = ScaleValue(10, scale);
         _bottomMarginPx = ScaleValue(BaseBottomMarginPx, scale);
@@ -341,7 +343,7 @@ internal sealed class OsdForm : Form
             ScaleValue(132, scale),
             Math.Max(ScaleValue(84, scale), ScaleValue(BaseIconOnlySizePx, scale) - ScaleValue(36, scale)));
         _titleFont.Dispose();
-        _titleFont = CreateTitleFont(Math.Max(19, ScaleValue(BaseTitleFontPx, scale)));
+        _titleFont = CreateTitleFont(ScaleValue(Math.Max(19, ScaleValue(BaseTitleFontPx, baselineScale)), sizeFactor));
 
         var displayMode = ResolveEffectiveDisplayMode();
         var measuredTitleWidth = Math.Min(

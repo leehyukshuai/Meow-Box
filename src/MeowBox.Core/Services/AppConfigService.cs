@@ -232,18 +232,14 @@ public sealed class AppConfigService
             OsdDisplayMode.TextOnly => OsdDisplayMode.TextOnly,
             _ => OsdDisplayMode.IconAndText
         };
-        configuration.Preferences.Osd.DurationMs = Math.Clamp(
-            configuration.Preferences.Osd.DurationMs <= 0 ? RuntimeDefaults.DefaultOsdDurationMs : configuration.Preferences.Osd.DurationMs,
-            500,
-            10000);
-        configuration.Preferences.Osd.BackgroundOpacityPercent = Math.Clamp(
-            configuration.Preferences.Osd.BackgroundOpacityPercent < 0 ? RuntimeDefaults.DefaultOsdBackgroundOpacityPercent : configuration.Preferences.Osd.BackgroundOpacityPercent,
-            0,
-            100);
-        configuration.Preferences.Osd.ScalePercent = Math.Clamp(
-            configuration.Preferences.Osd.ScalePercent <= 0 ? RuntimeDefaults.DefaultOsdScalePercent : configuration.Preferences.Osd.ScalePercent,
-            60,
-            200);
+        var osd = configuration.Preferences.Osd;
+        osd.DurationMs = OsdPreferences.NormalizeDuration(osd.DurationMs <= 0 ? RuntimeDefaults.DefaultOsdDurationMs : osd.DurationMs);
+        osd.BackgroundOpacityPercent = OsdPreferences.NormalizeOpacity(osd.BackgroundOpacityPercent < 0 ? RuntimeDefaults.DefaultOsdBackgroundOpacityPercent : osd.BackgroundOpacityPercent);
+        if (osd.ScalePercent <= 0)
+        {
+            osd.ScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
+        }
+        osd.SizePercent = OsdPreferences.NormalizeSize(osd.SizePercent);
         configuration.Touchpad = NormalizeTouchpadConfiguration(configuration.Touchpad, baseDirectory);
 
         configuration.Keys = supportedKeys

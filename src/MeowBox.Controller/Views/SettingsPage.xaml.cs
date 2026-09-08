@@ -13,7 +13,7 @@ public sealed partial class SettingsPage : Page
     private static readonly Uri GitHubRepositoryUri = new("https://github.com/leehyukshuai/Meow-Box");
     private static readonly Uri BilibiliHomeUri = new("https://space.bilibili.com/687988554");
 
-    private bool _isLoading;
+    private bool _isLoading = true;
 
     public MeowBoxController Controller => App.Controller;
 
@@ -46,7 +46,7 @@ public sealed partial class SettingsPage : Page
             nameof(MeowBoxController.OsdDurationMs) or
             nameof(MeowBoxController.OsdDisplayMode) or
             nameof(MeowBoxController.OsdBackgroundOpacityPercent) or
-            nameof(MeowBoxController.OsdScalePercent) or
+            nameof(MeowBoxController.OsdSizePercent) or
             nameof(MeowBoxController.CapsLockOsdEnabled))
         {
             DispatcherQueue.TryEnqueue(SyncState);
@@ -64,8 +64,14 @@ public sealed partial class SettingsPage : Page
         TrayIconToggleSwitch.IsOn = Controller.TrayIconEnabled;
         ShowEasterEggsToggleSwitch.IsOn = Controller.ShowEasterEggs;
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
+        OsdDurationDecreaseButton.IsEnabled = OsdDurationNumberBox.Value > OsdDurationNumberBox.Minimum;
+        OsdDurationIncreaseButton.IsEnabled = OsdDurationNumberBox.Value < OsdDurationNumberBox.Maximum;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
-        OsdScaleNumberBox.Value = Controller.OsdScalePercent;
+        OsdBackgroundOpacityDecreaseButton.IsEnabled = OsdBackgroundOpacityNumberBox.Value > OsdBackgroundOpacityNumberBox.Minimum;
+        OsdBackgroundOpacityIncreaseButton.IsEnabled = OsdBackgroundOpacityNumberBox.Value < OsdBackgroundOpacityNumberBox.Maximum;
+        OsdSizeNumberBox.Value = Controller.OsdSizePercent;
+        OsdSizeDecreaseButton.IsEnabled = OsdSizeNumberBox.Value > OsdSizeNumberBox.Minimum;
+        OsdSizeIncreaseButton.IsEnabled = OsdSizeNumberBox.Value < OsdSizeNumberBox.Maximum;
         CapsLockOsdToggleSwitch.IsOn = Controller.CapsLockOsdEnabled;
         ConfigPathTextBox.Text = Controller.ConfigPath;
         _isLoading = false;
@@ -73,17 +79,19 @@ public sealed partial class SettingsPage : Page
 
     private void ApplyOsdSettingsFromControls()
     {
-        if (_isLoading)
+        if (_isLoading || double.IsNaN(OsdDurationNumberBox.Value) ||
+            double.IsNaN(OsdBackgroundOpacityNumberBox.Value) || double.IsNaN(OsdSizeNumberBox.Value))
         {
             return;
         }
 
         var displayMode = (OsdDisplayModeComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? OsdDisplayMode.IconOnly;
         Controller.ApplyOsdPreferences(
-            (int)Math.Round(Math.Max(500, OsdDurationNumberBox.Value)),
+            (int)OsdDurationNumberBox.Value,
             displayMode,
-            (int)Math.Round(Math.Clamp(OsdBackgroundOpacityNumberBox.Value, 0, 100)),
-            (int)Math.Round(Math.Clamp(OsdScaleNumberBox.Value, 60, 200)));
+            (int)OsdBackgroundOpacityNumberBox.Value,
+            (int)OsdSizeNumberBox.Value);
+        SyncState();
     }
 
     private void OnThemeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -128,6 +136,27 @@ public sealed partial class SettingsPage : Page
     private void OnOsdNumberValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
         ApplyOsdSettingsFromControls();
+    }
+
+    private void OnOsdNumberLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (!_isLoading)
+        {
+            SyncState();
+        }
+    }
+
+    private void OnOsdStepClick(object sender, RoutedEventArgs e)
+    {
+        var parts = ((string)((Control)sender).Tag).Split(':');
+        var numberBox = parts[0] switch
+        {
+            "Duration" => OsdDurationNumberBox,
+            "BackgroundOpacity" => OsdBackgroundOpacityNumberBox,
+            _ => OsdSizeNumberBox
+        };
+        var value = double.IsNaN(numberBox.Value) ? numberBox.Minimum : numberBox.Value;
+        numberBox.Value = Math.Clamp(value + int.Parse(parts[1]) * numberBox.SmallChange, numberBox.Minimum, numberBox.Maximum);
     }
 
     private void OnCapsLockOsdChanged(object sender, RoutedEventArgs e)

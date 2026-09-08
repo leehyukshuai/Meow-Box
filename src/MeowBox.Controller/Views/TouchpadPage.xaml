@@ -289,9 +289,9 @@
                     <Border
                         x:Name="TouchpadHardwareControlPanel"
                         Grid.Column="1"
-                        Style="{StaticResource InsetPanelCardStyle}">
+                        Padding="0">
                         <StackPanel Spacing="12">
-                            <Border Style="{StaticResource SubtlePanelCardStyle}" Padding="12">
+                            <Border Padding="12">
                                 <StackPanel Spacing="10">
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
@@ -347,7 +347,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource SubtlePanelCardStyle}" Padding="12">
+                            <Border Style="{StaticResource FlatPanelStyle}" Padding="12">
                                 <StackPanel Spacing="10">
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
@@ -404,7 +404,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource SubtlePanelCardStyle}" Padding="12">
+                            <Border Style="{StaticResource FlatPanelStyle}" Padding="12">
                                 <StackPanel Spacing="10">
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>

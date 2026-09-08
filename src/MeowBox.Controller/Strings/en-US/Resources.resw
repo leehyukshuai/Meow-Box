@@ -334,10 +334,10 @@
     <value>OSD size (%)</value>
   </data>
   <data name="CapsLockOsdTitleText.Text" xml:space="preserve">
-    <value>Caps Lock OSD</value>
+    <value>Caps Lock indicator</value>
   </data>
   <data name="CapsLockOsdDescriptionText.Text" xml:space="preserve">
-    <value>Show the Caps Lock state when it changes.</value>
+    <value>When you press Caps Lock, show whether it is on or off.</value>
   </data>
   <data name="ClearActionButtonText.Content" xml:space="preserve">
     <value>Clear action</value>
@@ -1287,4 +1287,24 @@
   <data name="TouchpadFeedbackStrongerItem.Content" xml:space="preserve">
     <value>Stronger</value>
   </data>
+  <data name="ThemeSettingLabel.Text" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="LanguageSettingLabel.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="OsdContentSettingLabel.Text" xml:space="preserve">
+    <value>OSD content</value>
+  </data>
+  <data name="OsdDurationSettingLabel.Text" xml:space="preserve">
+    <value>OSD duration (ms)</value>
+  </data>
+  <data name="OsdOpacitySettingLabel.Text" xml:space="preserve">
+    <value>Background opacity (%)</value>
+  </data>
+  <data name="OsdScaleSettingLabel.Text" xml:space="preserve">
+    <value>OSD size (%)</value>
+  </data>
+  <data name="DecreaseValueButton.AutomationProperties.Name" xml:space="preserve"><value>Decrease value</value></data>
+  <data name="IncreaseValueButton.AutomationProperties.Name" xml:space="preserve"><value>Increase value</value></data>
 </root>

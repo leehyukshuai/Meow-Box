@@ -34,7 +34,7 @@
 
                         <Border
                             Padding="12"
-                            Style="{StaticResource SubtlePanelCardStyle}">
+                            Style="{StaticResource FlatPanelStyle}">
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -140,7 +140,7 @@
                         </Border>
 
                         <Border
-                            Style="{StaticResource SubtlePanelCardStyle}">
+                            Style="{StaticResource FlatPanelStyle}">
                             <StackPanel
                                 x:Name="PerformanceCycleSettingsPanel"
                                 Spacing="8">
@@ -222,7 +222,7 @@
                             Title="" />
 
                         <Border
-                            Style="{StaticResource SubtlePanelCardStyle}"
+                            Style="{StaticResource FlatPanelStyle}"
                             Padding="12">
                             <Grid ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -272,22 +272,24 @@
                     Grid.Row="2"
                     Visibility="Collapsed"
                     Style="{StaticResource PanelCardStyle}">
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="0">
                         <TextBlock
                             x:Uid="BatteryChargeTitleText"
+                            Margin="0,0,0,14"
                             Style="{StaticResource SectionTitleTextBlockStyle}"
                             Text="Smart charging" />
 
                         <InfoBar
                             x:Uid="BatteryChargeInfoBar"
+                            Margin="0,0,0,14"
                             IsClosable="False"
                             IsOpen="True"
                             Severity="Informational" />
 
                         <Border
                             Padding="12"
-                            Style="{StaticResource SubtlePanelCardStyle}">
-                            <Grid ColumnSpacing="16">
+                            Style="{StaticResource FlatPanelStyle}">
+                            <Grid ColumnSpacing="16" MinHeight="32">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -320,71 +322,32 @@
                         </Border>
 
                         <Border
-                            Style="{StaticResource SubtlePanelCardStyle}"
+                            Style="{StaticResource FlatPanelStyle}"
                             Padding="12">
-                            <StackPanel Spacing="8">
-                                <TextBlock
-                                    x:Uid="ChargeLimitLabelTextBlock"
-                                    x:Name="ChargeLimitLabelTextBlock"
-                                    Style="{StaticResource CardTitleTextBlockStyle}"
-                                    Text="Charge limit"
-                                    VerticalAlignment="Top" />
-
-                                <Slider
-                                    x:Name="ChargeLimitSlider"
-                                    Width="360"
-                                    HorizontalAlignment="Left"
-                                    IsThumbToolTipEnabled="True"
-                                    KeyDown="OnChargeLimitSliderKeyDown"
-                                    KeyUp="OnChargeLimitSliderKeyUp"
-                                    LostFocus="OnChargeLimitSliderLostFocus"
-                                    Maximum="100"
-                                    Minimum="60"
-                                    PointerCaptureLost="OnChargeLimitSliderPointerCaptureLost"
-                                    PointerPressed="OnChargeLimitSliderPointerPressed"
-                                    PointerReleased="OnChargeLimitSliderPointerReleased"
-                                    SmallChange="10"
-                                    SnapsTo="Ticks"
-                                    StepFrequency="10"
-                                    TickFrequency="10"
-                                    TickPlacement="BottomRight"
-                                    SizeChanged="OnChargeLimitSliderSizeChanged"
-                                    ValueChanged="OnChargeLimitSliderValueChanged" />
-
-                                <Canvas
-                                    x:Name="ChargeLimitTickLabelsCanvas"
-                                    Width="360"
-                                    Height="20"
-                                    HorizontalAlignment="Left"
-                                    IsHitTestVisible="False">
-                                    <TextBlock
-                                        x:Name="Charge60Label"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="60%" />
-                                    <TextBlock
-                                        x:Name="Charge70Label"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="70%" />
-                                    <TextBlock
-                                        x:Name="Charge80Label"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="80%" />
-                                    <TextBlock
-                                        x:Name="Charge90Label"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="90%" />
-                                    <TextBlock
-                                        x:Name="Charge100Label"
-                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                        Text="100%" />
-                                </Canvas>
-                            </StackPanel>
+                            <Grid ColumnSpacing="16" MinHeight="32">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="ChargeLimitLabelTextBlock" x:Name="ChargeLimitLabelTextBlock"
+                                    Style="{StaticResource CardTitleTextBlockStyle}" Text="Charge limit" VerticalAlignment="Center" />
+                                <ComboBox x:Name="ChargeLimitComboBox" Grid.Column="1"
+                                    Style="{StaticResource SettingComboBoxStyle}"
+                                    AutomationProperties.LabeledBy="{Binding ElementName=ChargeLimitLabelTextBlock}"
+                                    SelectionChanged="OnChargeLimitSelectionChanged">
+                                    <ComboBoxItem Content="60%" Tag="60" />
+                                    <ComboBoxItem Content="70%" Tag="70" />
+                                    <ComboBoxItem Content="80%" Tag="80" />
+                                    <ComboBoxItem Content="90%" Tag="90" />
+                                    <ComboBoxItem Content="100%" Tag="100" />
+                                </ComboBox>
+                            </Grid>
                         </Border>
 
                         <Border
-                            Style="{StaticResource SubtlePanelCardStyle}"
+                            Style="{StaticResource FlatPanelStyle}"
                             Padding="12">
-                            <Grid ColumnSpacing="12">
+                            <Grid ColumnSpacing="12" MinHeight="32">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -399,6 +362,9 @@
                                     VerticalAlignment="Center" />
                                 <ToggleSwitch
                                     x:Name="ChargeStartupApplyToggleSwitch"
+                                    MinHeight="32" Height="32"
+                                    Style="{StaticResource AlignedToggleSwitchStyle}"
+                                    AutomationProperties.LabeledBy="{Binding ElementName=ChargeStartupResetLabelTextBlock}"
                                     Grid.Column="1"
                                     Toggled="OnChargeStartupApplyToggled"
                                     VerticalAlignment="Center">

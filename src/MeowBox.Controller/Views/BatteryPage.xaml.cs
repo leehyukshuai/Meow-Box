@@ -3,12 +3,9 @@ using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using MeowBox.Controller.Services;
 using MeowBox.Core.Models;
-using Windows.System;
 using MeowBox.Core.Services;
 
 namespace MeowBox.Controller.Views;
@@ -21,11 +18,8 @@ public sealed partial class BatteryPage : Page
     private const double PerformanceCatDarkOpacity = 0.42;
     private bool _isLoading;
     private bool _isActive;
-    private bool _isChargeLimitPointerInteraction;
-    private bool _isChargeLimitKeyboardInteraction;
     private bool _isApplyingChargeLimit;
     private int? _requestedChargeLimitPercent;
-    private double? _cachedChargeLimitThumbHalfWidth;
     private CancellationTokenSource? _pageLifetimeCts;
 
     public MeowBoxController Controller => App.Controller;
@@ -49,7 +43,6 @@ public sealed partial class BatteryPage : Page
         UpdatePerformanceCatArtSources();
         SyncState();
         _ = InitializeBatteryControlsAsync(_pageLifetimeCts.Token);
-        DispatcherQueue.TryEnqueue(UpdateChargeLimitTickLabelsLayout);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -103,7 +96,6 @@ public sealed partial class BatteryPage : Page
         PerformanceExtremeButton.Content = CreatePerformanceModeButtonContent(
             ResourceStringService.GetString("PerformanceExtremeInfoBar.Title", "Extreme mode"),
             "\uE945");
-        UpdateChargeLimitTickLabelsLayout();
     }
 
     private void SyncState()
@@ -141,7 +133,7 @@ public sealed partial class BatteryPage : Page
         SetSelectedComboBoxTag(SwitchToBatteryModeOnDcComboBox, Controller.SwitchToBatteryModeOnDcThresholdPercent);
         ChargeStartupApplyToggleSwitch.IsOn = Controller.ResetChargeLimitToFullOnStartup;
 
-        ChargeLimitSlider.IsEnabled = controlsEnabled;
+        ChargeLimitComboBox.IsEnabled = controlsEnabled;
         PerformanceCycleSettingsPanel.IsHitTestVisible = !Controller.BatteryControlBusy;
         PerformanceCycleSettingsPanel.Opacity = Controller.BatteryControlBusy ? 0.6 : 1;
         SwitchToBatteryModeOnDcComboBox.IsEnabled = !Controller.BatteryControlBusy;
@@ -243,72 +235,15 @@ public sealed partial class BatteryPage : Page
         }
     }
 
-    private void OnChargeLimitSliderValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    private void OnChargeLimitSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var percent = NormalizeChargeLimit(e.NewValue);
-        if (_isLoading || !_isActive || !Controller.BatteryStateKnown || !Controller.BatteryControlSupported)
+        if (_isLoading || !_isActive || !Controller.BatteryStateKnown || !Controller.BatteryControlSupported ||
+            ChargeLimitComboBox.SelectedItem is not ComboBoxItem item)
         {
             return;
         }
 
-        if (percent == Controller.CurrentChargeLimitPercent)
-        {
-            CancelPendingChargeLimitUpdate();
-            return;
-        }
-
-        _requestedChargeLimitPercent = percent;
-        if (!_isChargeLimitPointerInteraction && !_isChargeLimitKeyboardInteraction)
-        {
-            _ = ApplyPendingChargeLimitAsync();
-        }
-    }
-
-    private void OnChargeLimitSliderSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        UpdateChargeLimitTickLabelsLayout();
-    }
-
-    private void OnChargeLimitSliderPointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        _isChargeLimitPointerInteraction = true;
-    }
-
-    private void OnChargeLimitSliderPointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        _isChargeLimitPointerInteraction = false;
-        _ = ApplyPendingChargeLimitAsync();
-    }
-
-    private void OnChargeLimitSliderPointerCaptureLost(object sender, PointerRoutedEventArgs e)
-    {
-        _isChargeLimitPointerInteraction = false;
-        _ = ApplyPendingChargeLimitAsync();
-    }
-
-    private void OnChargeLimitSliderLostFocus(object sender, RoutedEventArgs e)
-    {
-        _isChargeLimitPointerInteraction = false;
-        _isChargeLimitKeyboardInteraction = false;
-        _ = ApplyPendingChargeLimitAsync();
-    }
-
-    private void OnChargeLimitSliderKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (IsChargeLimitAdjustmentKey(e.Key))
-        {
-            _isChargeLimitKeyboardInteraction = true;
-        }
-    }
-
-    private void OnChargeLimitSliderKeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        if (!IsChargeLimitAdjustmentKey(e.Key))
-        {
-            return;
-        }
-
-        _isChargeLimitKeyboardInteraction = false;
+        _requestedChargeLimitPercent = ParseComboBoxItemTag(item.Tag);
         _ = ApplyPendingChargeLimitAsync();
     }
 
@@ -467,36 +402,7 @@ public sealed partial class BatteryPage : Page
 
     private void SetSelectedChargeLimit(int percent)
     {
-        var normalized = Math.Max(60, BatteryControlCatalog.NormalizeChargeLimitPercent(percent));
-        if (Math.Abs(ChargeLimitSlider.Value - normalized) < 0.1)
-        {
-            return;
-        }
-
-        ChargeLimitSlider.Value = normalized;
-    }
-
-    private int NormalizeChargeLimit(double value)
-    {
-        var rounded = (int)Math.Round(value / 10d, MidpointRounding.AwayFromZero) * 10;
-        return Math.Max(60, BatteryControlCatalog.NormalizeChargeLimitPercent(rounded));
-    }
-
-    private void CancelPendingChargeLimitUpdate()
-    {
-        _requestedChargeLimitPercent = null;
-    }
-
-    private static bool IsChargeLimitAdjustmentKey(VirtualKey key)
-    {
-        return key is VirtualKey.Left or
-            VirtualKey.Right or
-            VirtualKey.Up or
-            VirtualKey.Down or
-            VirtualKey.Home or
-            VirtualKey.End or
-            VirtualKey.PageUp or
-            VirtualKey.PageDown;
+        SetSelectedComboBoxTag(ChargeLimitComboBox, Math.Max(60, BatteryControlCatalog.NormalizeChargeLimitPercent(percent)));
     }
 
     private static int ParseComboBoxItemTag(object? tag)
@@ -547,9 +453,7 @@ public sealed partial class BatteryPage : Page
         finally
         {
             _isApplyingChargeLimit = false;
-            if (!_isChargeLimitPointerInteraction &&
-                !_isChargeLimitKeyboardInteraction &&
-                _requestedChargeLimitPercent is int pendingPercent &&
+            if (_requestedChargeLimitPercent is int pendingPercent &&
                 pendingPercent != Controller.CurrentChargeLimitPercent)
             {
                 _ = ApplyPendingChargeLimitAsync();
@@ -663,82 +567,6 @@ public sealed partial class BatteryPage : Page
             var key when string.Equals(key, BatteryControlCatalog.Extreme, StringComparison.OrdinalIgnoreCase) => ColorHelper.FromArgb(255, 217, 146, 78),
             _ => ColorHelper.FromArgb(255, 88, 166, 103)
         };
-    }
-
-    private void UpdateChargeLimitTickLabelsLayout()
-    {
-        if (!ChargeLimitSlider.IsLoaded || !ChargeLimitTickLabelsCanvas.IsLoaded)
-        {
-            return;
-        }
-
-        var labels = GetChargeLimitTickLabels().ToArray();
-        if (labels.Length == 0)
-        {
-            return;
-        }
-
-        var sliderWidth = ChargeLimitSlider.ActualWidth;
-        if (sliderWidth <= 0)
-        {
-            return;
-        }
-
-        var thumbHalfWidth = GetChargeLimitThumbHalfWidth();
-        var usableWidth = Math.Max(0, sliderWidth - (thumbHalfWidth * 2));
-        var stepCount = labels.Length - 1;
-        for (var index = 0; index < labels.Length; index++)
-        {
-            var label = labels[index];
-            label.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
-            var labelWidth = label.DesiredSize.Width;
-            var center = thumbHalfWidth + (usableWidth * index / stepCount);
-            Canvas.SetLeft(label, center - (labelWidth / 2));
-        }
-    }
-
-    private double GetChargeLimitThumbHalfWidth()
-    {
-        if (_cachedChargeLimitThumbHalfWidth.HasValue)
-        {
-            return _cachedChargeLimitThumbHalfWidth.Value;
-        }
-
-        var thumb = FindDescendant<Thumb>(ChargeLimitSlider);
-        _cachedChargeLimitThumbHalfWidth = thumb is not null && thumb.ActualWidth > 0
-            ? thumb.ActualWidth / 2
-            : 10;
-        return _cachedChargeLimitThumbHalfWidth.Value;
-    }
-
-    private IEnumerable<TextBlock> GetChargeLimitTickLabels()
-    {
-        yield return Charge60Label;
-        yield return Charge70Label;
-        yield return Charge80Label;
-        yield return Charge90Label;
-        yield return Charge100Label;
-    }
-
-    private static T? FindDescendant<T>(DependencyObject root)
-        where T : DependencyObject
-    {
-        for (var childIndex = 0; childIndex < VisualTreeHelper.GetChildrenCount(root); childIndex++)
-        {
-            var child = VisualTreeHelper.GetChild(root, childIndex);
-            if (child is T target)
-            {
-                return target;
-            }
-
-            var nested = FindDescendant<T>(child);
-            if (nested is not null)
-            {
-                return nested;
-            }
-        }
-
-        return null;
     }
 
     private string BuildRuntimeStateText()

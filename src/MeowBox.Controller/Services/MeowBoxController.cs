@@ -48,7 +48,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private int _osdDurationMs = RuntimeDefaults.DefaultOsdDurationMs;
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
-    private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
+    private int _osdSizePercent = 100;
     private bool _capsLockOsdEnabled = true;
     private int _touchpadLightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
     private int _touchpadLightPressReleaseThreshold = RuntimeDefaults.DefaultTouchpadLightPressReleaseThreshold;
@@ -327,10 +327,10 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         private set => SetProperty(ref _osdBackgroundOpacityPercent, value);
     }
 
-    public int OsdScalePercent
+    public int OsdSizePercent
     {
-        get => _osdScalePercent;
-        private set => SetProperty(ref _osdScalePercent, value);
+        get => _osdSizePercent;
+        private set => SetProperty(ref _osdSizePercent, value);
     }
 
     public bool CapsLockOsdEnabled
@@ -789,17 +789,17 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         SaveConfiguration();
     }
 
-    public void ApplyOsdPreferences(int durationMs, string? displayMode, int backgroundOpacityPercent, int scalePercent)
+    public void ApplyOsdPreferences(int durationMs, string? displayMode, int backgroundOpacityPercent, int sizePercent)
     {
-        _configuration.Preferences.Osd.DurationMs = Math.Clamp(durationMs, 500, 10000);
+        _configuration.Preferences.Osd.DurationMs = OsdPreferences.NormalizeDuration(durationMs);
         _configuration.Preferences.Osd.DisplayMode = displayMode switch
         {
             OsdDisplayModes.IconOnly => OsdDisplayModes.IconOnly,
             OsdDisplayModes.TextOnly => OsdDisplayModes.TextOnly,
             _ => OsdDisplayModes.IconAndText
         };
-        _configuration.Preferences.Osd.BackgroundOpacityPercent = Math.Clamp(backgroundOpacityPercent, 0, 100);
-        _configuration.Preferences.Osd.ScalePercent = Math.Clamp(scalePercent, 60, 200);
+        _configuration.Preferences.Osd.BackgroundOpacityPercent = OsdPreferences.NormalizeOpacity(backgroundOpacityPercent);
+        _configuration.Preferences.Osd.SizePercent = OsdPreferences.NormalizeSize(sizePercent);
 
         SyncOsdPreferenceState();
         SaveConfiguration();
@@ -1086,15 +1086,15 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private void SyncOsdPreferenceState()
     {
         var osd = _configuration.Preferences.Osd;
-        OsdDurationMs = Math.Clamp(osd.DurationMs, 500, 10000);
+        OsdDurationMs = OsdPreferences.NormalizeDuration(osd.DurationMs);
         OsdDisplayMode = osd.DisplayMode switch
         {
             OsdDisplayModes.IconOnly => OsdDisplayModes.IconOnly,
             OsdDisplayModes.TextOnly => OsdDisplayModes.TextOnly,
             _ => OsdDisplayModes.IconAndText
         };
-        OsdBackgroundOpacityPercent = Math.Clamp(osd.BackgroundOpacityPercent, 0, 100);
-        OsdScalePercent = Math.Clamp(osd.ScalePercent, 60, 200);
+        OsdBackgroundOpacityPercent = OsdPreferences.NormalizeOpacity(osd.BackgroundOpacityPercent);
+        OsdSizePercent = OsdPreferences.NormalizeSize(osd.SizePercent);
         CapsLockOsdEnabled = osd.ShowCapsLock;
     }
 

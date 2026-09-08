@@ -56,7 +56,21 @@ public sealed class OsdPreferences
 
     public int BackgroundOpacityPercent { get; set; } = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
 
-    public int ScalePercent { get; set; } = RuntimeDefaults.DefaultOsdScalePercent;
+    // Keep the stored scale compatible; 65 in the existing config is 100% in the UI.
+    public double ScalePercent { get; set; } = RuntimeDefaults.DefaultOsdScalePercent;
+
+    [JsonIgnore]
+    public int SizePercent
+    {
+        get => (int)Math.Round(ScalePercent / RuntimeDefaults.DefaultOsdScalePercent * 100);
+        set => ScalePercent = value * RuntimeDefaults.DefaultOsdScalePercent / 100d;
+    }
+
+    public static int NormalizeDuration(int value) => (int)Math.Round(Math.Clamp(value, 200, 2000) / 100d, MidpointRounding.AwayFromZero) * 100;
+
+    public static int NormalizeOpacity(int value) => (int)Math.Round(Math.Clamp(value, 0, 100) / 10d, MidpointRounding.AwayFromZero) * 10;
+
+    public static int NormalizeSize(int value) => (int)Math.Round(Math.Clamp(value, 50, 200) / 10d, MidpointRounding.AwayFromZero) * 10;
 }
 
 public sealed class KeyDefinitionConfiguration
@@ -282,7 +296,7 @@ public static class RuntimeDefaults
 {
     public const int DefaultOsdDurationMs = 800;
     public const int DefaultOsdBackgroundOpacityPercent = 20;
-    public const int DefaultOsdScalePercent = 75;
+    public const int DefaultOsdScalePercent = 65;
     public const int DefaultTouchpadLightPressThreshold = 125;
     public const int DefaultTouchpadLightPressReleaseThreshold = 41;
     public const int DefaultTouchpadDeepPressThreshold = 500;
