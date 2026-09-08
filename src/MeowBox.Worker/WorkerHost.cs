@@ -639,9 +639,12 @@ internal sealed class WorkerHost : IDisposable
             case HotkeyActionType.CyclePerformanceMode:
                 return ExecuteCyclePerformanceModeAction();
             case HotkeyActionType.ShowFnLockOsd:
-            case HotkeyActionType.ShowCapsLockOsd:
             case HotkeyActionType.ShowKeyboardBacklightOsd:
                 return ResolveBuiltInActionOsd(action.Type, inputEvent?.ReportHex);
+            case HotkeyActionType.ShowCapsLockOsd:
+                return _configuration.Preferences.Osd.ShowCapsLock
+                    ? ResolveBuiltInActionOsd(action.Type, inputEvent?.ReportHex)
+                    : null;
             case HotkeyActionType.SendStandardKey:
                 _nativeActionService.SendConfiguredKeyChord(action.KeyChord);
                 return null;

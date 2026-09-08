@@ -111,6 +111,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
                                 <TextBlock x:Uid="OsdSettingsTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="OSD" />
@@ -134,6 +135,18 @@
                                     <NumberBox x:Uid="OsdDurationNumberBox" x:Name="OsdDurationNumberBox" Grid.Column="1" Header="OSD duration (ms)" Minimum="500" Maximum="10000" SmallChange="100" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
                                     <NumberBox x:Uid="OsdBackgroundOpacityNumberBox" x:Name="OsdBackgroundOpacityNumberBox" Grid.Row="1" Header="Background opacity (%)" Minimum="0" Maximum="100" SmallChange="5" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
                                     <NumberBox x:Uid="OsdScaleNumberBox" x:Name="OsdScaleNumberBox" Grid.Row="1" Grid.Column="1" Header="OSD size (%)" Minimum="60" Maximum="200" SmallChange="10" SpinButtonPlacementMode="Inline" ValueChanged="OnOsdNumberValueChanged" />
+                                </Grid>
+
+                                <Grid Grid.Row="2" Margin="0,12,0,0" ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="3">
+                                        <TextBlock x:Uid="CapsLockOsdTitleText" Style="{StaticResource CardTitleTextBlockStyle}" Text="Caps Lock OSD" />
+                                        <TextBlock x:Uid="CapsLockOsdDescriptionText" Style="{StaticResource CaptionTextBlockStyle}" Text="Show the Caps Lock state when it changes." TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                    <ToggleSwitch x:Name="CapsLockOsdToggleSwitch" Grid.Column="1" Toggled="OnCapsLockOsdChanged" />
                                 </Grid>
                             </Grid>
                         </Border>

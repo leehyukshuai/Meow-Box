@@ -327,6 +327,12 @@
   <data name="OsdScaleNumberBox.Header" xml:space="preserve">
     <value>OSD size (%)</value>
   </data>
+  <data name="CapsLockOsdTitleText.Text" xml:space="preserve">
+    <value>Caps Lock OSD</value>
+  </data>
+  <data name="CapsLockOsdDescriptionText.Text" xml:space="preserve">
+    <value>Show the Caps Lock state when it changes.</value>
+  </data>
   <data name="ClearActionButtonText.Content" xml:space="preserve">
     <value>Clear action</value>
   </data>

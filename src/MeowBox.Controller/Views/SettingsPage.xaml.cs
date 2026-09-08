@@ -46,7 +46,8 @@ public sealed partial class SettingsPage : Page
             nameof(MeowBoxController.OsdDurationMs) or
             nameof(MeowBoxController.OsdDisplayMode) or
             nameof(MeowBoxController.OsdBackgroundOpacityPercent) or
-            nameof(MeowBoxController.OsdScalePercent))
+            nameof(MeowBoxController.OsdScalePercent) or
+            nameof(MeowBoxController.CapsLockOsdEnabled))
         {
             DispatcherQueue.TryEnqueue(SyncState);
         }
@@ -65,6 +66,7 @@ public sealed partial class SettingsPage : Page
         OsdDurationNumberBox.Value = Controller.OsdDurationMs;
         OsdBackgroundOpacityNumberBox.Value = Controller.OsdBackgroundOpacityPercent;
         OsdScaleNumberBox.Value = Controller.OsdScalePercent;
+        CapsLockOsdToggleSwitch.IsOn = Controller.CapsLockOsdEnabled;
         ConfigPathTextBox.Text = Controller.ConfigPath;
         _isLoading = false;
     }
@@ -126,6 +128,16 @@ public sealed partial class SettingsPage : Page
     private void OnOsdNumberValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
         ApplyOsdSettingsFromControls();
+    }
+
+    private void OnCapsLockOsdChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        Controller.SetCapsLockOsdEnabled(CapsLockOsdToggleSwitch.IsOn);
     }
 
     private async void OnServiceStateChanged(object sender, RoutedEventArgs e)

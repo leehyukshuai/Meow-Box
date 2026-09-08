@@ -27,6 +27,7 @@ public static class SupportedDeviceConfiguration
                 ShowTrayIcon = true,
                 Osd = new OsdPreferences
                 {
+                    ShowCapsLock = true,
                     DisplayMode = OsdDisplayMode.IconOnly,
                     DurationMs = 800,
                     BackgroundOpacityPercent = 20,

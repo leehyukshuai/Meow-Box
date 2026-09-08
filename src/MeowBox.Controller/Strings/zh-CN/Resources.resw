@@ -327,6 +327,12 @@
   <data name="OsdScaleNumberBox.Header" xml:space="preserve">
     <value>OSD 大小（%）</value>
   </data>
+  <data name="CapsLockOsdTitleText.Text" xml:space="preserve">
+    <value>Caps Lock OSD</value>
+  </data>
+  <data name="CapsLockOsdDescriptionText.Text" xml:space="preserve">
+    <value>切换大写锁定状态时显示 OSD。</value>
+  </data>
   <data name="ClearActionButtonText.Content" xml:space="preserve">
     <value>清空动作</value>
   </data>

@@ -48,6 +48,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     private string _osdDisplayMode = OsdDisplayModes.IconOnly;
     private int _osdBackgroundOpacityPercent = RuntimeDefaults.DefaultOsdBackgroundOpacityPercent;
     private int _osdScalePercent = RuntimeDefaults.DefaultOsdScalePercent;
+    private bool _capsLockOsdEnabled = true;
     private int _touchpadLightPressThreshold = RuntimeDefaults.DefaultTouchpadLightPressThreshold;
     private int _touchpadLightPressReleaseThreshold = RuntimeDefaults.DefaultTouchpadLightPressReleaseThreshold;
     private int _touchpadDeepPressThreshold = RuntimeDefaults.DefaultTouchpadDeepPressThreshold;
@@ -303,6 +304,12 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
     {
         get => _osdScalePercent;
         private set => SetProperty(ref _osdScalePercent, value);
+    }
+
+    public bool CapsLockOsdEnabled
+    {
+        get => _capsLockOsdEnabled;
+        private set => SetProperty(ref _capsLockOsdEnabled, value);
     }
 
     public int TouchpadLongPressDurationMs
@@ -772,6 +779,14 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         _ = ReloadWorkerAsync();
     }
 
+    public void SetCapsLockOsdEnabled(bool enabled)
+    {
+        _configuration.Preferences.Osd.ShowCapsLock = enabled;
+        CapsLockOsdEnabled = enabled;
+        SaveConfiguration();
+        _ = ReloadWorkerAsync();
+    }
+
     public void ApplyTouchpadPreferences(
         int lightPressThreshold,
         int lightPressReleaseThreshold,
@@ -1053,6 +1068,7 @@ public sealed class MeowBoxController : ObservableObject, IDisposable
         };
         OsdBackgroundOpacityPercent = Math.Clamp(osd.BackgroundOpacityPercent, 0, 100);
         OsdScalePercent = Math.Clamp(osd.ScalePercent, 60, 200);
+        CapsLockOsdEnabled = osd.ShowCapsLock;
     }
 
     private async Task<WorkerResponse?> QueryWorkerStatusAsync(int timeoutMs)

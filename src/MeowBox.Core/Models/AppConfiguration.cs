@@ -48,6 +48,8 @@ public sealed class AppPreferences
 
 public sealed class OsdPreferences
 {
+    public bool ShowCapsLock { get; set; } = true;
+
     public string DisplayMode { get; set; } = OsdDisplayMode.IconOnly;
 
     public int DurationMs { get; set; } = RuntimeDefaults.DefaultOsdDurationMs;
